@@ -13,19 +13,49 @@ import './setup.mjs';
 const alla = (v) => ({ fysisk: v, psykisk: v, social: v, somn: v, kost: v, energi: v });
 
 test('psykisk hälsa går först när flera värden är lika låga', async () => {
-  const { generateSoldierAdvice, getSoldierTips } = await import('../src/lib/advice.ts');
+  const { getSoldierTips } = await import('../src/lib/advice.ts');
 
   // Alla kategorier exakt lika. Utan prioritering avgjorde objektets
   // nyckelordning, och soldaten möttes av råd om fysisk vila trots att den
   // psykiska hälsan var precis lika kritisk.
   const tips = getSoldierTips(alla(2));
-  assert.equal(tips[0].category, 'psykisk', 'psykisk hälsa ska vara första kortet vid lika värden');
 
-  const text = generateSoldierAdvice(alla(2));
+  assert.equal(tips[0].category, 'psykisk', 'psykisk hälsa ska vara första kortet vid lika värden');
   assert.ok(
-    text.includes('mentala hälsa'),
-    'huvudbudskapet ska handla om psykisk hälsa, inte om att vila från träning',
+    tips[0].why.length > 0,
+    'kortet ska förklara vad värdet betyder, inte bara lista åtgärder',
   );
+});
+
+test('förklaring och åtgärder säger inte samma sak', async () => {
+  const { getSoldierTips } = await import('../src/lib/advice.ts');
+
+  /*
+   * Tidigare fanns en prosatext och en punktlista som båda delade ut råd.
+   * Elva av tolv kombinationer upprepade sig — en soldat med lågt socialt
+   * värde läste "berätta för ditt befäl" två gånger i rad, och för energi på
+   * gul nivå sa alla tre punkterna exakt det stycket ovanför redan sagt.
+   */
+  const bra = { fysisk: 8, psykisk: 8, social: 8, somn: 8, kost: 8, energi: 8 };
+  const nyckelord =
+    /\b(befäl|kurator|vila|koffein|frukost|vatten|promenad|mellanmål|kamrat|sjukvårdsutbildad|skärmar)\b/g;
+
+  for (const cat of ['fysisk', 'psykisk', 'social', 'somn', 'kost', 'energi']) {
+    for (const värde of [5, 2]) {
+      const tip = getSoldierTips({ ...bra, [cat]: värde })[0];
+      const why = tip.why.toLowerCase();
+
+      for (const punkt of tip.tips) {
+        const ord = punkt.toLowerCase().match(nyckelord) ?? [];
+        const upprepning = ord.find((o) => why.includes(o));
+        assert.ok(
+          !upprepning,
+          `${cat} (${värde}): punkten "${punkt}" upprepar förklaringen (ordet "${upprepning}"). ` +
+            'Förklaringen ska säga vad värdet betyder, punkterna vad man gör.',
+        );
+      }
+    }
+  }
 });
 
 test('vid röda värden visas inga tips om gula områden', async () => {

@@ -1,36 +1,40 @@
 import { type Category, getStatus, type Status } from './data';
 
-// Main advice per category — full sentence, context-aware
-const soldierAdvice: Record<Category, Record<Status, string>> = {
+/*
+ * Vad ett värde BETYDER — inte vad man ska göra åt det.
+ *
+ * Tidigare fanns en prosatext per kategori som också delade ut råd, samtidigt
+ * som tipspunkterna gjorde detsamma. Elva av tolv kombinationer upprepade sig
+ * därför, och för energi på gul nivå sa alla tre punkterna exakt det stycket
+ * ovanför redan sagt. Två textblock hade samma uppgift.
+ *
+ * Nu har de olika: den här texten förklarar läget, punkterna nedan säger vad
+ * man gör. Därför står det inga uppmaningar här — de hör hemma i punkterna.
+ */
+const categoryContext: Record<Category, { yellow: string; red: string }> = {
   fysisk: {
-    green: 'Din kropp håller sig bra. Kom ihåg att stretcha 5–10 minuter efter träning och dricka minst 2 liter vatten per dag.',
-    yellow: 'Du känner av viss fysisk belastning. Ta det lugnare med intensiteten, prioritera rörlighetsövningar och ge kroppen tid att återhämta sig mellan passen.',
-    red: 'Du mår fysiskt dåligt och kroppen signalerar att något behöver åtgärdas. Vila från tung belastning och kontakta sjukvårdsutbildad i kompaniet — tidig åtgärd förhindrar längre bortfall.',
+    yellow: 'Belastningen är hög i förhållande till din återhämtning. Kroppen hinner inte ikapp mellan passen.',
+    red: 'Kroppen signalerar att något behöver åtgärdas. Kör du vidare som vanligt riskerar du en skada som tar veckor i stället för dagar.',
   },
   psykisk: {
-    green: 'Du hanterar belastningen bra mentalt. Regelbundna rutiner, rörelse och kontakt med kamrater håller huvudet i trim — fortsätt med det.',
-    yellow: 'Du visar tecken på mental stress. Prata med en kamrat du litar på, ta korta pauser under dagen och håll sömnrutinerna stabila. Det räcker långt.',
-    red: 'Din mentala hälsa behöver stöd nu. Det är styrka att söka hjälp — prata med befäl eller kompaniets kurator. Du behöver inte bära detta ensam.',
+    yellow: 'Mental belastning smyger sig på. Den är betydligt lättare att vända nu än om några veckor.',
+    red: 'Det här är en nivå där du behöver stöd från någon annan. Det är inte svaghet — det är så det fungerar för alla.',
   },
   social: {
-    green: 'Du trivs bra i gruppen. Din närvaro och engagemang smittar av sig — fortsätt vara en del av gemenskapen.',
-    yellow: 'Du verkar ha det lite svårt socialt just nu. Ta initiativet och bjud in en kamrat till middagen eller en kortare aktivitet — det brukar lossna snabbt.',
-    red: 'Du mår dåligt i gruppen och det påverkar dig. Berätta för ditt befäl — de kan hjälpa dig utan att det behöver bli en stor grej.',
+    yellow: 'Att känna sig lite utanför är vanligare än nästan alla tror. De flesta i din grupp har haft samma känsla utan att säga det.',
+    red: 'Att inte trivas i gruppen tär på allt annat: sömnen, orken, motivationen. Det är inget du ska behöva lösa på egen hand.',
   },
   somn: {
-    green: 'Du sover bra och det syns på prestationen. Håll skärmar borta 30 minuter innan läggdags och behåll samma sovtider även på lediga dagar.',
-    yellow: 'Din sömn är inte optimal. Undvik koffein efter kl 14, mörklägg sovrummet och försök lägga dig samma tid varje kväll. Tre nätter med bättre sömn gör stor skillnad.',
-    red: 'Du sover mycket dåligt och det är allvarligt — sömnbrist ökar skaderisken och försämrar beslutförmågan kraftigt. Informera ditt befäl så att ni kan hitta en lösning.',
+    yellow: 'Sömnen räcker inte till för den belastning du har just nu.',
+    red: 'Sömnbrist på den här nivån försämrar omdöme och reaktionsförmåga mätbart, och ökar risken för olyckor i tjänst.',
   },
   kost: {
-    green: 'Du äter bra och ger kroppen rätt bränsle. Ät ett litet kolhydratrikt mellanmål inom 30 minuter efter tung träning för snabbare återhämtning.',
-    yellow: 'Din kost kan förbättras. Hoppa inte över frukost eller lunch — det slår direkt på energi och koncentration under resten av dagen.',
-    red: 'Du äter otillräckligt och det påverkar allt: energi, fokus och skadeprevention. Berätta för befäl om det finns praktiska hinder — tillräckligt matintag är inte valfritt under tjänst.',
+    yellow: 'Du får i dig mindre än kroppen gör av med.',
+    red: 'Otillräckligt matintag slår mot allt på en gång: ork, fokus och återhämtning. Under tjänst är det ingen detalj.',
   },
   energi: {
-    green: 'Du har god energi. Håll koll på vätskeintaget — dehydrering är den vanligaste och enklaste orsaken till energitapp under tjänst.',
-    yellow: 'Din energi är lägre än normalt. Drick mer vatten, ät ett litet mellanmål och ta en kort 5–10 minuters promenad om du kan — det hjälper mer än du tror.',
-    red: 'Du har extremt låg energi vilket kan vara tecken på sjukdom, överträning eller sömnbrist. Vila och berätta för din lagledare om det inte förbättras.',
+    yellow: 'Energin ligger under din normala nivå.',
+    red: 'Så här låg energi är nästan alltid ett symptom på något annat — sömn, mat, sjukdom eller stress.',
   },
 };
 
@@ -71,6 +75,9 @@ const actionTips: Record<Category, Record<Status, string[]>> = {
 export interface SoldierTip {
   category: Category;
   title: string;
+  /** Vad värdet betyder. Ingen uppmaning — den ligger i `tips`. */
+  why: string;
+  /** Konkreta saker att göra. */
   tips: string[];
 }
 
@@ -113,17 +120,29 @@ export function getSoldierTips(scores: Record<Category, number>): SoldierTip[] {
   const red = sorted.filter(([, score]) => getStatus(score) === 'red');
   const relevant = (red.length > 0 ? red : sorted.filter(([, s]) => s < 7)).slice(0, 2);
 
-  return relevant.map(([cat, score]) => ({
-    category: cat,
-    title: catLabel[cat],
-    tips: actionTips[cat][getStatus(score)],
-  }));
+  return relevant.map(([cat, score]) => {
+    const status = getStatus(score);
+    return {
+      category: cat,
+      title: catLabel[cat],
+      // Grön ger aldrig tips, så bara gul och röd behöver en förklaring.
+      why: status === 'red' ? categoryContext[cat].red : categoryContext[cat].yellow,
+      tips: actionTips[cat][status],
+    };
+  });
 }
 
+/**
+ * Sammanfattar helhetsbilden.
+ *
+ * Nämner medvetet ingen enskild kategori — den detaljen bärs av tipskorten
+ * strax under, och att säga samma sak två gånger i rad får det andra kortet
+ * att kännas överflödigt. Här står bara hur det ser ut totalt sett.
+ */
 export function generateSoldierAdvice(scores: Record<Category, number>): string {
   const values = Object.values(scores);
   const overall = values.reduce((a, b) => a + b, 0) / values.length;
-  const [worstCat, worstScore] = byUrgency(scores)[0];
+  const [, worstScore] = byUrgency(scores)[0];
   const status = getStatus(worstScore);
 
   /*
@@ -142,18 +161,22 @@ export function generateSoldierAdvice(scores: Record<Category, number>): string 
 
   const redCount = values.filter((v) => getStatus(v) === 'red').length;
 
-  let intro: string;
   if (redCount >= 3) {
-    intro = 'Du rapporterar låga värden på flera håll samtidigt. Det är för mycket att bära själv, och du behöver inte göra det. ';
-  } else if (status === 'red') {
-    intro = 'Ett av dina värden ligger på en nivå som behöver åtgärdas nu. ';
-  } else if (overall >= 6) {
-    intro = 'Du ligger bra överlag, men ett område släpar efter. ';
-  } else {
-    intro = 'Ditt mående är ojämnt — börja med det som ligger lägst. ';
+    return (
+      'Du rapporterar låga värden på flera håll samtidigt. Det är för mycket ' +
+      'att bära själv, och du behöver inte göra det. Börja med det som står först nedan.'
+    );
   }
-
-  return `${intro}${soldierAdvice[worstCat][status]}`;
+  if (status === 'red') {
+    return (
+      'Det mesta ser rimligt ut, men ett värde ligger på en nivå som behöver ' +
+      'åtgärdas nu. Det står nedan.'
+    );
+  }
+  if (overall >= 6) {
+    return 'Du ligger bra överlag. Ett område släpar efter — det är värt att fånga upp innan det blir större.';
+  }
+  return 'Ditt mående är ojämnt idag. Ta det som ligger lägst först; resten brukar följa med.';
 }
 
 /**

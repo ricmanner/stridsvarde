@@ -139,7 +139,9 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                 background: 'white', border: '1px solid #E2E8F0', borderLeft: `3px solid ${ti === 0 ? '#DC2626' : '#D97706'}`,
                 borderRadius: 6, padding: '14px 20px', marginBottom: ti < tips.length - 1 ? 8 : 16,
               }}>
-                <p style={{ color: '#475569', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 8px' }}>{tip.title}</p>
+                <p style={{ color: '#475569', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 6px' }}>{tip.title}</p>
+                {/* Vad värdet betyder. Punkterna under säger vad man gör. */}
+                <p style={{ color: '#334155', fontSize: 13, lineHeight: 1.6, margin: '0 0 10px' }}>{tip.why}</p>
                 <ul style={{ margin: 0, paddingLeft: 16 }}>
                   {tip.tips.map((t, i) => (
                     <li key={i} style={{ color: '#334155', fontSize: 13, lineHeight: 1.6, marginBottom: i < tip.tips.length - 1 ? 4 : 0 }}>{t}</li>
