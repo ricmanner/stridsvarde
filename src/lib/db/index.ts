@@ -5,7 +5,8 @@ import { sql } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/libsql/migrator';
 
 import { backupIfNeeded } from './backup';
-import { applyPragmas, db, dbPath } from './client';
+import { applyPragmas, db, dbPath, isSeedDemoData } from './client';
+import { purgeExpiredCheckIns } from './retention';
 import { seedIfNeeded } from './seed';
 import { checkIns, units, users } from './schema';
 
@@ -33,17 +34,58 @@ export function ensureDb(): Promise<void> {
   return initPromise;
 }
 
+/**
+ * Vägrar starta i skarp drift med demodata påslaget.
+ *
+ * Demokoderna (ADMIN-01, BEF-BAT, P1G1-01 …) är läsbara och gissningsbara.
+ * De är helt i sin ordning vid utveckling och demonstration, men skulle bli
+ * riktiga konton till riktig hälsodata om flaggan råkade följa med till
+ * produktion. Det får inte hänga på att någon kommer ihåg att ändra en rad i
+ * en miljöfil, så servern stannar i stället.
+ *
+ * Kontrollen görs i två steg: dels flaggan, dels om en känd demokod faktiskt
+ * finns i databasen — det fångar fallet att en demodatabas flyttas till
+ * skarp drift med flaggan avslagen.
+ */
+async function assertNotDemoInProduction(): Promise<void> {
+  if (process.env.NODE_ENV !== 'production') return;
+
+  if (isSeedDemoData()) {
+    throw new Error(
+      'SEED_DEMO_DATA=true i produktion. Demokoderna är gissningsbara och får ' +
+        'inte användas mot riktig hälsodata. Sätt SEED_DEMO_DATA=false.',
+    );
+  }
+
+  const { hashCode } = await import('../auth/codes');
+  const [row] = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(users)
+    .where(sql`code_hash IN (${hashCode('ADMIN-01')}, ${hashCode('BEF-BAT')}, ${hashCode('P1G1-01')})`);
+
+  if (Number(row?.n ?? 0) > 0) {
+    throw new Error(
+      'Databasen innehåller demokonton med kända koder. En demodatabas får ' +
+        'inte användas i produktion — börja från en tom databas.',
+    );
+  }
+}
+
 async function init(): Promise<void> {
   // Migrationerna först — SQLite bygger ibland om tabeller, vilket krockar
   // med påslagna foreign keys.
   await migrate(db, { migrationsFolder: path.join(process.cwd(), 'drizzle') });
   await applyPragmas();
   await seedIfNeeded();
+  await assertNotDemoInProduction();
 
   // Hjälper SQLites frågeplanerare att välja rätt index för aggregaten.
   await db.run(sql`ANALYZE`);
 
+  // Säkerhetskopian tas FÖRE gallringen, så att en felaktigt satt
+  // lagringstid inte raderar data som inte finns kvar någon annanstans.
   await backupIfNeeded();
+  await purgeExpiredCheckIns();
 }
 
 export interface DbStatus {

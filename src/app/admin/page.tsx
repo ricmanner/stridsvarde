@@ -10,6 +10,7 @@ import {
   getUnitTree,
   getUsersInUnit,
 } from '@/lib/db/queries/admin';
+import { retentionStatus } from '@/lib/db/retention';
 
 import UnitDetail from './UnitDetail';
 
@@ -22,7 +23,11 @@ export default async function AdminPage({
 }) {
   const session = await requireRole('admin');
 
-  const [tree, stats] = await Promise.all([getUnitTree(), getAdminStats()]);
+  const [tree, stats, retention] = await Promise.all([
+    getUnitTree(),
+    getAdminStats(),
+    retentionStatus(),
+  ]);
 
   const requested = Number((await searchParams).unit);
   const selectedId = tree.some((n) => n.id === requested) ? requested : tree[0]?.id;
@@ -39,6 +44,34 @@ export default async function AdminPage({
           <StatCard icon={<Users size={15} />} label="Soldater" value={stats.soldiers} />
           <StatCard icon={<ShieldCheck size={15} />} label="Befäl" value={stats.leaders} />
           <StatCard icon={<UserX size={15} />} label="Spärrade" value={stats.inactive} />
+        </div>
+
+        {/* Lagringstid — beslutet är Försvarsmaktens, inte appens. */}
+        <div className="no-print mb-6 rounded-md border border-slate-200 bg-white px-4 py-3">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+              Gallring av hälsodata
+            </span>
+            {retention.enabled ? (
+              <span className="text-sm text-slate-700">
+                Aktiv — sparas i {retention.days} dagar.
+                {retention.affected > 0 && ` ${retention.affected} poster raderas vid nästa start.`}
+              </span>
+            ) : (
+              <span className="text-sm text-slate-700">
+                Avstängd — incheckningar sparas tills vidare.
+              </span>
+            )}
+            {retention.oldest && (
+              <span className="text-xs text-slate-400">äldsta uppgift: {retention.oldest}</span>
+            )}
+          </div>
+          {!retention.enabled && (
+            <p className="mt-1 text-xs leading-relaxed text-slate-400">
+              GDPR tillåter inte att hälsodata sparas längre än nödvändigt. Lagringstiden
+              sätts med RETENTION_DAYS och bör beslutas av Försvarsmaktens dataskyddsombud.
+            </p>
+          )}
         </div>
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">

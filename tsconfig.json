@@ -5,6 +5,9 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    // Typimporter måste märkas med `type`. Utan det kan Node inte skilja
+    // dem från värden när testerna kör källkoden direkt.
+    "verbatimModuleSyntax": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",

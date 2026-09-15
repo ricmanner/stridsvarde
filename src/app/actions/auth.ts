@@ -7,6 +7,7 @@ import { eq } from 'drizzle-orm';
 import { hashCode } from '@/lib/auth/codes';
 import {
   checkRateLimit,
+  clearAttempts,
   pruneAttempts,
   recordAttempt,
   requestIpHash,
@@ -50,7 +51,10 @@ export async function loginAction(
   const gate = await checkRateLimit(ipHash);
   if (!gate.allowed) {
     await pad(started, gate.backoffMs);
-    return { error: 'För många misslyckade försök. Vänta en stund och försök igen.' };
+    const min = Math.ceil(gate.retryAfterSec / 60);
+    return {
+      error: `För många misslyckade försök. Försök igen om ${min} ${min === 1 ? 'minut' : 'minuter'}.`,
+    };
   }
 
   const [user] = await db
@@ -68,6 +72,9 @@ export async function loginAction(
     // tillhörde ett avaktiverat konto — annars blir felet en upplysningskanal.
     return { error: 'Ogiltig kod. Kontrollera att du skrivit rätt och försök igen.' };
   }
+
+  // Den som kan sin kod ska inte släpa på tidigare feltryckningar.
+  await clearAttempts(ipHash);
 
   await createSession(user.id, user.role);
 

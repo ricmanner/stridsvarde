@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react';
 import { Activity, Brain, Users, Moon, Utensils, Zap, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import ScoreSlider from '@/components/ScoreSlider';
-import { CATEGORIES, Category, getStatus, statusColor } from '@/lib/data';
+import { CATEGORIES, type Category, getStatus, statusColor } from '@/lib/data';
 import { submitCheckIn, type CheckInState } from '@/app/actions/checkin';
 
 const ICONS: Record<string, React.ReactNode> = {

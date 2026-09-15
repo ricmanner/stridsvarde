@@ -106,19 +106,27 @@ export const getUnitCategorySeries = cache(
     `)) as Row[];
 
     return rows.map((row) => {
-      const hasScores = row.overall !== null;
+      /*
+       * Varje kategori kontrolleras för sig, i stället för att lita på att
+       * `overall` är null. Skillnaden spelar roll: skulle k-anonymiteten
+       * försvinna ur SQL:en för kategorierna men finnas kvar för `overall`,
+       * skulle en genväg här tyst dölja läckan i stället för att avslöja den.
+       * Nu speglar utdatan exakt vad databasen lämnade ifrån sig.
+       */
+      const suppressed = CAT_KEYS.some((k2) => row[k2] === null);
+
       return {
         date: String(row.date),
         label: shortLabel(String(row.date)),
         responders: Number(row.responders),
         eligible: Number(row.eligible),
-        overall: hasScores ? Number(row.overall) : null,
-        scores: hasScores
-          ? (Object.fromEntries(CAT_KEYS.map((k2) => [k2, Number(row[k2])])) as Record<
+        overall: row.overall === null ? null : Number(row.overall),
+        scores: suppressed
+          ? null
+          : (Object.fromEntries(CAT_KEYS.map((k2) => [k2, Number(row[k2])])) as Record<
               Category,
               number
-            >)
-          : null,
+            >),
       };
     });
   },

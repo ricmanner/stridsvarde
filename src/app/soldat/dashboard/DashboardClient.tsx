@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Activity, Brain, Users, Moon, Utensils, Zap, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from 'recharts';
 import StatusBadge from '@/components/StatusBadge';
-import { CATEGORIES, Category, getStatus, statusColor, avgScore } from '@/lib/data';
+import { CATEGORIES, type Category, getStatus, statusColor, avgScore } from '@/lib/data';
 import { getSoldierTips } from '@/lib/advice';
 import SupportBlock from './SupportBlock';
 

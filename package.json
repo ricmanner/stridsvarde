@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "aterstall-admin": "node scripts/aterstall-admin.mjs"
+    "aterstall-admin": "node scripts/aterstall-admin.mjs",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

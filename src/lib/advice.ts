@@ -1,4 +1,4 @@
-import { Category, getStatus, Status } from './data';
+import { type Category, getStatus, type Status } from './data';
 
 // Main advice per category — full sentence, context-aware
 const soldierAdvice: Record<Category, Record<Status, string>> = {

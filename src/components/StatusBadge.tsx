@@ -1,4 +1,4 @@
-import { Status, statusColor, statusBg, statusLabel } from '@/lib/data';
+import { type Status, statusColor, statusBg, statusLabel } from '@/lib/data';
 
 interface Props {
   status: Status;
