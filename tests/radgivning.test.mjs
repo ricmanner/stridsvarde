@@ -102,6 +102,46 @@ test('den som mår bra får beröm, inte en pekpinne', async () => {
   );
 });
 
+test('sammanfattningen påstår aldrig ett annat antal än vad som visas', async () => {
+  const { generateSoldierAdvice, getSoldierTips } = await import('../src/lib/advice.ts');
+
+  /*
+   * Felet som gav upphov till testet: texten sa "ett värde ligger på en nivå
+   * som behöver åtgärdas" medan två kort visades. Summeringen och korten
+   * räknade oberoende av varandra, så de kunde säga emot varandra.
+   *
+   * Här prövas varenda kombination av grön, gul och röd över sex kategorier —
+   * 729 fall. Räcker för att fånga varje gräns.
+   */
+  const cats = ['fysisk', 'psykisk', 'social', 'somn', 'kost', 'energi'];
+  const nivåer = [8, 5, 2]; // grön, gul, röd
+
+  let prövade = 0;
+
+  const gåIgenom = (i, scores) => {
+    if (i === cats.length) {
+      prövade++;
+      const text = generateSoldierAdvice(scores);
+      const antal = getSoldierTips(scores).length;
+
+      if (/\bett värde\b|\bEtt område\b|\bOmrådet nedan\b/.test(text)) {
+        assert.equal(antal, 1, `"${text}" lovar ett kort men ${antal} visas: ${JSON.stringify(scores)}`);
+      }
+      if (/\bTvå av dina värden\b|\bTvå områden\b|\bde två områdena\b/.test(text)) {
+        assert.equal(antal, 2, `"${text}" lovar två kort men ${antal} visas: ${JSON.stringify(scores)}`);
+      }
+      if (text.includes('samtliga kategorier')) {
+        assert.equal(antal, 0, 'beröm för allt grönt får inte visas tillsammans med tipskort');
+      }
+      return;
+    }
+    for (const v of nivåer) gåIgenom(i + 1, { ...scores, [cats[i]]: v });
+  };
+
+  gåIgenom(0, {});
+  assert.equal(prövade, 3 ** 6, 'alla kombinationer ska ha prövats');
+});
+
 test('ett enskilt rött värde skiljs från en bred nedgång', async () => {
   const { generateSoldierAdvice } = await import('../src/lib/advice.ts');
 

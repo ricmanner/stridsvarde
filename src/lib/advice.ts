@@ -115,12 +115,25 @@ function byUrgency(scores: Record<Category, number>): [Category, number][] {
  * om att bjuda en kamrat på middag bredvid rådet att söka hjälp. Det drar ned
  * allvaret i det som faktiskt är akut.
  */
-export function getSoldierTips(scores: Record<Category, number>): SoldierTip[] {
+/** Högsta antal kort. Fler än så slutar man läsa. */
+const MAX_TIPS = 2;
+
+/**
+ * Vilka kategorier som blir kort.
+ *
+ * Delas av tipskorten och sammanfattningen. Räknade de var för sig kunde de
+ * säga emot varandra — och gjorde det: sammanfattningen påstod "ett värde"
+ * medan två kort visades, eftersom gränsen för "flera" låg vid tre röda men
+ * texten för ett rött täckte även fallet med två.
+ */
+function relevantCategories(scores: Record<Category, number>): [Category, number][] {
   const sorted = byUrgency(scores);
   const red = sorted.filter(([, score]) => getStatus(score) === 'red');
-  const relevant = (red.length > 0 ? red : sorted.filter(([, s]) => s < 7)).slice(0, 2);
+  return (red.length > 0 ? red : sorted.filter(([, s]) => s < 7)).slice(0, MAX_TIPS);
+}
 
-  return relevant.map(([cat, score]) => {
+export function getSoldierTips(scores: Record<Category, number>): SoldierTip[] {
+  return relevantCategories(scores).map(([cat, score]) => {
     const status = getStatus(score);
     return {
       category: cat,
@@ -161,22 +174,36 @@ export function generateSoldierAdvice(scores: Record<Category, number>): string 
 
   const redCount = values.filter((v) => getStatus(v) === 'red').length;
 
-  if (redCount >= 3) {
+  /*
+   * Fler röda än vad som får plats som kort. Då nämns inget antal alls —
+   * "flera" är både sant och begripligt, och soldaten behöver inte en exakt
+   * siffra på hur illa det är.
+   */
+  if (redCount > MAX_TIPS) {
     return (
       'Du rapporterar låga värden på flera håll samtidigt. Det är för mycket ' +
       'att bära själv, och du behöver inte göra det. Börja med det som står först nedan.'
     );
   }
+
+  // Antalet kort som faktiskt visas. Texten måste stämma med skärmen.
+  const shown = relevantCategories(scores).length;
+
   if (status === 'red') {
-    return (
-      'Det mesta ser rimligt ut, men ett värde ligger på en nivå som behöver ' +
-      'åtgärdas nu. Det står nedan.'
-    );
+    return shown === 1
+      ? 'Det mesta ser rimligt ut, men ett värde ligger på en nivå som behöver åtgärdas nu. Det står nedan.'
+      : 'Två av dina värden ligger på en nivå som behöver åtgärdas nu. Båda står nedan.';
   }
+
   if (overall >= 6) {
-    return 'Du ligger bra överlag. Ett område släpar efter — det är värt att fånga upp innan det blir större.';
+    return shown === 1
+      ? 'Du ligger bra överlag. Ett område släpar efter — det är värt att fånga upp innan det blir större.'
+      : 'Du ligger bra överlag. Två områden släpar efter — värda att fånga upp innan de blir större.';
   }
-  return 'Ditt mående är ojämnt idag. Ta det som ligger lägst först; resten brukar följa med.';
+
+  return shown === 1
+    ? 'Ditt mående är ojämnt idag. Området nedan ligger lägst — ta det först.'
+    : 'Ditt mående är ojämnt idag. Ta de två områdena nedan i tur och ordning; resten brukar följa med.';
 }
 
 /**
