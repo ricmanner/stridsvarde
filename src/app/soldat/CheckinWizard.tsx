@@ -145,6 +145,7 @@ export default function SoldatCheckin({ initial, editing = false }: Props) {
             <ScoreSlider
               value={score}
               color={color}
+              label={cat.question}
               onChange={v => setScores(prev => ({ ...prev, [cat.key]: v }))}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>

@@ -17,7 +17,7 @@ import { SESSION_COOKIE } from '@/lib/auth/constants';
  * inklusive förladdningar, och skulle serialisera hela appen mot vår enda
  * databasanslutning.
  */
-const PUBLIC_PATHS = new Set(['/', '/ingen-behorighet', '/status']);
+const PUBLIC_PATHS = new Set(['/', '/ingen-behorighet']);
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

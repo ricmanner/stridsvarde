@@ -1,9 +1,14 @@
+import { requireRole } from '@/lib/auth/guard';
 import { dbStatus } from '@/lib/db';
 
 // Statussidan ska alltid visa verkligt läge, aldrig ett cachat.
 export const dynamic = 'force-dynamic';
 
 export default async function StatusPage() {
+  // Teknisk sida: avslöjar organisationens storlek och databasens sökväg på
+  // disk. Inget hälsodata, men inget som ska vara läsbart för omvärlden heller.
+  await requireRole('admin');
+
   let status: Awaited<ReturnType<typeof dbStatus>> | null = null;
   let error: string | null = null;
 

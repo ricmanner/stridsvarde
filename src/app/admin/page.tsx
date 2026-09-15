@@ -86,6 +86,7 @@ export default async function AdminPage({
                   kindLabel: KIND_LABEL[selected.kind as keyof typeof KIND_LABEL],
                 }}
                 members={members}
+                currentUserId={session.id}
               />
             ) : (
               <p className="text-sm text-slate-500">Ingen enhet vald.</p>

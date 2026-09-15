@@ -234,9 +234,14 @@ export async function createUsers(
 /**
  * Spärrar den gamla koden och utfärdar en ny.
  *
- * Alla aktiva sessioner för användaren avslutas samtidigt — annars skulle den
- * som har den gamla lappen kunna fortsätta vara inloggad efter att koden
- * spärrats.
+ * Användarens sessioner avslutas samtidigt — annars skulle den som har den
+ * gamla lappen kunna fortsätta vara inloggad efter att koden spärrats.
+ *
+ * MED ETT UNDANTAG: byter man ut sin EGEN kod behålls den pågående sessionen.
+ * Annars loggas man ut i samma ögonblick som den nya koden visas, hinner inte
+ * läsa den, och är utelåst för alltid — koden lagras bara som hash och kan
+ * inte hämtas fram igen. Det är säkert, eftersom sessionen hör till personen
+ * och inte till koden, och det är personen själv som just begärt bytet.
  */
 export async function reissueCode(
   actorUserId: number,
@@ -252,23 +257,56 @@ export async function reissueCode(
 
   const code = generateCode();
   await db.update(users).set({ codeHash: hashCode(code) }).where(eq(users.id, userId));
-  await db.delete(sessions).where(eq(sessions.userId, userId));
+
+  if (userId !== actorUserId) {
+    await db.delete(sessions).where(eq(sessions.userId, userId));
+  }
 
   await audit(actorUserId, 'code.reissue', `användare ${userId}`);
   return { ok: true, code, label: user.label };
+}
+
+/** Antal aktiva administratörer utöver en given användare. */
+async function otherActiveAdmins(exceptUserId: number): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(users)
+    .where(sql`role = 'admin' AND active = 1 AND id <> ${exceptUserId}`);
+  return Number(row?.n ?? 0);
 }
 
 export async function setUserActive(
   actorUserId: number,
   userId: number,
   active: boolean,
-): Promise<void> {
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!active) {
+    // Att spärra sig själv har ingen rimlig användning och låser ute den som
+    // gör det. Behöver man byta administratör lägger man upp den nya först.
+    if (userId === actorUserId) {
+      return { ok: false, error: 'Du kan inte spärra ditt eget konto.' };
+    }
+
+    // Sista administratören får inte spärras — då kan ingen administrera
+    // systemet, och återställning kräver tillgång till servern.
+    const [target] = await db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (target?.role === 'admin' && (await otherActiveAdmins(userId)) === 0) {
+      return { ok: false, error: 'Det måste finnas minst en aktiv administratör.' };
+    }
+  }
+
   await db.update(users).set({ active }).where(eq(users.id, userId));
 
   // Avaktivering ska slå igenom direkt, inte när sessionen råkar löpa ut.
   if (!active) await db.delete(sessions).where(eq(sessions.userId, userId));
 
   await audit(actorUserId, active ? 'user.activate' : 'user.deactivate', `användare ${userId}`);
+  return { ok: true };
 }
 
 /** Enkel driftsöversikt för adminstartsidan. Inga hälsovärden. */

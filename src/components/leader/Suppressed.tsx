@@ -1,7 +1,5 @@
 import { EyeOff } from 'lucide-react';
 
-import type { Guarded } from '@/lib/privacy';
-
 /**
  * Visas i stället för en siffra som undanhållits av integritetsskäl.
  *
@@ -10,11 +8,10 @@ import type { Guarded } from '@/lib/privacy';
  * feltolkningen. Befälet ska förstå att underlag saknas — och varför.
  */
 export default function Suppressed({
-  guarded,
   text,
   compact = false,
 }: {
-  guarded: Extract<Guarded<unknown>, { ok: false }>;
+  /** Färdig förklaring från servern — se guard() i lib/privacy.ts. */
   text: string;
   compact?: boolean;
 }) {

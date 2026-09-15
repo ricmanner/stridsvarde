@@ -8,6 +8,7 @@ import {
   createUsersAction,
   reissueCodeAction,
   toggleUserActiveAction,
+  type ActiveState,
   type CodeState,
   type UnitState,
 } from '@/app/actions/admin';
@@ -19,6 +20,8 @@ import CodeSheet from './CodeSheet';
 interface Props {
   unit: { id: number; name: string; kind: string; kindLabel: string };
   members: AdminUser[];
+  /** Inloggad administratör — den egna raden hanteras annorlunda. */
+  currentUserId: number;
 }
 
 /** Vilken roll som hör hemma på vilken nivå. */
@@ -36,10 +39,11 @@ const CHILD_KIND: Record<string, string | null> = {
   grupp: null,
 };
 
-export default function UnitDetail({ unit, members }: Props) {
+export default function UnitDetail({ unit, members, currentUserId }: Props) {
   const [unitState, unitFormAction, creatingUnit] = useActionState<UnitState, FormData>(createUnitAction, {});
   const [codeState, codeFormAction, creatingUsers] = useActionState<CodeState, FormData>(createUsersAction, {});
   const [reissueState, reissueFormAction] = useActionState<CodeState, FormData>(reissueCodeAction, {});
+  const [activeState, activeFormAction] = useActionState<ActiveState, FormData>(toggleUserActiveAction, {});
   const [dismissed, setDismissed] = useState(0);
 
   const soldiers = members.filter((m) => m.role === 'soldat');
@@ -170,16 +174,23 @@ export default function UnitDetail({ unit, members }: Props) {
             </p>
           ) : (
             <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
-              {[...leaders, ...soldiers].map((m, i) => (
+              {[...leaders, ...soldiers].map((m, i) => {
+                const isSelf = m.id === currentUserId;
+                return (
                 <div
                   key={m.id}
                   className={`flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 ${
                     i > 0 ? 'border-t border-slate-100' : ''
-                  } ${m.active ? '' : 'bg-slate-50'}`}
+                  } ${!m.active ? 'bg-slate-50' : isSelf ? 'bg-amber-50' : ''}`}
                 >
                   <span className={`text-sm ${m.active ? 'text-slate-700' : 'text-slate-400 line-through'}`}>
                     {m.label}
                   </span>
+                  {isSelf && (
+                    <span className="rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
+                      Du
+                    </span>
+                  )}
                   {m.role !== 'soldat' && (
                     <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
                       {ROLE_LABEL[m.role]}
@@ -194,31 +205,41 @@ export default function UnitDetail({ unit, members }: Props) {
                       <input type="hidden" name="userId" value={m.id} />
                       <button
                         type="submit"
-                        title="Spärra nuvarande kod och utfärda en ny"
+                        title={
+                          isSelf
+                            ? 'Byt din egen kod. Du förblir inloggad, men den gamla koden slutar gälla.'
+                            : 'Spärra nuvarande kod och utfärda en ny'
+                        }
                         className="flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                       >
                         <KeyRound size={12} aria-hidden /> Ny kod
                       </button>
                     </form>
-                    <form action={toggleUserActiveAction}>
-                      <input type="hidden" name="userId" value={m.id} />
-                      <input type="hidden" name="active" value={String(!m.active)} />
-                      <button
-                        type="submit"
-                        title={m.active ? 'Spärra åtkomst' : 'Återaktivera'}
-                        className="flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                      >
-                        {m.active ? <UserX size={12} aria-hidden /> : <UserCheck size={12} aria-hidden />}
-                        {m.active ? 'Spärra' : 'Aktivera'}
-                      </button>
-                    </form>
+
+                    {/* Det egna kontot kan inte spärras — se setUserActive(). */}
+                    {!isSelf && (
+                      <form action={activeFormAction}>
+                        <input type="hidden" name="userId" value={m.id} />
+                        <input type="hidden" name="active" value={String(!m.active)} />
+                        <button
+                          type="submit"
+                          title={m.active ? 'Spärra åtkomst' : 'Återaktivera'}
+                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                        >
+                          {m.active ? <UserX size={12} aria-hidden /> : <UserCheck size={12} aria-hidden />}
+                          {m.active ? 'Spärra' : 'Aktivera'}
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
           {reissueState.error && <p role="alert" className="mt-2 text-sm text-red-600">{reissueState.error}</p>}
+          {activeState.error && <p role="alert" className="mt-2 text-sm text-red-600">{activeState.error}</p>}
         </section>
 
         <p className="text-center text-xs leading-relaxed text-slate-400">

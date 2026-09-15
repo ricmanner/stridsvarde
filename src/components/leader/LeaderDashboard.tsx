@@ -11,7 +11,7 @@ import {
 
 import StatusBadge from '@/components/StatusBadge';
 import Suppressed from '@/components/leader/Suppressed';
-import { CATEGORIES, type Category, getStatus, statusColor } from '@/lib/data';
+import { CATEGORIES, getStatus } from '@/lib/data';
 import type { ChildComparison, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
 import { ALLOWED_PERIODS, type Period } from '@/lib/privacy';
 
@@ -62,7 +62,8 @@ export default function LeaderDashboard({
       setter(prev => {
         const next = new Set(prev);
         if (next.size <= min && next.has(key)) return prev;
-        next.has(key) ? next.delete(key) : next.add(key);
+        if (next.has(key)) next.delete(key);
+        else next.add(key);
         return next;
       });
   }
@@ -208,7 +209,7 @@ export default function LeaderDashboard({
                 {(() => {
                   const blocked = !cats.ok ? cats : dist.ok ? null : dist;
                   return blocked ? (
-                    <Suppressed guarded={blocked} text={blocked.message} />
+                    <Suppressed text={blocked.message} />
                   ) : null;
                 })()}
               </div>
@@ -344,13 +345,6 @@ export default function LeaderDashboard({
 
             {visibleChildren.length === 0 ? (
               <Suppressed
-                guarded={{
-                  ok: false,
-                  reason: 'too_few_responses',
-                  message: `Ingen av enhetens ${childLabel} har tillräckligt underlag för att visas.`,
-                  responders: 0,
-                  eligible: overview.eligible,
-                }}
                 text={`Ingen av enhetens ${childLabel} har tillräckligt underlag för att visas.`}
               />
             ) : (

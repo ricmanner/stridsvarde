@@ -5,7 +5,7 @@ import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import { serviceDate } from '../../date';
 import type { Role } from '../../roles';
 import { db } from '..';
-import { notifications, units, users } from '../schema';
+import { notifications } from '../schema';
 
 /**
  * Hittar närmaste befäl av en viss nivå ovanför en enhet.

@@ -1,6 +1,5 @@
 import { after } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { eq } from 'drizzle-orm';
 
 import { requireRole } from '@/lib/auth/guard';
 import { safeFilename, toCsv } from '@/lib/csv';

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "aterstall-admin": "node scripts/aterstall-admin.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

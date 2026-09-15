@@ -206,27 +206,31 @@ async function seedInTransaction(tx: Tx): Promise<void> {
           .values({ name: `Grupp ${g}`, kind: 'grupp', parentId: pluton.id, createdAt: ts })
           .returning({ id: units.id });
 
+        // Koden hålls utanför raden — den ska aldrig kunna råka skrivas till
+        // databasen, bara användas för att para ihop soldat och kod efteråt.
         const rows = Array.from({ length: SOLDATER_PER_GRUPP }, (_, i) => {
           const nr = String(i + 1).padStart(2, '0');
           const code = `P${plutonNr}G${g}-${nr}`;
           return {
-            codeHash: hashCode(code),
-            label: `Soldat ${nr}`,
-            role: 'soldat' as const,
-            unitId: grupp.id,
-            active: true,
-            createdAt: ts,
-            _code: code,
+            code,
+            row: {
+              codeHash: hashCode(code),
+              label: `Soldat ${nr}`,
+              role: 'soldat' as const,
+              unitId: grupp.id,
+              active: true,
+              createdAt: ts,
+            },
           };
         });
 
         const inserted = await tx
           .insert(users)
-          .values(rows.map(({ _code, ...r }) => r))
+          .values(rows.map((r) => r.row))
           .returning({ id: users.id });
 
         inserted.forEach((u, i) => {
-          soldiers.push({ id: u.id, plutonName: pNamn, code: rows[i]._code });
+          soldiers.push({ id: u.id, plutonName: pNamn, code: rows[i].code });
         });
       }
     }

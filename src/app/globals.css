@@ -31,6 +31,71 @@ input.code-input {
 }
 
 /*
+  Skattningsreglaget. Ett native range-element, men med egen yta.
+  Tummen måste stylas via pseudo-element och kan därför inte sättas inline —
+  färgen och ifyllnaden kommer in som CSS-variabler från komponenten.
+*/
+.psvi-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+  display: block;
+}
+
+/* Spåret, med ifylld del till vänster om tummen */
+.psvi-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    var(--psvi-color) 0 var(--psvi-pct),
+    #E2E8F0 var(--psvi-pct) 100%
+  );
+}
+.psvi-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: #E2E8F0;
+}
+.psvi-slider::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--psvi-color);
+}
+
+.psvi-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  margin-top: -12px; /* centrerar tummen på det 4px höga spåret */
+  border-radius: 50%;
+  background: white;
+  border: 2.5px solid var(--psvi-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+.psvi-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: white;
+  border: 2.5px solid var(--psvi-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.psvi-slider:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid #0F172A;
+  outline-offset: 2px;
+}
+.psvi-slider:focus-visible::-moz-range-thumb {
+  outline: 2px solid #0F172A;
+  outline-offset: 2px;
+}
+
+/*
   Utskriftsvy för rapporter: döljer navigation och knappar så att en
   befälsrapport kan sparas som PDF direkt från webbläsaren.
 */

@@ -94,13 +94,22 @@ export async function reissueCodeAction(
   return { codes: [{ label: result.label, code: result.code }] };
 }
 
-export async function toggleUserActiveAction(formData: FormData): Promise<void> {
+export interface ActiveState {
+  error?: string;
+}
+
+export async function toggleUserActiveAction(
+  _prev: ActiveState,
+  formData: FormData,
+): Promise<ActiveState> {
   const admin = await requireRole('admin');
 
   const userId = Number(formData.get('userId'));
   const active = formData.get('active') === 'true';
-  if (!Number.isInteger(userId)) return;
+  if (!Number.isInteger(userId)) return { error: 'Ogiltig användare.' };
 
-  await setUserActive(admin.id, userId, active);
+  const result = await setUserActive(admin.id, userId, active);
   revalidatePath('/admin');
+
+  return result.ok ? {} : { error: result.error };
 }
