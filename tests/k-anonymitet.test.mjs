@@ -168,3 +168,62 @@ test('en dag utan svar ger lucka, aldrig en nolla', async () => {
     assert.equal(p.overall, null);
   }
 });
+
+test('soldater utan underenhet försvinner inte ur jämförelsen', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+
+  /*
+   * En plutonsjukvårdare tillhör plutonen men ingen grupp. Rekursionen i
+   * jämförelsen utgår från enhetens BARN, så sådana personer låg tidigare
+   * utanför varje grupps subträd: totalen sa 22 soldater medan grupperna
+   * summerade till 16, utan att något förklarade de sex som fattades.
+   */
+  const direkta = [];
+  for (let i = 0; i < 6; i++) {
+    const r = await client.execute({
+      sql: 'INSERT INTO users (code_hash,label,role,unit_id,active,created_at) VALUES (?,?,?,?,1,?)',
+      args: [`dir-${org.pluton}-${i}`, `Sjukvårdare ${i + 1}`, 'soldat', org.pluton, new Date().toISOString()],
+    });
+    direkta.push(Number(r.lastInsertRowid));
+  }
+
+  await checkIn(client, direkta, today, 5);
+  await checkIn(client, org.soldater['Grupp A'], today, 8);
+  await checkIn(client, org.soldater['Grupp B'], today, 8);
+
+  const { getChildComparison, getUnitOverview, DIRECT_MEMBERS_ID } = await import(
+    '../src/lib/db/queries/aggregates.ts'
+  );
+
+  const översikt = await getUnitOverview(org.pluton, 7);
+  const { children } = await getChildComparison(org.pluton, 7);
+
+  const summa = children.reduce((n, c) => n + c.eligible, 0);
+  assert.equal(
+    summa,
+    översikt.eligible,
+    'jämförelsens delar ska summera till samma antal som översikten visar',
+  );
+
+  const direkt = children.find((c) => c.id === DIRECT_MEMBERS_ID);
+  assert.ok(direkt, 'personer utan underenhet ska få en egen rad');
+  assert.equal(direkt.eligible, 6);
+  assert.equal(direkt.isDirect, true, 'raden ska märkas som icke-enhet');
+});
+
+test('raden för direkta medlemmar visas inte när ingen tillhör enheten direkt', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  await checkIn(client, org.soldater['Grupp A'], today, 7);
+
+  const { getChildComparison, DIRECT_MEMBERS_ID } = await import(
+    '../src/lib/db/queries/aggregates.ts'
+  );
+  const { children } = await getChildComparison(org.pluton, 7);
+
+  assert.ok(
+    !children.some((c) => c.id === DIRECT_MEMBERS_ID),
+    'ingen tom extrarad när alla tillhör en grupp',
+  );
+});

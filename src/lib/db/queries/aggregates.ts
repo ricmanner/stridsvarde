@@ -264,10 +264,16 @@ export const getUnitOverview = cache(
 // Jämförelse mellan direkta underenheter
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Id för raden med personer som tillhör enheten direkt, utan underenhet. */
+export const DIRECT_MEMBERS_ID = -1;
+export const DIRECT_MEMBERS_NAME = 'Direkt i enheten';
+
 export interface ChildUnitSummary {
   id: number;
   name: string;
   kind: string;
+  /** Sant för raden med personer utan underenhet — ingen riktig enhet. */
+  isDirect?: boolean;
   eligible: number;
   responders: number;
   overall: number | null;
@@ -413,6 +419,108 @@ export const getChildComparison = cache(
         row.overall === null ? null : Number(row.overall);
     }
 
+    /*
+     * Personer som tillhör enheten direkt, utan underenhet.
+     *
+     * Rekursionen ovan utgår från enhetens BARN, så en soldat som ligger på
+     * plutonen själv — en plutonsjukvårdare, en ställföreträdare — hamnar i
+     * inget barns subträd och försvann tidigare ur jämförelsen. Totalen sa
+     * 22 soldater medan grupperna summerade till 16, utan förklaring.
+     *
+     * De får en egen rad i stället. Det är ingen riktig enhet och märks som
+     * sådan, men siffrorna går ihop.
+     */
+    const direct = await directMembersSummary(unitId, from, to, k);
+
+    if (direct) {
+      children.push(direct.summary);
+      for (const row of byDate.values()) {
+        row[DIRECT_MEMBERS_NAME] = direct.byDate.get(String(row.date)) ?? null;
+      }
+    }
+
     return { children, series: [...byDate.values()] };
   },
 );
+
+/**
+ * Sammanställning för personer som tillhör en enhet direkt.
+ *
+ * Skild från getChildComparison eftersom den rekursiva frågan där utgår från
+ * enhetens barn, och den här mängden per definition ligger utanför dem.
+ * Returnerar null när enheten inte har några direkta medlemmar, så att raden
+ * bara dyker upp när den behövs.
+ */
+async function directMembersSummary(
+  unitId: number,
+  from: string,
+  to: string,
+  k: number,
+): Promise<{ summary: ChildUnitSummary; byDate: Map<string, number | null> } | null> {
+  const avgCols = CAT_KEYS.map((key) => `ROUND(AVG(ci.${key}), 2) AS ${key}`).join(',\n             ');
+
+  const member = sql`
+    member AS (
+      SELECT u.id AS user_id FROM users u
+       WHERE u.unit_id = ${unitId} AND u.role = 'soldat' AND u.active = 1
+    )`;
+
+  const [agg] = (await db.all(sql`
+    WITH ${member},
+    per_soldier AS (
+      SELECT ci.user_id, AVG(${sql.raw(OVERALL_EXPR)}) AS avg_score
+        FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+       WHERE ci.service_date BETWEEN ${from} AND ${to}
+       GROUP BY ci.user_id
+    )
+    SELECT (SELECT COUNT(*) FROM member) AS eligible,
+           COUNT(DISTINCT ci.user_id) AS responders,
+           ${sql.raw(avgCols)},
+           ROUND(AVG(${sql.raw(OVERALL_EXPR)}), 2) AS overall,
+           (SELECT COUNT(*) FROM per_soldier WHERE avg_score >= 7) AS green,
+           (SELECT COUNT(*) FROM per_soldier WHERE avg_score >= 4 AND avg_score < 7) AS yellow,
+           (SELECT COUNT(*) FROM per_soldier WHERE avg_score < 4) AS red
+      FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+     WHERE ci.service_date BETWEEN ${from} AND ${to}
+  `)) as Row[];
+
+  const eligible = Number(agg?.eligible ?? 0);
+  if (eligible === 0) return null;
+
+  const responders = Number(agg?.responders ?? 0);
+  const visible = responders >= k;
+
+  const summary: ChildUnitSummary = {
+    id: DIRECT_MEMBERS_ID,
+    name: DIRECT_MEMBERS_NAME,
+    kind: 'direct',
+    isDirect: true,
+    eligible,
+    responders,
+    overall: visible && agg.overall !== null ? Number(agg.overall) : null,
+    scores: visible && agg.overall !== null
+      ? (Object.fromEntries(CAT_KEYS.map((c) => [c, Number(agg[c])])) as Record<Category, number>)
+      : null,
+    status: visible && agg.overall !== null ? getStatus(Number(agg.overall)) : null,
+    green: visible ? Number(agg.green ?? 0) : 0,
+    yellow: visible ? Number(agg.yellow ?? 0) : 0,
+    red: visible ? Number(agg.red ?? 0) : 0,
+  };
+
+  // Daglig kurva, samma k-anonymitetströskel som allt annat.
+  const rows = (await db.all(sql`
+    WITH ${member}
+    SELECT ci.service_date AS date,
+           CASE WHEN COUNT(DISTINCT ci.user_id) >= ${k}
+                THEN ROUND(AVG(${sql.raw(OVERALL_EXPR)}), 2) END AS overall
+      FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+     WHERE ci.service_date BETWEEN ${from} AND ${to}
+     GROUP BY ci.service_date
+  `)) as Row[];
+
+  const byDate = new Map<string, number | null>(
+    rows.map((r) => [String(r.date), r.overall === null ? null : Number(r.overall)]),
+  );
+
+  return { summary, byDate };
+}

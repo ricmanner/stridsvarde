@@ -427,6 +427,14 @@ export default function LeaderDashboard({
                                 <div className="flex items-center gap-2">
                                   <span className="h-5 w-[3px] shrink-0 rounded" style={{ background: CHILD_COLORS[idx % CHILD_COLORS.length] }} />
                                   <span className="text-[14px] text-slate-600">{child.name}</span>
+                                  {child.isDirect && (
+                                    <span
+                                      className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500"
+                                      title={`Personer som tillhör enheten direkt, utan ${childLabel.replace(/er$/, '')}. Ingen egen enhet.`}
+                                    >
+                                      utan {childLabel.replace(/er$/, '')}
+                                    </span>
+                                  )}
                                   {child.status && <StatusBadge status={child.status} size="sm" />}
                                 </div>
                               </td>
