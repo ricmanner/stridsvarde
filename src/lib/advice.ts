@@ -115,21 +115,35 @@ function byUrgency(scores: Record<Category, number>): [Category, number][] {
  * om att bjuda en kamrat på middag bredvid rådet att söka hjälp. Det drar ned
  * allvaret i det som faktiskt är akut.
  */
-/** Högsta antal kort. Fler än så slutar man läsa. */
-const MAX_TIPS = 2;
+/**
+ * Tak för hur många GULA områden som ger kort.
+ *
+ * Gäller bara gult. Är något rött visas samtliga röda — se nedan.
+ */
+const MAX_YELLOW_TIPS = 2;
 
 /**
  * Vilka kategorier som blir kort.
  *
  * Delas av tipskorten och sammanfattningen. Räknade de var för sig kunde de
  * säga emot varandra — och gjorde det: sammanfattningen påstod "ett värde"
- * medan två kort visades, eftersom gränsen för "flera" låg vid tre röda men
- * texten för ett rött täckte även fallet med två.
+ * medan två kort visades.
+ *
+ * ALLA röda visas. Ett tak hade inneburit att appen tyst utelämnat något
+ * kritiskt som soldaten själv rapporterat, och en soldat som svarat rött på
+ * sömn ska inte behöva undra varför sömnen inte nämns. Korten kommer i
+ * allvarlighetsordning, så det som väger tyngst står först även när listan
+ * blir lång.
+ *
+ * Gult tak kvar: där handlar det om att inte dränka en i övrigt välmående
+ * soldat i småsaker.
  */
 function relevantCategories(scores: Record<Category, number>): [Category, number][] {
   const sorted = byUrgency(scores);
   const red = sorted.filter(([, score]) => getStatus(score) === 'red');
-  return (red.length > 0 ? red : sorted.filter(([, s]) => s < 7)).slice(0, MAX_TIPS);
+
+  if (red.length > 0) return red;
+  return sorted.filter(([, s]) => s < 7).slice(0, MAX_YELLOW_TIPS);
 }
 
 export function getSoldierTips(scores: Record<Category, number>): SoldierTip[] {
@@ -172,27 +186,26 @@ export function generateSoldierAdvice(scores: Record<Category, number>): string 
     );
   }
 
-  const redCount = values.filter((v) => getStatus(v) === 'red').length;
-
-  /*
-   * Fler röda än vad som får plats som kort. Då nämns inget antal alls —
-   * "flera" är både sant och begripligt, och soldaten behöver inte en exakt
-   * siffra på hur illa det är.
-   */
-  if (redCount > MAX_TIPS) {
-    return (
-      'Du rapporterar låga värden på flera håll samtidigt. Det är för mycket ' +
-      'att bära själv, och du behöver inte göra det. Börja med det som står först nedan.'
-    );
-  }
-
   // Antalet kort som faktiskt visas. Texten måste stämma med skärmen.
   const shown = relevantCategories(scores).length;
 
   if (status === 'red') {
-    return shown === 1
-      ? 'Det mesta ser rimligt ut, men ett värde ligger på en nivå som behöver åtgärdas nu. Det står nedan.'
-      : 'Två av dina värden ligger på en nivå som behöver åtgärdas nu. Båda står nedan.';
+    if (shown === 1) {
+      return 'Det mesta ser rimligt ut, men ett värde ligger på en nivå som behöver åtgärdas nu. Det står nedan.';
+    }
+    if (shown === 2) {
+      return 'Två av dina värden ligger på en nivå som behöver åtgärdas nu. Båda står nedan.';
+    }
+    /*
+     * Vid tre eller fler nämns inget antal. Att skriva ut "fem av dina värden"
+     * till någon som redan mår dåligt lägger bara på tyngd utan att hjälpa —
+     * och korten nedan visar ändå exakt vilka de är.
+     */
+    return (
+      'Du rapporterar låga värden på flera håll samtidigt. Det är för mycket ' +
+      'att bära själv, och du behöver inte göra det. Allt står nedan, ordnat ' +
+      'efter hur akut det är — börja med det första.'
+    );
   }
 
   if (overall >= 6) {

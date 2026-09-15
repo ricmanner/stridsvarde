@@ -70,18 +70,55 @@ test('vid röda värden visas inga tips om gula områden', async () => {
   assert.equal(tips[0].category, 'psykisk');
 });
 
-test('flera röda värden ger tips om de röda, i allvarlighetsordning', async () => {
+test('varje rött värde får ett eget kort — inget utelämnas', async () => {
   const { getSoldierTips } = await import('../src/lib/advice.ts');
 
-  const tips = getSoldierTips({ fysisk: 7, psykisk: 3, social: 7, somn: 2, kost: 3, energi: 6 });
+  /*
+   * Korten var tidigare begränsade till två. En soldat som rapporterat rött
+   * på fem kategorier fick då se två av dem, och appen teg om resten — trots
+   * att soldaten själv nyss angett dem. Det som är kritiskt ska aldrig tystas
+   * bort av ett tak.
+   */
+  const scores = { fysisk: 2, psykisk: 3, social: 2, somn: 1, kost: 3, energi: 7 };
+  const röda = ['fysisk', 'psykisk', 'social', 'somn', 'kost'];
+
+  const tips = getSoldierTips(scores);
   const kategorier = tips.map((t) => t.category);
 
-  assert.equal(tips.length, 2);
-  assert.ok(kategorier.includes('somn'), 'lägsta värdet (sömn 2) ska vara med');
-  assert.ok(
-    !kategorier.includes('social') && !kategorier.includes('fysisk'),
-    'gröna kategorier ska aldrig ge tips',
-  );
+  assert.equal(tips.length, röda.length, 'alla fem röda ska ge varsitt kort');
+  for (const r of röda) {
+    assert.ok(kategorier.includes(r), `${r} är rött och måste visas`);
+  }
+  assert.ok(!kategorier.includes('energi'), 'gröna kategorier ska aldrig ge tips');
+
+  /*
+   * Ordningen: lägst värde först, och vid lika värden det som kan skada mest.
+   *   somn 1          → lägst
+   *   fysisk 2, social 2 → lika; fysisk väger tyngre
+   *   psykisk 3, kost 3  → lika; psykisk väger tyngre
+   */
+  assert.deepEqual(kategorier, ['somn', 'fysisk', 'social', 'psykisk', 'kost']);
+});
+
+test('psykisk hälsa vinner vid lika värden, men går inte före ett lägre', async () => {
+  const { getSoldierTips } = await import('../src/lib/advice.ts');
+
+  // Lika: psykisk ska först.
+  const lika = getSoldierTips({ fysisk: 2, psykisk: 2, social: 8, somn: 8, kost: 8, energi: 8 });
+  assert.equal(lika[0].category, 'psykisk');
+
+  // Inte lika: det lägre värdet går först även om psykisk är röd.
+  const olika = getSoldierTips({ fysisk: 1, psykisk: 3, social: 8, somn: 8, kost: 8, energi: 8 });
+  assert.equal(olika[0].category, 'fysisk', 'allvarlighet bryter bara lika värden');
+});
+
+test('gula områden begränsas fortfarande till två', async () => {
+  const { getSoldierTips } = await import('../src/lib/advice.ts');
+
+  // Fyra gula, inget rött. Här handlar det inte om något kritiskt, och att
+  // radda upp allt gör mest att man slutar läsa.
+  const tips = getSoldierTips({ fysisk: 5, psykisk: 5, social: 5, somn: 5, kost: 8, energi: 8 });
+  assert.equal(tips.length, 2, 'gult tak ligger kvar på två');
 });
 
 test('den som mår bra får beröm, inte en pekpinne', async () => {
