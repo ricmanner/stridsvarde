@@ -3,7 +3,7 @@ import 'server-only';
 import { sql } from 'drizzle-orm';
 
 import { CATEGORIES, getStatus } from '../../data';
-import { serviceDate } from '../../date';
+import { serviceDate, serviceDateDaysAgo } from '../../date';
 import { db } from '..';
 import { notifications } from '../schema';
 import { getUnitOverview } from './aggregates';
@@ -21,10 +21,49 @@ import { getUnitOverview } from './aggregates';
  * inte att visa går det inte heller att larma om.
  */
 
-/** Under den här andelen svar idag anses underlaget för tunt. */
+/** Under den här andelen svar anses underlaget för tunt. */
 const LOW_RESPONSE_PCT = 50;
 
 const ALERT_PERIOD = 7 as const;
+
+/**
+ * Svarsfrekvensen för en viss dag i en enhets hela subträd.
+ *
+ * Används för GÅRDAGEN, inte idag. Reglerna körs efter varje incheckning, och
+ * vid dagens första svar är dagens svarsfrekvens per definition nära noll —
+ * ett larm om det skulle utlösas varje morgon och sedan frysa fast på den
+ * siffran medan skärmen visade en helt annan. Gårdagens tal är färdigt,
+ * stämmer när befälet läser det, och går faktiskt att agera på.
+ */
+async function responseRateFor(
+  unitId: number,
+  date: string,
+): Promise<{ responders: number; eligible: number; pct: number }> {
+  const [row] = (await db.all(sql`
+    WITH RECURSIVE subtree(unit_id) AS (
+          SELECT id FROM units WHERE id = ${unitId}
+      UNION ALL
+          SELECT u.id FROM units u JOIN subtree s ON u.parent_id = s.unit_id
+    ),
+    member AS (
+      SELECT u.id AS user_id FROM users u
+       WHERE u.unit_id IN (SELECT unit_id FROM subtree)
+         AND u.role = 'soldat' AND u.active = 1
+    )
+    SELECT (SELECT COUNT(*) FROM member) AS eligible,
+           (SELECT COUNT(DISTINCT ci.user_id)
+              FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+             WHERE ci.service_date = ${date}) AS responders
+  `)) as Record<string, number>[];
+
+  const eligible = Number(row?.eligible ?? 0);
+  const responders = Number(row?.responders ?? 0);
+  return {
+    responders,
+    eligible,
+    pct: eligible > 0 ? Math.round((responders / eligible) * 100) : 0,
+  };
+}
 
 interface Ancestor {
   unitId: number;
@@ -65,12 +104,12 @@ async function raise(params: {
   kind: 'red_values' | 'low_response';
   title: string;
   body: string;
+  serviceDate: string;
 }): Promise<void> {
   await db
     .insert(notifications)
     .values({
       ...params,
-      serviceDate: serviceDate(),
       createdAt: new Date().toISOString(),
     })
     // Unikindexet (mottagare, enhet, typ, dag) gör utvärderingen idempotent —
@@ -102,6 +141,7 @@ export async function evaluateAlerts(soldierUnitId: number): Promise<void> {
         recipientUserId: node.leaderUserId,
         subjectUnitId: node.unitId,
         kind: 'red_values',
+        serviceDate: serviceDate(),
         title: `${node.unitName} ligger på kritisk nivå`,
         body:
           red.length === 1
@@ -110,15 +150,20 @@ export async function evaluateAlerts(soldierUnitId: number): Promise<void> {
       });
     }
 
-    // Lågt underlag är ingen hälsouppgift och kan larmas oavsett tröskel,
-    // men bara om enheten är stor nog att siffran ska betyda något.
-    if (overview.today.pct < LOW_RESPONSE_PCT && overview.eligible >= 4) {
+    // Lågt underlag är ingen hälsouppgift och kan larmas oavsett
+    // k-anonymitetströskeln, men bara om enheten är stor nog att andelen
+    // ska betyda något. Gäller gårdagen — se responseRateFor().
+    const igår = serviceDateDaysAgo(1);
+    const rate = await responseRateFor(node.unitId, igår);
+
+    if (rate.eligible >= 4 && rate.pct < LOW_RESPONSE_PCT) {
       await raise({
         recipientUserId: node.leaderUserId,
         subjectUnitId: node.unitId,
         kind: 'low_response',
+        serviceDate: igår,
         title: `Låg svarsfrekvens i ${node.unitName}`,
-        body: `Endast ${overview.today.responders} av ${overview.eligible} har rapporterat idag (${overview.today.pct} %). Utan underlag går läget inte att bedöma.`,
+        body: `Igår rapporterade ${rate.responders} av ${rate.eligible} (${rate.pct} %). Utan underlag går läget inte att bedöma.`,
       });
     }
   }

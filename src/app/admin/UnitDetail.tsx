@@ -49,6 +49,12 @@ export default function UnitDetail({ unit, members, currentUserId }: Props) {
   const soldiers = members.filter((m) => m.role === 'soldat');
   const leaders = members.filter((m) => m.role !== 'soldat');
 
+  // Namn som förekommer flera gånger i enheten. Utan något som skiljer dem
+  // åt går det inte att se vilken rad man faktiskt klickar på.
+  const dupeLabels = new Set(
+    members.map((m) => m.label).filter((l, i, arr) => arr.indexOf(l) !== i),
+  );
+
   const leaderRole = ROLE_FOR_KIND[unit.kind];
   const childKind = CHILD_KIND[unit.kind];
   const canHoldSoldiers = unit.kind === 'grupp' || unit.kind === 'pluton';
@@ -186,6 +192,14 @@ export default function UnitDetail({ unit, members, currentUserId }: Props) {
                   <span className={`text-sm ${m.active ? 'text-slate-700' : 'text-slate-400 line-through'}`}>
                     {m.label}
                   </span>
+                  {dupeLabels.has(m.label) && (
+                    <span
+                      className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500"
+                      title="Referensnummer — flera personer i enheten har samma namn"
+                    >
+                      #{m.id}
+                    </span>
+                  )}
                   {isSelf && (
                     <span className="rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
                       Du

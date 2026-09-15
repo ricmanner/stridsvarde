@@ -105,7 +105,15 @@ export async function getUsersInUnit(unitId: number): Promise<AdminUser[]> {
     })
     .from(users)
     .where(eq(users.unitId, unitId))
-    .orderBy(asc(users.role), asc(users.label));
+    /*
+     * `id` sist som avgörare — inte kosmetik.
+     *
+     * Utan den har två personer med samma namn ingen bestämd inbördes
+     * ordning, och SQLite returnerar dem i en ordning som ändras när en rad
+     * uppdateras. Den som just spärrats eller aktiverats hoppar då i listan,
+     * och det ser ut som att fel person ändrades.
+     */
+    .orderBy(asc(users.role), asc(users.label), asc(users.id));
 
   return rows as AdminUser[];
 }
