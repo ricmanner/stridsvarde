@@ -93,24 +93,45 @@ async function insertChunked<T>(
  * Skapar alltid ett admin-konto; demoorganisationen bara när SEED_DEMO_DATA=true.
  */
 export async function seedIfNeeded(): Promise<void> {
-  const [{ count }] = await db
+  /*
+   * Hela seeden ligger i EN transaktion.
+   *
+   * Utan den kan två processer som startar mot samma databasfil båda se en
+   * tom tabell och båda seeda — resultatet blir en halvdubblerad organisation
+   * som är svår att upptäcka i efterhand. Med transaktionen blockerar den
+   * andra processen tills den första är klar, ser då att enheter finns och
+   * avbryter. Allt-eller-inget.
+   *
+   * OBS: inuti callbacken måste `tx` användas, aldrig `db`. Klienten kör med
+   * concurrency: 1, så ett `db`-anrop här skulle vänta på en anslutning som
+   * transaktionen håller.
+   */
+  await db.transaction(async (tx) => {
+    await seedInTransaction(tx);
+  });
+}
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+async function seedInTransaction(tx: Tx): Promise<void> {
+  const [{ count }] = await tx
     .select({ count: sql<number>`count(*)` })
     .from(units);
 
-  if (count > 0) return; // redan seedad
+  if (count > 0) return; // redan seedad, eller seedad av en annan process
 
   const demo = isSeedDemoData();
   const ts = now();
 
   // ── Enhetsträd ────────────────────────────────────────────────────────────
-  const [bataljon] = await db
+  const [bataljon] = await tx
     .insert(units)
     .values({ name: 'Bataljonen', kind: 'bataljon', parentId: null, createdAt: ts })
     .returning({ id: units.id });
 
   // Adminkontot behövs alltid, annars går det inte att komma igång.
   const adminCode = demo ? 'ADMIN-01' : (await import('../auth/codes')).generateCode();
-  await db.insert(users).values({
+  await tx.insert(users).values({
     codeHash: hashCode(adminCode),
     label: 'Systemadministratör',
     role: 'admin',
@@ -118,7 +139,7 @@ export async function seedIfNeeded(): Promise<void> {
     active: true,
     createdAt: ts,
   });
-  await db.insert(auditLog).values({
+  await tx.insert(auditLog).values({
     actorUserId: null,
     action: 'bootstrap_admin',
     detail: 'Adminkonto skapat vid första start',
@@ -132,7 +153,7 @@ export async function seedIfNeeded(): Promise<void> {
   }
 
   // ── Demoorganisation ──────────────────────────────────────────────────────
-  await db.insert(users).values({
+  await tx.insert(users).values({
     codeHash: hashCode('BEF-BAT'),
     label: 'Bataljonschef',
     role: 'bataljon',
@@ -148,12 +169,12 @@ export async function seedIfNeeded(): Promise<void> {
   for (const [kompaniNamn, plutonNamn] of Object.entries(KOMPANI_PLUTONER)) {
     kompaniNr++;
 
-    const [kompani] = await db
+    const [kompani] = await tx
       .insert(units)
       .values({ name: kompaniNamn, kind: 'kompani', parentId: bataljon.id, createdAt: ts })
       .returning({ id: units.id });
 
-    await db.insert(users).values({
+    await tx.insert(users).values({
       codeHash: hashCode(`BEF-KP${kompaniNr}`),
       label: `Kompanichef ${kompaniNamn}`,
       role: 'kompani',
@@ -165,12 +186,12 @@ export async function seedIfNeeded(): Promise<void> {
     for (const pNamn of plutonNamn) {
       const plutonNr = Number(pNamn.split(' ')[1]);
 
-      const [pluton] = await db
+      const [pluton] = await tx
         .insert(units)
         .values({ name: pNamn, kind: 'pluton', parentId: kompani.id, createdAt: ts })
         .returning({ id: units.id });
 
-      await db.insert(users).values({
+      await tx.insert(users).values({
         codeHash: hashCode(`BEF-P${plutonNr}`),
         label: `Plutonchef ${pNamn}`,
         role: 'pluton',
@@ -180,7 +201,7 @@ export async function seedIfNeeded(): Promise<void> {
       });
 
       for (let g = 1; g <= GRUPPER_PER_PLUTON; g++) {
-        const [grupp] = await db
+        const [grupp] = await tx
           .insert(units)
           .values({ name: `Grupp ${g}`, kind: 'grupp', parentId: pluton.id, createdAt: ts })
           .returning({ id: units.id });
@@ -199,7 +220,7 @@ export async function seedIfNeeded(): Promise<void> {
           };
         });
 
-        const inserted = await db
+        const inserted = await tx
           .insert(users)
           .values(rows.map(({ _code, ...r }) => r))
           .returning({ id: users.id });
@@ -242,7 +263,7 @@ export async function seedIfNeeded(): Promise<void> {
     }
   }
 
-  await insertChunked(checkInRows, (chunk) => db.insert(checkIns).values(chunk));
+  await insertChunked(checkInRows, (chunk) => tx.insert(checkIns).values(chunk));
 
   console.log(
     '\n  Demodata seedad: %d enheter, %d soldater, %d incheckningar',

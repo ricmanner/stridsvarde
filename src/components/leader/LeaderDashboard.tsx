@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Activity, AlertTriangle, Brain, Moon, Users, Utensils, Zap } from 'lucide-react';
+import { Activity, AlertTriangle, Brain, Download, FileText, Moon, Users, Utensils, Zap } from 'lucide-react';
 import {
   Legend, Line, LineChart, PolarAngleAxis, PolarGrid, Radar, RadarChart,
   ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -247,6 +247,7 @@ export default function LeaderDashboard({
             )}
 
             <PrivacyFooter />
+            <ExportBar period={period} childLabel={childLabel} />
           </>
         )}
 
@@ -329,6 +330,7 @@ export default function LeaderDashboard({
               </table>
             </div>
             <PrivacyFooter />
+            <ExportBar period={period} childLabel={childLabel} />
           </>
         )}
 
@@ -460,6 +462,7 @@ export default function LeaderDashboard({
               </>
             )}
             <PrivacyFooter />
+            <ExportBar period={period} childLabel={childLabel} />
           </>
         )}
       </div>
@@ -516,5 +519,37 @@ function PrivacyFooter() {
     <p className="mt-6 text-center text-xs leading-relaxed text-slate-400">
       Du ser endast sammanställd data. Enskilda soldaters svar visas aldrig för befäl.
     </p>
+  );
+}
+
+/**
+ * Export. CSV:en innehåller samma aggregat som skärmen — undanhållna värden
+ * kommer ut som tomma fält, inte som siffror.
+ */
+function ExportBar({ period, childLabel }: { period: Period; childLabel: string }) {
+  return (
+    <div className="no-print mt-5 flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-3">
+      <span className="mr-1 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">
+        Exportera
+      </span>
+      <a
+        href={`/api/export?period=${period}&typ=dagar`}
+        className="flex items-center gap-1.5 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-[12px] font-semibold text-slate-600 transition-colors hover:border-slate-900 hover:text-slate-900"
+      >
+        <Download size={13} aria-hidden /> Dag för dag (CSV)
+      </a>
+      <a
+        href={`/api/export?period=${period}&typ=enheter`}
+        className="flex items-center gap-1.5 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-[12px] font-semibold text-slate-600 transition-colors hover:border-slate-900 hover:text-slate-900"
+      >
+        <Download size={13} aria-hidden /> Per {childLabel} (CSV)
+      </a>
+      <Link
+        href={`/rapport?period=${period}`}
+        className="flex items-center gap-1.5 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-[12px] font-semibold text-slate-600 transition-colors hover:border-slate-900 hover:text-slate-900"
+      >
+        <FileText size={13} aria-hidden /> Rapport för utskrift
+      </Link>
+    </div>
   );
 }

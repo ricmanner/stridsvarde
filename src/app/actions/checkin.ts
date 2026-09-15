@@ -1,10 +1,12 @@
 'use server';
 
+import { after } from 'next/server';
 import { redirect } from 'next/navigation';
 
 import { generateSoldierAdvice } from '@/lib/advice';
 import { requireRole } from '@/lib/auth/guard';
 import { CATEGORIES, type Category } from '@/lib/data';
+import { evaluateAlerts } from '@/lib/db/queries/alerts';
 import { saveCheckIn, type Scores } from '@/lib/db/queries/checkins';
 
 export interface CheckInState {
@@ -36,6 +38,11 @@ export async function submitCheckIn(
   }
 
   await saveCheckIn(user.id, scores, generateSoldierAdvice(scores));
+
+  // Larmreglerna körs efter att svaret skickats, så soldaten aldrig får vänta
+  // på dem. Registreras före redirect() — den kastar, och då hinner inget
+  // efter den köras.
+  after(() => evaluateAlerts(user.unitId));
 
   redirect('/soldat/dashboard');
 }
