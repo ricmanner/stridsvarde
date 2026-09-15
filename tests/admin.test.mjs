@@ -76,6 +76,93 @@ test('en ny kod loggar ut den gamla, men inte en själv', async () => {
   assert.equal(await sessions(admin), 1, 'den som byter sin egen kod ska förbli inloggad');
 });
 
+test('en soldat kan flyttas och behåller kod och historik', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const soldat = org.soldater['Grupp A'][0];
+
+  await checkIn(client, [soldat], dayOffset(2), 6);
+  await checkIn(client, [soldat], dayOffset(1), 4);
+
+  const kodFöre = (
+    await client.execute({ sql: 'SELECT code_hash FROM users WHERE id = ?', args: [soldat] })
+  ).rows[0].code_hash;
+
+  const { moveUser } = await import('../src/lib/db/queries/admin.ts');
+  const { getOwnHistory } = await import('../src/lib/db/queries/checkins.ts');
+
+  const resultat = await moveUser(soldat, soldat, org.grupper['Grupp B']);
+  assert.equal(resultat.ok, true, resultat.ok ? '' : resultat.error);
+
+  const efter = await client.execute({
+    sql: 'SELECT unit_id, code_hash FROM users WHERE id = ?',
+    args: [soldat],
+  });
+  assert.equal(Number(efter.rows[0].unit_id), org.grupper['Grupp B'], 'ska tillhöra den nya enheten');
+  assert.equal(efter.rows[0].code_hash, kodFöre, 'koden ska inte ändras av en flytt');
+
+  // Poängen med flytten: slippa spärra kontot och kasta historiken.
+  const historik = await getOwnHistory(soldat, 14);
+  assert.equal(historik.length, 2, 'historiken ska följa med personen');
+});
+
+test('en person kan inte placeras på en nivå rollen inte hör hemma på', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+
+  const plutonchef = Number(
+    (
+      await client.execute({
+        sql: 'INSERT INTO users (code_hash,label,role,unit_id,active,created_at) VALUES (?,?,?,?,1,?)',
+        args: [`chef-${org.pluton}`, 'Plutonchef', 'pluton', org.pluton, new Date().toISOString()],
+      })
+    ).lastInsertRowid,
+  );
+
+  const { moveUser } = await import('../src/lib/db/queries/admin.ts');
+
+  // En plutonchef hör hemma på en pluton, inte på en grupp under den.
+  const fel = await moveUser(plutonchef, plutonchef, org.grupper['Grupp A']);
+  assert.equal(fel.ok, false, 'ska avvisas');
+
+  // Men till en annan pluton går bra.
+  const nyPluton = Number(
+    (
+      await client.execute({
+        sql: 'INSERT INTO units (name, kind, parent_id, created_at) VALUES (?,?,?,?)',
+        args: ['Pluton 2', 'pluton', org.kompani, new Date().toISOString()],
+      })
+    ).lastInsertRowid,
+  );
+  const ok = await moveUser(plutonchef, plutonchef, nyPluton);
+  assert.equal(ok.ok, true, 'flytt till rätt nivå ska gå igenom');
+});
+
+test('radering av personuppgifter träffar bara den personen', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const [a, b] = org.soldater['Grupp A'];
+
+  await checkIn(client, [a, b], dayOffset(1), 5);
+  await checkIn(client, [a], dayOffset(2), 5);
+
+  const { erasePersonalData } = await import('../src/lib/db/retention.ts');
+  const antal = await erasePersonalData(a, a);
+
+  assert.equal(antal, 2, 'personens alla svar ska raderas');
+
+  // Kontot ska finnas kvar — annars blir svarsfrekvensen fel för enheten.
+  const konto = await client.execute({ sql: 'SELECT unit_id, active FROM users WHERE id = ?', args: [a] });
+  assert.equal(konto.rows.length, 1, 'kontot ska inte raderas');
+  assert.equal(Number(konto.rows[0].active), 1);
+
+  const kvar = await client.execute({
+    sql: 'SELECT COUNT(*) n FROM check_ins WHERE user_id = ?',
+    args: [b],
+  });
+  assert.equal(Number(kvar.rows[0].n), 1, 'den andra personens svar ska vara orörda');
+});
+
 test('listan byter inte ordning när någon spärras eller aktiveras', async () => {
   const { client } = await database();
   const org = await buildOrg(client);

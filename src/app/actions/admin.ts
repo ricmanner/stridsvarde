@@ -6,10 +6,12 @@ import { requireRole } from '@/lib/auth/guard';
 import {
   createUnit,
   createUsers,
+  moveUser,
   reissueCode,
   setUserActive,
   type IssuedCode,
 } from '@/lib/db/queries/admin';
+import { erasePersonalData } from '@/lib/db/retention';
 import type { Role } from '@/lib/roles';
 
 /*
@@ -92,6 +94,57 @@ export async function reissueCodeAction(
 
   revalidatePath('/admin');
   return { codes: [{ label: result.label, code: result.code }] };
+}
+
+export interface MoveState {
+  error?: string;
+  moved?: string;
+}
+
+export async function moveUserAction(
+  _prev: MoveState,
+  formData: FormData,
+): Promise<MoveState> {
+  const admin = await requireRole('admin');
+
+  const userId = Number(formData.get('userId'));
+  const targetUnitId = Number(formData.get('targetUnitId'));
+  if (!Number.isInteger(userId) || !Number.isInteger(targetUnitId)) {
+    return { error: 'Välj både person och målenhet.' };
+  }
+
+  const result = await moveUser(admin.id, userId, targetUnitId);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath('/admin');
+  return { moved: result.unitName };
+}
+
+export interface EraseState {
+  error?: string;
+  erased?: number;
+}
+
+/**
+ * Raderar en persons hälsodata på begäran.
+ *
+ * GDPR artikel 17. Funktionen fanns redan i retention.ts men gick inte att
+ * nå från gränssnittet — en rättighet som är implementerad men oåtkomlig är
+ * sämre än ingen alls, eftersom den ser uppfylld ut i en granskning.
+ */
+export async function erasePersonalDataAction(
+  _prev: EraseState,
+  formData: FormData,
+): Promise<EraseState> {
+  const admin = await requireRole('admin');
+
+  const userId = Number(formData.get('userId'));
+  if (!Number.isInteger(userId)) return { error: 'Välj en person.' };
+
+  const erased = await erasePersonalData(admin.id, userId);
+
+  revalidatePath('/admin');
+  return { erased };
 }
 
 export interface ActiveState {

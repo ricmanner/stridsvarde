@@ -1,18 +1,22 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { KeyRound, Plus, UserCheck, UserX } from 'lucide-react';
+import { ArrowRightLeft, KeyRound, Plus, Trash2, UserCheck, UserX } from 'lucide-react';
 
 import {
   createUnitAction,
   createUsersAction,
+  erasePersonalDataAction,
+  moveUserAction,
   reissueCodeAction,
   toggleUserActiveAction,
   type ActiveState,
   type CodeState,
+  type EraseState,
+  type MoveState,
   type UnitState,
 } from '@/app/actions/admin';
-import type { AdminUser } from '@/lib/db/queries/admin';
+import type { AdminUser, MoveTarget } from '@/lib/db/queries/admin';
 import { ROLE_LABEL, type Role } from '@/lib/roles';
 
 import CodeSheet from './CodeSheet';
@@ -22,6 +26,8 @@ interface Props {
   members: AdminUser[];
   /** Inloggad administratör — den egna raden hanteras annorlunda. */
   currentUserId: number;
+  /** Enheter personer i den här enheten kan flyttas till. */
+  moveTargets: MoveTarget[];
 }
 
 /** Vilken roll som hör hemma på vilken nivå. */
@@ -39,11 +45,13 @@ const CHILD_KIND: Record<string, string | null> = {
   grupp: null,
 };
 
-export default function UnitDetail({ unit, members, currentUserId }: Props) {
+export default function UnitDetail({ unit, members, currentUserId, moveTargets }: Props) {
   const [unitState, unitFormAction, creatingUnit] = useActionState<UnitState, FormData>(createUnitAction, {});
   const [codeState, codeFormAction, creatingUsers] = useActionState<CodeState, FormData>(createUsersAction, {});
   const [reissueState, reissueFormAction] = useActionState<CodeState, FormData>(reissueCodeAction, {});
   const [activeState, activeFormAction] = useActionState<ActiveState, FormData>(toggleUserActiveAction, {});
+  const [moveState, moveFormAction, moving] = useActionState<MoveState, FormData>(moveUserAction, {});
+  const [eraseState, eraseFormAction, erasing] = useActionState<EraseState, FormData>(erasePersonalDataAction, {});
   const [dismissed, setDismissed] = useState(0);
 
   const soldiers = members.filter((m) => m.role === 'soldat');
@@ -276,6 +284,118 @@ export default function UnitDetail({ unit, members, currentUserId }: Props) {
           {reissueState.error && <p role="alert" className="mt-2 text-sm text-red-600">{reissueState.error}</p>}
           {activeState.error && <p role="alert" className="mt-2 text-sm text-red-600">{activeState.error}</p>}
         </section>
+
+        {/* ── Flytta person ── */}
+        {members.length > 0 && (
+          <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
+            <h3 className="mb-1 text-sm font-bold text-slate-900">Flytta person</h3>
+            <p className="mb-3 text-[13px] leading-relaxed text-slate-500">
+              Personen behåller sin kod och hela sin historik. Tidigare svar räknas
+              dock in i den nya enhetens statistik — systemet håller inte reda på var
+              någon befann sig en viss dag.
+            </p>
+            <form action={moveFormAction} className="flex flex-wrap items-end gap-2">
+              <label className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold text-slate-500">Person</span>
+                <select
+                  name="userId"
+                  required
+                  className="w-48 max-w-full rounded border-[1.5px] border-slate-200 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                >
+                  {members.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.label}
+                      {dupeLabels.has(m.label) ? ` (#${m.id})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold text-slate-500">Till enhet</span>
+                <select
+                  name="targetUnitId"
+                  required
+                  className="w-64 max-w-full rounded border-[1.5px] border-slate-200 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                >
+                  {moveTargets.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.path}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="submit"
+                disabled={moving}
+                className="flex cursor-pointer items-center gap-1.5 rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
+              >
+                <ArrowRightLeft size={14} aria-hidden />
+                {moving ? 'Flyttar…' : 'Flytta'}
+              </button>
+            </form>
+            {moveState.error && <p role="alert" className="mt-2 text-sm text-red-600">{moveState.error}</p>}
+            {moveState.moved && (
+              <p className="mt-2 text-sm text-emerald-700">Flyttad till {moveState.moved}.</p>
+            )}
+          </section>
+        )}
+
+        {/* ── Radera hälsodata ── */}
+        {members.length > 0 && (
+          <section className="rounded-md border border-red-200 bg-red-50/40 p-4 sm:p-5">
+            <h3 className="mb-1 text-sm font-bold text-red-900">Radera hälsodata</h3>
+            <p className="mb-3 text-[13px] leading-relaxed text-red-800">
+              Rätten att bli raderad enligt GDPR artikel 17. Personens incheckningar
+              tas bort permanent. Kontot och enhetstillhörigheten behålls, så att
+              svarsfrekvensen fortfarande räknas rätt. Går inte att ångra.
+            </p>
+            <form
+              action={eraseFormAction}
+              onSubmit={(e) => {
+                if (
+                  !confirm(
+                    'Radera den här personens samtliga incheckningar?\n\n' +
+                      'Det går inte att ångra. Uppgifterna finns därefter bara kvar i ' +
+                      'eventuella säkerhetskopior.',
+                  )
+                ) {
+                  e.preventDefault();
+                }
+              }}
+              className="flex flex-wrap items-end gap-2"
+            >
+              <label className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold text-red-700">Person</span>
+                <select
+                  name="userId"
+                  required
+                  className="w-48 max-w-full rounded border-[1.5px] border-red-200 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-red-600"
+                >
+                  {members.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.label}
+                      {dupeLabels.has(m.label) ? ` (#${m.id})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="submit"
+                disabled={erasing}
+                className="flex cursor-pointer items-center gap-1.5 rounded-md border-[1.5px] border-red-300 px-3.5 py-2 text-sm font-semibold text-red-700 hover:border-red-600 hover:bg-red-100 disabled:opacity-50"
+              >
+                <Trash2 size={14} aria-hidden />
+                {erasing ? 'Raderar…' : 'Radera svaren'}
+              </button>
+            </form>
+            {eraseState.error && <p role="alert" className="mt-2 text-sm text-red-600">{eraseState.error}</p>}
+            {eraseState.erased !== undefined && (
+              <p className="mt-2 text-sm text-red-900">
+                {eraseState.erased} {eraseState.erased === 1 ? 'incheckning' : 'incheckningar'} raderade.
+              </p>
+            )}
+          </section>
+        )}
 
         <p className="text-center text-xs leading-relaxed text-slate-400">
           Administratörsrollen har ingen åtkomst till hälsodata. Att lägga upp enheter

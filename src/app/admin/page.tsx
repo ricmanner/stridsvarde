@@ -7,6 +7,7 @@ import {
   KIND_LABEL,
   getAdminStats,
   getUnit,
+  getMoveTargets,
   getUnitTree,
   getUsersInUnit,
 } from '@/lib/db/queries/admin';
@@ -33,6 +34,16 @@ export default async function AdminPage({
   const selectedId = tree.some((n) => n.id === requested) ? requested : tree[0]?.id;
   const selected = selectedId ? await getUnit(selectedId) : null;
   const members = selectedId ? await getUsersInUnit(selectedId) : [];
+
+  /*
+   * Målenheter för förflyttning. Rollen i enheten avgör vilka nivåer som är
+   * giltiga — en plutonchef kan inte placeras på en grupp. Har enheten både
+   * soldater och befäl listas unionen, och servern avvisar ändå ett omöjligt
+   * val i moveUser().
+   */
+  const roles = [...new Set(members.map((m) => m.role))];
+  const targetLists = await Promise.all(roles.map((r) => getMoveTargets(r)));
+  const moveTargets = [...new Map(targetLists.flat().map((t) => [t.id, t])).values()];
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -120,6 +131,7 @@ export default async function AdminPage({
                 }}
                 members={members}
                 currentUserId={session.id}
+                moveTargets={moveTargets}
               />
             ) : (
               <p className="text-sm text-slate-500">Ingen enhet vald.</p>

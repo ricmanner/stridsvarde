@@ -4,7 +4,7 @@ import { and, asc, eq, sql } from 'drizzle-orm';
 
 import { generateCode, hashCode } from '../../auth/codes';
 import { serviceDate } from '../../date';
-import type { Role } from '../../roles';
+import { ROLE_LABEL, type Role } from '../../roles';
 import { db } from '..';
 import { auditLog, sessions, units, users } from '../schema';
 
@@ -272,6 +272,99 @@ export async function reissueCode(
 
   await audit(actorUserId, 'code.reissue', `användare ${userId}`);
   return { ok: true, code, label: user.label };
+}
+
+/** Vilka enhetsnivåer en roll får tillhöra. */
+const KIND_FOR_ROLE: Record<Role, UnitKind[]> = {
+  soldat: ['grupp', 'pluton'],
+  pluton: ['pluton'],
+  kompani: ['kompani'],
+  bataljon: ['bataljon'],
+  admin: ['bataljon', 'kompani', 'pluton', 'grupp'],
+};
+
+export interface MoveTarget {
+  id: number;
+  name: string;
+  kind: UnitKind;
+  /** Hela vägen ned, så att två "Grupp 1" går att skilja åt. */
+  path: string;
+}
+
+/** Enheter en viss roll kan flyttas till, med full sökväg som etikett. */
+export async function getMoveTargets(role: Role): Promise<MoveTarget[]> {
+  const kinds = KIND_FOR_ROLE[role];
+
+  const rows = (await db.all(sql`
+    WITH RECURSIVE tree(id, name, kind, parent_id, path, sort) AS (
+          SELECT id, name, kind, parent_id, name, printf('%04d', id)
+            FROM units WHERE parent_id IS NULL
+      UNION ALL
+          SELECT u.id, u.name, u.kind, u.parent_id,
+                 t.path || ' › ' || u.name,
+                 t.sort || '/' || printf('%04d', u.id)
+            FROM units u JOIN tree t ON u.parent_id = t.id
+    )
+    SELECT id, name, kind, path FROM tree ORDER BY sort
+  `)) as Record<string, string | number>[];
+
+  return rows
+    .map((r) => ({
+      id: Number(r.id),
+      name: String(r.name),
+      kind: String(r.kind) as UnitKind,
+      path: String(r.path),
+    }))
+    .filter((u) => kinds.includes(u.kind));
+}
+
+/**
+ * Flyttar en person till en annan enhet.
+ *
+ * Utan det här fanns bara en väg när en soldat bytte grupp: spärra kontot och
+ * skapa ett nytt. Det raderar personens historik och kräver en ny utdelad kod
+ * — för något som händer flera gånger under en utbildningsomgång.
+ *
+ * Sessionen rörs inte. Personen är densamma, bara på ett annat ställe, och
+ * nästa sidladdning visar den nya enhetens data.
+ *
+ * OBS: incheckningarna följer med personen, så historik från tiden i den
+ * gamla enheten räknas in i den nya enhetens aggregat. Det är en medveten
+ * förenkling — att göra det korrekt kräver tidsatt enhetstillhörighet, vilket
+ * gör varje aggregatfråga dubbelt så komplicerad. Gränssnittet säger detta
+ * rakt ut i stället för att låtsas att siffrorna är exakta.
+ */
+export async function moveUser(
+  actorUserId: number,
+  userId: number,
+  targetUnitId: number,
+): Promise<{ ok: true; unitName: string } | { ok: false; error: string }> {
+  const [user] = await db
+    .select({ id: users.id, label: users.label, role: users.role, unitId: users.unitId })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!user) return { ok: false, error: 'Personen saknas.' };
+  if (user.unitId === targetUnitId) {
+    return { ok: false, error: 'Personen tillhör redan den enheten.' };
+  }
+
+  const target = await getUnit(targetUnitId);
+  if (!target) return { ok: false, error: 'Målenheten saknas.' };
+
+  const allowed = KIND_FOR_ROLE[user.role as Role];
+  if (!allowed.includes(target.kind as UnitKind)) {
+    return {
+      ok: false,
+      error: `${ROLE_LABEL[user.role as Role]} kan inte placeras på ${KIND_LABEL[target.kind as UnitKind].toLowerCase()}snivå.`,
+    };
+  }
+
+  await db.update(users).set({ unitId: targetUnitId }).where(eq(users.id, userId));
+  await audit(actorUserId, 'user.move', `användare ${userId} → enhet ${targetUnitId}`);
+
+  return { ok: true, unitName: target.name };
 }
 
 /** Antal aktiva administratörer utöver en given användare. */
