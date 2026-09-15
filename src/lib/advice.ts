@@ -83,13 +83,37 @@ const catLabel: Record<Category, string> = {
   energi: 'Energi',
 };
 
-export function getSoldierTips(scores: Record<Category, number>): SoldierTip[] {
-  const entries = (Object.entries(scores) as [Category, number][])
-    .sort((a, b) => a[1] - b[1])
-    .filter(([, score]) => score < 7)
-    .slice(0, 2);
+/**
+ * Ordning när flera kategorier har samma värde.
+ *
+ * Utan den avgjorde objektets nyckelordning vilken kategori som blev
+ * huvudbudskap. En soldat som svarade 2 på allt — inklusive psykisk hälsa —
+ * möttes då av råd om att vila från tung belastning, medan den psykiska
+ * krisen hamnade längre ned. Vid lika värden ska det som kan skada mest väga
+ * tyngst, inte det som råkar stå först i koden.
+ */
+const SEVERITY: Category[] = ['psykisk', 'fysisk', 'somn', 'social', 'energi', 'kost'];
 
-  return entries.map(([cat, score]) => ({
+function byUrgency(scores: Record<Category, number>): [Category, number][] {
+  return (Object.entries(scores) as [Category, number][]).sort(
+    (a, b) => a[1] - b[1] || SEVERITY.indexOf(a[0]) - SEVERITY.indexOf(b[0]),
+  );
+}
+
+/**
+ * Tipskort för det som behöver åtgärdas.
+ *
+ * Finns röda värden visas ENBART röda. Tidigare fylldes listan ut med näst
+ * sämsta kategori oavsett nivå, vilket gav en soldat i psykisk kris ett kort
+ * om att bjuda en kamrat på middag bredvid rådet att söka hjälp. Det drar ned
+ * allvaret i det som faktiskt är akut.
+ */
+export function getSoldierTips(scores: Record<Category, number>): SoldierTip[] {
+  const sorted = byUrgency(scores);
+  const red = sorted.filter(([, score]) => getStatus(score) === 'red');
+  const relevant = (red.length > 0 ? red : sorted.filter(([, s]) => s < 7)).slice(0, 2);
+
+  return relevant.map(([cat, score]) => ({
     category: cat,
     title: catLabel[cat],
     tips: actionTips[cat][getStatus(score)],
@@ -97,15 +121,37 @@ export function getSoldierTips(scores: Record<Category, number>): SoldierTip[] {
 }
 
 export function generateSoldierAdvice(scores: Record<Category, number>): string {
-  const overall = Object.values(scores).reduce((a, b) => a + b, 0) / Object.values(scores).length;
-  const entries = (Object.entries(scores) as [Category, number][]).sort((a, b) => a[1] - b[1]);
-  const [worstCat, worstScore] = entries[0];
+  const values = Object.values(scores);
+  const overall = values.reduce((a, b) => a + b, 0) / values.length;
+  const [worstCat, worstScore] = byUrgency(scores)[0];
   const status = getStatus(worstScore);
 
-  let intro = '';
-  if (overall >= 7) intro = 'Du rapporterar ett bra mående idag. ';
-  else if (overall >= 5) intro = 'Ditt mående är varierat — fokusera på ditt svagaste område. ';
-  else intro = 'Du mår tufft på flera fronter. Kom ihåg att det är okej att söka hjälp. ';
+  /*
+   * Är inget ens gult finns inget att åtgärda. Tidigare plockades ändå den
+   * lägsta gröna kategorin ut och kommenterades, så någon som mådde bra rakt
+   * igenom fick en pekpinne om kosthållning utan att ha frågat. Beröm den som
+   * sköter sig i stället — det är också vägledning.
+   */
+  if (status === 'green') {
+    return (
+      'Du rapporterar bra värden i samtliga kategorier idag. Det är inte en ' +
+      'slump utan resultatet av rutiner som fungerar — sömn, mat och ' +
+      'återhämtning. Håll fast vid dem, särskilt när tempot går upp.'
+    );
+  }
+
+  const redCount = values.filter((v) => getStatus(v) === 'red').length;
+
+  let intro: string;
+  if (redCount >= 3) {
+    intro = 'Du rapporterar låga värden på flera håll samtidigt. Det är för mycket att bära själv, och du behöver inte göra det. ';
+  } else if (status === 'red') {
+    intro = 'Ett av dina värden ligger på en nivå som behöver åtgärdas nu. ';
+  } else if (overall >= 6) {
+    intro = 'Du ligger bra överlag, men ett område släpar efter. ';
+  } else {
+    intro = 'Ditt mående är ojämnt — börja med det som ligger lägst. ';
+  }
 
   return `${intro}${soldierAdvice[worstCat][status]}`;
 }

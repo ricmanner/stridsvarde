@@ -215,7 +215,28 @@ export default function UnitDetail({ unit, members, currentUserId }: Props) {
                   </span>
 
                   <div className="ml-auto flex items-center gap-1">
-                    <form action={reissueFormAction}>
+                    <form
+                      action={reissueFormAction}
+                      onSubmit={(e) => {
+                        /*
+                         * Bara för den egna raden. Den gamla koden slutar gälla
+                         * omedelbart, och den nya visas en enda gång — hinner
+                         * man inte skriva av den är man utelåst. Ett oavsiktligt
+                         * klick här får inte kunna låsa ute administratören.
+                         */
+                        if (
+                          isSelf &&
+                          !confirm(
+                            'Byta din egen inloggningskod?\n\n' +
+                              'Den nuvarande slutar gälla direkt. Den nya visas en enda gång — ' +
+                              'skriv av den innan du går vidare.\n\n' +
+                              'Blir du ändå utelåst: kör "npm run aterstall-admin" i terminalen.',
+                          )
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
+                    >
                       <input type="hidden" name="userId" value={m.id} />
                       <button
                         type="submit"

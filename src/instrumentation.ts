@@ -11,4 +11,11 @@ export async function register(): Promise<void> {
 
   const { ensureDb } = await import('./lib/db');
   await ensureDb();
+
+  // Koder lagras bara som hash och kan aldrig läsas ut igen. Blir
+  // administratören utelåst är skriptet enda vägen tillbaka — då ska man
+  // inte behöva leta efter det.
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('  Utelåst som admin?  npm run aterstall-admin\n');
+  }
 }

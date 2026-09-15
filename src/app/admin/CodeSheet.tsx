@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { AlertTriangle, Printer, X } from 'lucide-react';
 
 import type { IssuedCode } from '@/lib/db/queries/admin';
@@ -21,6 +22,19 @@ export default function CodeSheet({
   unitName?: string;
   onClose: () => void;
 }) {
+  /*
+   * Hindrar att koderna försvinner av ett ovarsamt klick.
+   *
+   * Koderna finns bara i den här vyns tillstånd — lämnar man sidan är de
+   * borta för alltid, eftersom databasen bara har hashen. Det var precis så
+   * administratören låste ute sig själv.
+   */
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, []);
+
   return (
     <div className="mb-5 rounded-md border-2 border-amber-300 bg-amber-50 p-4 sm:p-5">
       <div className="no-print mb-4 flex items-start gap-2.5">
