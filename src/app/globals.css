@@ -6,51 +6,36 @@
 }
 
 body {
-  background: #E8EDF3;
+  background: #F8FAFC;
+  color: #0F172A;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
   margin: 0;
-  overscroll-behavior: none;
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Range slider — professional */
-input[type='range'] {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 4px;
-  background: #E2E8F0;
-  border-radius: 2px;
-  outline: none;
-  cursor: pointer;
-  width: 100%;
-}
-
-input[type='range']::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #0F172A;
-  border: 2px solid white;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-  cursor: pointer;
-}
-
-input[type='range']::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #0F172A;
-  border: 2px solid white;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-  cursor: pointer;
-}
-
-/* Code input */
+/* Inloggningskod — monospace så att tecknen inte kan förväxlas */
 input.code-input {
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   font-size: 20px;
   text-align: center;
+}
+
+/* Synlig fokusmarkering för tangentbordsnavigering (tillgänglighetskrav) */
+:focus-visible {
+  outline: 2px solid #0F172A;
+  outline-offset: 2px;
+}
+
+/*
+  Utskriftsvy för rapporter: döljer navigation och knappar så att en
+  befälsrapport kan sparas som PDF direkt från webbläsaren.
+*/
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+  @page { margin: 16mm; }
 }

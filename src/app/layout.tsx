@@ -9,27 +9,19 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
+  // maximumScale togs bort medvetet: att blockera zoom bryter mot
+  // tillgänglighetskraven (WCAG 1.4.4) och är inte acceptabelt för en
+  // myndighetsapplikation.
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="sv">
-      <body style={{ background: '#E8EDF3', minHeight: '100dvh', display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '430px',
-            minHeight: '100dvh',
-            background: '#F0F4F8',
-            position: 'relative',
-            boxShadow: '0 0 40px rgba(0,0,0,0.15)',
-            overflow: 'hidden',
-          }}
-        >
-          {children}
-        </div>
-      </body>
+      {/*
+        Demons 430px telefonram är borttagen. Appen är nu responsiv på riktigt:
+        soldater checkar in i mobilen, befäl analyserar på en bred skärm.
+      */}
+      <body>{children}</body>
     </html>
   );
 }

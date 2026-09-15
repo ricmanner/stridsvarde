@@ -9,7 +9,7 @@ const soldierAdvice: Record<Category, Record<Status, string>> = {
   },
   psykisk: {
     green: 'Du hanterar belastningen bra mentalt. Regelbundna rutiner, rörelse och kontakt med kamrater håller huvudet i trim — fortsätt med det.',
-    yellow: 'Du visar tecken på mental stress. Prata med en kamrat du litar på, ta korta pauser under dagen och håll sömnrutinerna stabila. Det räcker längt.',
+    yellow: 'Du visar tecken på mental stress. Prata med en kamrat du litar på, ta korta pauser under dagen och håll sömnrutinerna stabila. Det räcker långt.',
     red: 'Din mentala hälsa behöver stöd nu. Det är styrka att söka hjälp — prata med befäl eller kompaniets kurator. Du behöver inte bära detta ensam.',
   },
   social: {
@@ -58,7 +58,7 @@ const actionTips: Record<Category, Record<Status, string[]>> = {
   },
   kost: {
     green: ['Ät inom 30 min efter träning för snabbare återhämtning', 'Variera kostens sammansättning under dagen'],
-    yellow: ['Hoppa inte över frukost — det kostar för mycket later', 'Ät minst 3 ordentliga mål om dagen', 'Ha alltid ett litet mellanmål tillgängligt'],
+    yellow: ['Hoppa inte över frukost — det kostar för mycket senare', 'Ät minst 3 ordentliga mål om dagen', 'Ha alltid ett litet mellanmål tillgängligt'],
     red: ['Berätta för befäl om kostproblemen', 'Ät vad du kan, när du kan — något är bättre än inget', 'Kontrollera att du inte missar måltider p.g.a. schema'],
   },
   energi: {
@@ -110,15 +110,25 @@ export function generateSoldierAdvice(scores: Record<Category, number>): string 
   return `${intro}${soldierAdvice[worstCat][status]}`;
 }
 
+/**
+ * Råd till befäl, baserat enbart på enhetens egna aggregerade värden.
+ *
+ * Tidigare versioner innehöll siffror som "tre gånger högre risk för avbrott"
+ * och "minskar avbrott med upp till 40 procent (FoT 2023)". De gick inte att
+ * belägga. Att presentera obelagd statistik som beslutsunderlag för ett befäl
+ * som ska fatta beslut om människor är inte försvarbart — särskilt inte i ett
+ * system som ska granskas av Försvarsmakten. Råden nedan beskriver vad datan
+ * visar och vad man kan göra åt det, utan att åberopa forskning vi inte har.
+ */
 export function generateLeaderAdvice(avgScores: Record<Category, number>): string {
   const overall = Object.values(avgScores).reduce((a, b) => a + b, 0) / Object.values(avgScores).length;
   const redCount = Object.values(avgScores).filter(v => v < 4).length;
 
   if (redCount >= 2) {
-    return `Gruppen visar kritiska värden i ${redCount} kategorier. Forskning visar att grupper med detta mönster har tre gånger högre risk för avbrott från utbildningen. Rekommendation: genomför enskilda samtal med alla soldater inom 48 timmar och justera träningsbelastningen.`;
+    return `Enheten ligger på kritisk nivå i ${redCount} kategorier. Det är ett tydligt tecken på att belastningen behöver ses över. Rekommendation: genomför enskilda samtal inom 48 timmar och justera träningsbelastningen tills värdena vänder.`;
   }
   if (overall >= 7) {
-    return `Gruppen rapporterar god hälsa. Forskning visar att hög social sammanhållning och adekvat sömn är de viktigaste faktorerna för att behålla stridsförmågan. Fortsätt prioritera återhämtning och gruppdynamik.`;
+    return `Enheten rapporterar genomgående god hälsa. Fortsätt prioritera återhämtning och sammanhållning — det är de faktorer som är lättast att tappa när tempot ökar.`;
   }
-  return `Gruppen visar varierat mående. Tidig intervention minskar avbrott med upp till 40 procent (FoT 2023). Identifiera soldater med gula värden och genomför korta enskilda samtal i närtid.`;
+  return `Enheten visar varierat mående utan kritiska nivåer. Håll koll på de kategorier som ligger gult och fånga upp dem tidigt, innan de utvecklas åt fel håll.`;
 }
