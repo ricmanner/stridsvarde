@@ -12,8 +12,18 @@ import { SESSION_COOKIE } from './constants';
 
 export { SESSION_COOKIE };
 
-/** 30 dagar. En värnpliktig ska inte behöva logga in varje dag. */
-const TTL_MS = 30 * 24 * 60 * 60 * 1000;
+/**
+ * Sessionslängd, olika för soldat och befäl.
+ *
+ * En värnpliktig checkar in dagligen i sin egen telefon och ska inte behöva
+ * logga in varje gång — 30 dagar är rimligt och sänker tröskeln att svara.
+ *
+ * Ett befäl ser däremot aggregerad hälsodata för upp till nittio personer,
+ * ofta på en delad dator på förbandet. Där är en månadslång session en
+ * onödig exponering. Tolv timmar räcker för ett arbetspass.
+ */
+const TTL_SOLDIER_MS = 30 * 24 * 60 * 60 * 1000;
+const TTL_LEADER_MS = 12 * 60 * 60 * 1000;
 
 /**
  * Cookien bär den råa token, databasen lagrar bara hashen. Kommer någon över
@@ -37,9 +47,9 @@ export interface SessionUser {
  * Får bara anropas från en Server Action eller Route Handler — Next.js
  * tillåter inte att cookies sätts efter att svaret börjat strömma.
  */
-export async function createSession(userId: number): Promise<void> {
+export async function createSession(userId: number, role: Role): Promise<void> {
   const token = randomBytes(32).toString('hex');
-  const expiresAt = Date.now() + TTL_MS;
+  const expiresAt = Date.now() + (role === 'soldat' ? TTL_SOLDIER_MS : TTL_LEADER_MS);
 
   await db.insert(sessions).values({
     tokenHash: hashToken(token),

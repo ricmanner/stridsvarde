@@ -69,7 +69,7 @@ export async function loginAction(
     return { error: 'Ogiltig kod. Kontrollera att du skrivit rätt och försök igen.' };
   }
 
-  await createSession(user.id);
+  await createSession(user.id, user.role);
 
   // Registreras före redirect() — den kastar, och då hinner inget efter den köras.
   after(async () => {
