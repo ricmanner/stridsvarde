@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Activity, Brain, Users, Moon, Utensils, Zap, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from 'recharts';
 import StatusBadge from '@/components/StatusBadge';
@@ -146,6 +147,13 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                 </ul>
               </div>
             ))}
+
+            <Link
+              href="/soldat?redigera=1"
+              className="mb-4 block rounded-md border border-slate-200 bg-white px-4 py-3 text-center text-[13px] text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
+            >
+              Blev något fel? Korrigera dagens rapport
+            </Link>
 
             {/* 14-day trend */}
             {chartData.length >= 3 && (

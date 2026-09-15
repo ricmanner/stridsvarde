@@ -17,14 +17,20 @@ const ICONS: Record<string, React.ReactNode> = {
 
 const EMPTY: Record<Category, number> = { fysisk: 5, psykisk: 5, social: 5, somn: 5, kost: 5, energi: 5 };
 
+interface Props {
+  /** Dagens redan sparade svar, när soldaten korrigerar en rapport. */
+  initial?: Record<Category, number>;
+  editing?: boolean;
+}
+
 /**
  * Behörighet och "har redan checkat in idag" kontrolleras på servern i
  * page.tsx. Wizarden håller bara svaren medan de fylls i — de sparas till
  * databasen via en Server Action, inte till localStorage.
  */
-export default function SoldatCheckin() {
+export default function SoldatCheckin({ initial, editing = false }: Props) {
   const [step, setStep] = useState(0);
-  const [scores, setScores] = useState<Record<Category, number>>(EMPTY);
+  const [scores, setScores] = useState<Record<Category, number>>(initial ?? EMPTY);
   const [state, formAction, pending] = useActionState<CheckInState, FormData>(
     submitCheckIn,
     {},
@@ -36,14 +42,15 @@ export default function SoldatCheckin() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '40px 24px' }}>
           <div style={{ marginBottom: 40 }}>
             <p style={{ color: '#64748B', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0, marginBottom: 8 }}>
-              Daglig rapportering
+              {editing ? 'Korrigera dagens rapport' : 'Daglig rapportering'}
             </p>
             <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0, marginBottom: 12 }}>
               {new Date().toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' })}
             </h1>
             <p style={{ color: '#64748B', fontSize: 14, margin: 0, lineHeight: 1.6 }}>
-              Besvara 6 frågor om ditt mående. Tar ungefär 2 minuter.
-              Dina svar är anonyma och bidrar till plutonens hälsobild.
+              {editing
+                ? 'Dina tidigare svar är förifyllda. Ändra det som blivit fel — den gamla rapporten skrivs över.'
+                : 'Besvara 6 frågor om ditt mående. Tar ungefär 2 minuter. Ditt befäl ser bara sammanställd data för hela gruppen.'}
             </p>
           </div>
 
@@ -71,7 +78,7 @@ export default function SoldatCheckin() {
               fontWeight: 600, cursor: 'pointer', letterSpacing: '0.04em',
             }}
           >
-            Starta incheckning
+            {editing ? 'Fortsätt' : 'Starta incheckning'}
           </button>
         </div>
       </div>
@@ -188,7 +195,7 @@ export default function SoldatCheckin() {
 
       <div style={{ padding: '24px', borderBottom: '1px solid #E2E8F0', background: 'white' }}>
         <p style={{ color: '#64748B', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0, marginBottom: 4 }}>Sammanfattning</p>
-        <h2 style={{ color: '#0F172A', fontSize: 20, fontWeight: 700, margin: 0 }}>Bekräfta din incheckning</h2>
+        <h2 style={{ color: '#0F172A', fontSize: 20, fontWeight: 700, margin: 0 }}>{editing ? 'Bekräfta ändringen' : 'Bekräfta din incheckning'}</h2>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
@@ -270,7 +277,7 @@ export default function SoldatCheckin() {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}
           >
-            <Check size={16} aria-hidden /> {pending ? 'Sparar…' : 'Bekräfta och skicka'}
+            <Check size={16} aria-hidden /> {pending ? 'Sparar…' : editing ? 'Spara ändringen' : 'Bekräfta och skicka'}
           </button>
         </form>
         <p style={{ color: '#94A3B8', fontSize: 12, textAlign: 'center', marginTop: 10 }}>
