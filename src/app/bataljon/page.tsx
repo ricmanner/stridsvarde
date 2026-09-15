@@ -1,19 +1,16 @@
-import AppHeader from '@/components/AppHeader';
-import NotificationBanner from '@/components/NotificationBanner';
-import { requireRole } from '@/lib/auth/guard';
-
-import BataljonDashboard from './BataljonClient';
+import LeaderPageShell from '@/components/leader/LeaderPageShell';
 
 export const dynamic = 'force-dynamic';
 
-export default async function BataljonPage() {
-  const session = await requireRole('bataljon');
-
+export default async function BataljonPage(props: {
+  searchParams: Promise<{ period?: string }>;
+}) {
   return (
-    <div className="flex min-h-dvh flex-col">
-      <AppHeader unit={session.unitName} label={session.label} role={session.role} />
-      <NotificationBanner userId={session.id} />
-      <BataljonDashboard unit={session.unitName} />
-    </div>
+    <LeaderPageShell
+      role="bataljon"
+      levelLabel="Bataljonsnivå"
+      childLabel="kompanier"
+      searchParams={props.searchParams}
+    />
   );
 }
