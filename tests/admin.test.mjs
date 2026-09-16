@@ -265,3 +265,90 @@ test('en tom eller för lång benämning avvisas', async () => {
   // Gränsen ska gå precis där den sägs gå, inte en bit därifrån.
   assert.equal((await renameUser(soldat, soldat, 'x'.repeat(MAX_LABEL))).ok, true);
 });
+
+test('radering tar bort både kontot och personens rapporter', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const [a, b] = org.soldater['Grupp B'];
+
+  await checkIn(client, [a, b], dayOffset(1), 6);
+  await checkIn(client, [a, b], dayOffset(2), 5);
+
+  const { deleteUser, getUsersInUnit } = await import('../src/lib/db/queries/admin.ts');
+  const { erasePersonalData } = await import('../src/lib/db/retention.ts');
+
+  // Samma ordning som deleteUserAction: hälsodatan först, sedan kontot.
+  const raderade = await erasePersonalData(b, a);
+  assert.equal(raderade, 2);
+  assert.equal((await deleteUser(b, a)).ok, true);
+
+  const kvar = await getUsersInUnit(org.grupper['Grupp B']);
+  assert.equal(kvar.find((r) => r.id === a), undefined, 'raden ska vara borta');
+
+  const rader = await client.execute({
+    sql: 'SELECT count(*) AS n FROM check_ins WHERE user_id = ?',
+    args: [a],
+  });
+  assert.equal(Number(rader.rows[0].n), 0, 'inga incheckningar får ligga kvar');
+
+  // Grannen rörs inte.
+  const grannen = await client.execute({
+    sql: 'SELECT count(*) AS n FROM check_ins WHERE user_id = ?',
+    args: [b],
+  });
+  assert.equal(Number(grannen.rows[0].n), 2);
+});
+
+test('radering som avvisas hinner inte radera något', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const jag = org.soldater['Grupp A'][0];
+
+  await checkIn(client, [jag], dayOffset(1), 6);
+
+  const { canDeleteUser, deleteUser } = await import('../src/lib/db/queries/admin.ts');
+
+  /*
+   * Det här är hela poängen med att kontrollen ligger före raderingen i
+   * deleteUserAction. Gick den efteråt vore hälsodatan redan borta när vi
+   * upptäckte att kontot inte får tas bort — personen skulle stå kvar utan
+   * sin historik, och ingenting skulle säga att det hänt.
+   */
+  const svar = await canDeleteUser(jag, jag);
+  assert.equal(svar.ok, false, 'sitt eget konto får inte tas bort');
+
+  assert.equal((await deleteUser(jag, jag)).ok, false);
+
+  const kvar = await client.execute({
+    sql: 'SELECT count(*) AS n FROM check_ins WHERE user_id = ?',
+    args: [jag],
+  });
+  assert.equal(Number(kvar.rows[0].n), 1, 'incheckningen ska vara kvar');
+});
+
+test('den sista administratören går inte att ta bort', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const annan = org.soldater['Grupp A'][2];
+
+  const admin = Number(
+    (
+      await client.execute({
+        sql: 'INSERT INTO users (code_hash, label, role, unit_id, active, created_at) VALUES (?,?,?,?,1,?) RETURNING id',
+        args: ['hash-admin', 'Administratör', 'admin', org.bataljon, new Date().toISOString()],
+      })
+    ).rows[0].id,
+  );
+
+  const { canDeleteUser } = await import('../src/lib/db/queries/admin.ts');
+
+  assert.equal((await canDeleteUser(annan, admin)).ok, false, 'ensam admin skyddas');
+
+  // Med en till administratör finns det ingen risk att låsa ute någon.
+  await client.execute({
+    sql: 'INSERT INTO users (code_hash, label, role, unit_id, active, created_at) VALUES (?,?,?,?,1,?)',
+    args: ['hash-admin-2', 'Administratör 2', 'admin', org.bataljon, new Date().toISOString()],
+  });
+
+  assert.equal((await canDeleteUser(annan, admin)).ok, true);
+});

@@ -275,7 +275,7 @@ export async function reissueCode(
 }
 
 /** Vilka enhetsnivåer en roll får tillhöra. */
-const KIND_FOR_ROLE: Record<Role, UnitKind[]> = {
+export const KIND_FOR_ROLE: Record<Role, UnitKind[]> = {
   soldat: ['grupp', 'pluton'],
   pluton: ['pluton'],
   kompani: ['kompani'],
@@ -291,10 +291,15 @@ export interface MoveTarget {
   path: string;
 }
 
-/** Enheter en viss roll kan flyttas till, med full sökväg som etikett. */
-export async function getMoveTargets(role: Role): Promise<MoveTarget[]> {
-  const kinds = KIND_FOR_ROLE[role];
-
+/**
+ * Alla enheter med full sökväg som etikett, i visningsordning.
+ *
+ * Tar inte längre emot en roll. Svaret beror ändå inte på vilken roll som
+ * frågar — bara på enhetsträdet — så den role-parametern innebar att samma
+ * rekursiva fråga kördes en gång per roll i den valda enheten. Nu hämtas
+ * listan en gång och filtreras med KIND_FOR_ROLE där den används.
+ */
+export async function getUnitPaths(): Promise<MoveTarget[]> {
   const rows = (await db.all(sql`
     WITH RECURSIVE tree(id, name, kind, parent_id, path, sort) AS (
           SELECT id, name, kind, parent_id, name, printf('%04d', id)
@@ -308,14 +313,12 @@ export async function getMoveTargets(role: Role): Promise<MoveTarget[]> {
     SELECT id, name, kind, path FROM tree ORDER BY sort
   `)) as Record<string, string | number>[];
 
-  return rows
-    .map((r) => ({
-      id: Number(r.id),
-      name: String(r.name),
-      kind: String(r.kind) as UnitKind,
-      path: String(r.path),
-    }))
-    .filter((u) => kinds.includes(u.kind));
+  return rows.map((r) => ({
+    id: Number(r.id),
+    name: String(r.name),
+    kind: String(r.kind) as UnitKind,
+    path: String(r.path),
+  }));
 }
 
 /**
@@ -410,6 +413,62 @@ export async function setUserActive(
   return { ok: true };
 }
 
+/**
+ * Tar bort ett konto helt.
+ *
+ * Fanns inte tidigare — det gick bara att spärra. Spärren är rätt verktyg när
+ * en person slutar men uppgifterna ska finnas kvar under lagringstiden. Den
+ * är fel verktyg när någon råkat skapa trettio koder för mycket: de raderna
+ * blir kvar för alltid, syns i varje lista och räknas med i "spärrade".
+ *
+ * Hälsodatan raderas INTE här. Anropande action kallar först
+ * erasePersonalData() i retention.ts, som både räknar och loggar posterna.
+ * Den här filen får strukturellt inte röra check_ins — se filhuvudet — och
+ * det ska gälla även när vi tar bort saker.
+ *
+ * Databasen städar resten: sessioner och notiser hänger på användarraden med
+ * ON DELETE CASCADE och försvinner med den.
+ */
+export async function canDeleteUser(
+  actorUserId: number,
+  userId: number,
+): Promise<{ ok: true; label: string; role: Role } | { ok: false; error: string }> {
+  if (userId === actorUserId) {
+    return { ok: false, error: 'Du kan inte ta bort ditt eget konto.' };
+  }
+
+  const [target] = await db
+    .select({ label: users.label, role: users.role })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!target) return { ok: false, error: 'Personen saknas.' };
+
+  // Samma skydd som vid spärr: utan en administratör går systemet inte att
+  // administrera, och återställning kräver tillgång till servern.
+  if (target.role === 'admin' && (await otherActiveAdmins(userId)) === 0) {
+    return { ok: false, error: 'Det måste finnas minst en aktiv administratör.' };
+  }
+
+  return { ok: true, label: target.label, role: target.role };
+}
+
+export async function deleteUser(
+  actorUserId: number,
+  userId: number,
+): Promise<{ ok: true; label: string } | { ok: false; error: string }> {
+  // Kontrolleras igen även om anroparen redan frågat. En raderad rad går inte
+  // att ångra, och villkoren får inte hänga på att varje anropsväg minns dem.
+  const tillaten = await canDeleteUser(actorUserId, userId);
+  if (!tillaten.ok) return tillaten;
+
+  await db.delete(users).where(eq(users.id, userId));
+
+  await audit(actorUserId, 'user.delete', `${tillaten.role} ${userId}`);
+  return { ok: true, label: tillaten.label };
+}
+
 /** Längsta tillåtna benämning. Samma gräns som vid skapandet av befäl. */
 export const MAX_LABEL = 60;
 
@@ -465,21 +524,29 @@ export async function renameUser(
   return { ok: true, label: trimmed };
 }
 
-/** Enkel driftsöversikt för adminstartsidan. Inga hälsovärden. */
+/**
+ * Enkel driftsöversikt för adminstartsidan. Inga hälsovärden.
+ *
+ * EN fråga, inte fyra. Tidigare kördes de fyra räkningarna efter varandra,
+ * var och en med ett eget anrop över nätet. Mot en lokal fil märktes det
+ * inte; mot en fjärrdatabas kostade varje anrop runt hundra millisekunder,
+ * och sidan stod still medan den räknade saker som ryms i en enda SELECT.
+ */
 export async function getAdminStats() {
-  const one = async (q: Promise<{ n: number }[]>) => (await q)[0]?.n ?? 0;
+  const [row] = (await db.all(sql`
+    SELECT
+      (SELECT count(*) FROM units)                                              AS units,
+      (SELECT count(*) FROM users WHERE role = 'soldat' AND active = 1)         AS soldiers,
+      (SELECT count(*) FROM users
+        WHERE role NOT IN ('soldat', 'admin') AND active = 1)                   AS leaders,
+      (SELECT count(*) FROM users WHERE active = 0)                             AS inactive
+  `)) as Record<string, number>[];
 
   return {
-    units: await one(db.select({ n: sql<number>`count(*)` }).from(units)),
-    soldiers: await one(
-      db.select({ n: sql<number>`count(*)` }).from(users).where(and(eq(users.role, 'soldat'), eq(users.active, true))),
-    ),
-    leaders: await one(
-      db.select({ n: sql<number>`count(*)` }).from(users).where(sql`role <> 'soldat' AND role <> 'admin' AND active = 1`),
-    ),
-    inactive: await one(
-      db.select({ n: sql<number>`count(*)` }).from(users).where(eq(users.active, false)),
-    ),
+    units: Number(row?.units ?? 0),
+    soldiers: Number(row?.soldiers ?? 0),
+    leaders: Number(row?.leaders ?? 0),
+    inactive: Number(row?.inactive ?? 0),
     today: serviceDate(),
   };
 }

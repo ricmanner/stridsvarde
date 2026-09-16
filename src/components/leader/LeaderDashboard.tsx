@@ -133,7 +133,7 @@ export default function LeaderDashboard({
             </>
           ) : null}
 
-          <span className="text-xs text-slate-400">{overview.eligible} soldater</span>
+          <span className="text-xs text-slate-400">{overview.eligible} värnpliktiga</span>
           <span className="text-xs text-slate-400">
             {overview.today.pct}% svarat idag ({overview.today.responders}/{overview.eligible})
           </span>
@@ -519,7 +519,7 @@ function PeriodPicker({ current, pathname }: { current: Period; pathname: string
 function PrivacyFooter() {
   return (
     <p className="mt-6 text-center text-xs leading-relaxed text-slate-400">
-      Du ser endast sammanställd data. Enskilda soldaters svar visas aldrig för befäl.
+      Du ser endast sammanställd data. Enskilda värnpliktigas svar visas aldrig för befäl.
     </p>
   );
 }

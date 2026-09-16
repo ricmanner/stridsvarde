@@ -52,26 +52,26 @@ export interface RetentionStatus {
 export async function retentionStatus(): Promise<RetentionStatus> {
   const days = retentionDays();
 
-  const [oldestRow] = await db
-    .select({ d: sql<string | null>`min(${checkIns.serviceDate})` })
-    .from(checkIns);
+  /*
+   * Äldsta uppgiften och antalet som ska gallras hämtas i SAMMA fråga.
+   * Det var två anrop efter varandra över nätet för två tal ur samma tabell.
+   */
+  const cutoff = days === null ? null : serviceDateDaysAgo(days);
 
-  if (days === null) {
-    return { enabled: false, days: null, affected: 0, oldest: oldestRow?.d ?? null };
-  }
+  const [row] = (await db.all(sql`
+    SELECT
+      min(service_date) AS oldest,
+      ${cutoff === null
+        ? sql`0`
+        : sql`sum(CASE WHEN service_date < ${cutoff} THEN 1 ELSE 0 END)`} AS affected
+    FROM check_ins
+  `)) as Record<string, string | number | null>[];
 
-  const cutoff = serviceDateDaysAgo(days);
-  const [row] = await db
-    .select({ n: sql<number>`count(*)` })
-    .from(checkIns)
-    .where(lt(checkIns.serviceDate, cutoff));
+  const oldest = (row?.oldest as string | null) ?? null;
 
-  return {
-    enabled: true,
-    days,
-    affected: Number(row?.n ?? 0),
-    oldest: oldestRow?.d ?? null,
-  };
+  if (days === null) return { enabled: false, days: null, affected: 0, oldest };
+
+  return { enabled: true, days, affected: Number(row?.affected ?? 0), oldest };
 }
 
 /**

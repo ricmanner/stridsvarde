@@ -215,7 +215,7 @@ async function seedInTransaction(tx: Tx): Promise<void> {
             code,
             row: {
               codeHash: hashCode(code),
-              label: `Soldat ${nr}`,
+              label: `Värnpliktig ${nr}`,
               role: 'soldat' as const,
               unitId: grupp.id,
               active: true,

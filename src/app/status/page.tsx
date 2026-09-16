@@ -46,8 +46,8 @@ export default async function StatusPage() {
 
           <dl className="overflow-hidden rounded-md border border-slate-200 bg-white">
             <Row label="Enheter" value={status.counts.units} hint="bataljon, kompanier, plutoner, grupper" />
-            <Row label="Användare" value={status.counts.users} hint="soldater, befäl och admin" />
-            <Row label="Soldater" value={status.counts.soldiers} />
+            <Row label="Användare" value={status.counts.users} hint="värnpliktiga, befäl och admin" />
+            <Row label="Värnpliktiga" value={status.counts.soldiers} />
             <Row label="Incheckningar" value={status.counts.checkIns} hint="verklig historik i databasen" />
             <Row
               label="Foreign keys"

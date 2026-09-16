@@ -1,11 +1,12 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { ArrowRightLeft, KeyRound, Pencil, Plus, Trash2, UserCheck, UserX } from 'lucide-react';
+import { ArrowRightLeft, KeyRound, Pencil, Plus, Trash, Trash2, UserCheck, UserX } from 'lucide-react';
 
 import {
   createUnitAction,
   createUsersAction,
+  deleteUserAction,
   erasePersonalDataAction,
   moveUserAction,
   reissueCodeAction,
@@ -13,6 +14,7 @@ import {
   toggleUserActiveAction,
   type ActiveState,
   type CodeState,
+  type DeleteState,
   type EraseState,
   type MoveState,
   type RenameState,
@@ -55,9 +57,12 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
   const [moveState, moveFormAction, moving] = useActionState<MoveState, FormData>(moveUserAction, {});
   const [eraseState, eraseFormAction, erasing] = useActionState<EraseState, FormData>(erasePersonalDataAction, {});
   const [renameState, renameFormAction] = useActionState<RenameState, FormData>(renameUserAction, {});
+  const [deleteState, deleteFormAction] = useActionState<DeleteState, FormData>(deleteUserAction, {});
   const [dismissed, setDismissed] = useState(0);
   /** Raden vars benämning redigeras just nu, om någon. */
   const [editing, setEditing] = useState<number | null>(null);
+  /** Om formuläret för värnpliktiga direkt på plutonen är utfällt. */
+  const [visaVpl, setVisaVpl] = useState(false);
 
   const soldiers = members.filter((m) => m.role === 'soldat');
   const leaders = members.filter((m) => m.role !== 'soldat');
@@ -70,7 +75,9 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
 
   const leaderRole = ROLE_FOR_KIND[unit.kind];
   const childKind = CHILD_KIND[unit.kind];
-  const canHoldSoldiers = unit.kind === 'grupp' || unit.kind === 'pluton';
+  const isGrupp = unit.kind === 'grupp';
+  const isPluton = unit.kind === 'pluton';
+  const canHoldSoldiers = isGrupp || isPluton;
 
   // Nyutfärdade koder från endera formuläret, tills de stängs.
   const fresh = reissueState.codes ?? codeState.codes;
@@ -96,41 +103,15 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
         <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
           <h3 className="mb-3 text-sm font-bold text-slate-900">Lägg till personer</h3>
 
-          {canHoldSoldiers ? (
-            <form action={codeFormAction} className="mb-4 flex flex-wrap items-end gap-2">
-              <input type="hidden" name="unitId" value={unit.id} />
-              <input type="hidden" name="unitName" value={unit.name} />
-              <input type="hidden" name="role" value="soldat" />
-              <label className="flex flex-col gap-1">
-                <span className="text-[11px] font-semibold text-slate-500">Antal soldater</span>
-                <input
-                  name="count" type="number" min={1} max={50} defaultValue={8} required
-                  className="w-24 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
-                />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-[11px] font-semibold text-slate-500">Benämning</span>
-                <input
-                  name="labelPrefix" defaultValue="Soldat" maxLength={30}
-                  className="w-32 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
-                />
-              </label>
-              <button
-                type="submit" disabled={creatingUsers}
-                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:bg-slate-300"
-              >
-                <Plus size={14} aria-hidden />
-                {creatingUsers ? 'Skapar…' : 'Skapa och generera koder'}
-              </button>
-            </form>
-          ) : (
-            <p className="mb-4 text-[13px] text-slate-500">
-              Soldater placeras i en grupp eller pluton, inte direkt på {unit.kindLabel.toLowerCase()}snivå.
-            </p>
-          )}
-
+          {/*
+            Befäl först på de nivåer som har befäl.
+            En pluton består av grupper; de värnpliktiga hör hemma där, och
+            på plutonsnivå sitter plutonchef och annan personal. Tidigare låg
+            "Antal värnpliktiga: 8" överst även här, vilket gjorde det
+            lättare att lägga dem på fel ställe än på rätt.
+          */}
           {leaderRole && (
-            <form action={codeFormAction} className="flex flex-wrap items-end gap-2 border-t border-slate-100 pt-4">
+            <form action={codeFormAction} className="flex flex-wrap items-end gap-2">
               <input type="hidden" name="unitId" value={unit.id} />
               <input type="hidden" name="unitName" value={unit.name} />
               <input type="hidden" name="role" value={leaderRole} />
@@ -145,12 +126,111 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
               </label>
               <button
                 type="submit" disabled={creatingUsers}
-                className="flex cursor-pointer items-center gap-1.5 rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
+                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:bg-slate-300"
               >
                 <Plus size={14} aria-hidden />
                 Lägg till befäl
               </button>
             </form>
+          )}
+
+          {isGrupp && (
+            <form action={codeFormAction} className="flex flex-wrap items-end gap-2">
+              <input type="hidden" name="unitId" value={unit.id} />
+              <input type="hidden" name="unitName" value={unit.name} />
+              <input type="hidden" name="role" value="soldat" />
+              <label className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold text-slate-500">Antal värnpliktiga</span>
+                <input
+                  name="count" type="number" min={1} max={50} defaultValue={8} required
+                  className="w-24 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold text-slate-500">Benämning</span>
+                <input
+                  name="labelPrefix" defaultValue="Värnpliktig" maxLength={30}
+                  className="w-36 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                />
+              </label>
+              <button
+                type="submit" disabled={creatingUsers}
+                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:bg-slate-300"
+              >
+                <Plus size={14} aria-hidden />
+                {creatingUsers ? 'Skapar…' : 'Skapa och generera koder'}
+              </button>
+            </form>
+          )}
+
+          {/*
+            Fortfarande möjligt att lägga värnpliktiga direkt på plutonen —
+            någon som ännu inte tilldelats en grupp måste kunna rapportera —
+            men det är inte längre förstahandsvalet, och vad det innebär står
+            utskrivet. Aggregaten visar dem som "Direkt i enheten".
+          */}
+          {isPluton && (
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              {!visaVpl ? (
+                <button
+                  type="button"
+                  onClick={() => setVisaVpl(true)}
+                  className="cursor-pointer text-[13px] font-semibold text-slate-500 underline underline-offset-2 hover:text-slate-900"
+                >
+                  Lägg till värnpliktiga direkt i plutonen
+                </button>
+              ) : (
+                <>
+                  <p className="mb-3 text-[12px] leading-relaxed text-slate-500">
+                    Värnpliktiga hör normalt hemma i en grupp. De som läggs direkt
+                    på plutonen står utanför grupperna och redovisas som
+                    <span className="font-semibold"> Direkt i enheten</span> i
+                    befälets jämförelse. Använd det bara för den som ännu inte
+                    tilldelats en grupp.
+                  </p>
+                  <form action={codeFormAction} className="flex flex-wrap items-end gap-2">
+                    <input type="hidden" name="unitId" value={unit.id} />
+                    <input type="hidden" name="unitName" value={unit.name} />
+                    <input type="hidden" name="role" value="soldat" />
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[11px] font-semibold text-slate-500">Antal</span>
+                      <input
+                        name="count" type="number" min={1} max={50} defaultValue={1} required
+                        className="w-20 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[11px] font-semibold text-slate-500">Benämning</span>
+                      <input
+                        name="labelPrefix" defaultValue="Värnpliktig" maxLength={30}
+                        className="w-36 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                      />
+                    </label>
+                    <button
+                      type="submit" disabled={creatingUsers}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
+                    >
+                      <Plus size={14} aria-hidden />
+                      {creatingUsers ? 'Skapar…' : 'Skapa'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVisaVpl(false)}
+                      className="cursor-pointer px-2 py-2 text-[13px] font-semibold text-slate-400 hover:text-slate-700"
+                    >
+                      Avbryt
+                    </button>
+                  </form>
+                </>
+              )}
+            </div>
+          )}
+
+          {!canHoldSoldiers && (
+            <p className="mt-4 border-t border-slate-100 pt-4 text-[13px] text-slate-500">
+              Värnpliktiga placeras i en grupp, inte direkt på{' '}
+              {unit.kindLabel.toLowerCase()}snivå.
+            </p>
           )}
 
           {codeState.error && <p role="alert" className="mt-3 text-sm text-red-600">{codeState.error}</p>}
@@ -344,6 +424,42 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                         </button>
                       </form>
                     )}
+
+                    {/*
+                      Radering, till skillnad från spärr. Spärren är rätt när
+                      någon slutar men uppgifterna ska finnas kvar under
+                      lagringstiden. Den här är för misstag — trettio koder
+                      skapade av misstag ska inte ligga kvar för alltid.
+
+                      Bekräftelsen säger vad som faktiskt händer, eftersom
+                      rapporterna följer med och ingenting går att ångra.
+                    */}
+                    {!isSelf && (
+                      <form
+                        action={deleteFormAction}
+                        onSubmit={(e) => {
+                          if (
+                            !confirm(
+                              `Ta bort ${m.label} permanent?\n\n` +
+                                'Kontot och personens alla rapporter raderas. ' +
+                                'Det går inte att ångra.\n\n' +
+                                'Ska uppgifterna finnas kvar — välj Spärra i stället.',
+                            )
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                      >
+                        <input type="hidden" name="userId" value={m.id} />
+                        <button
+                          type="submit"
+                          title="Ta bort kontot och alla rapporter permanent"
+                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold text-slate-400 hover:bg-red-50 hover:text-red-700"
+                        >
+                          <Trash size={12} aria-hidden /> Ta bort
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </div>
                 );
@@ -354,6 +470,15 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
           {reissueState.error && <p role="alert" className="mt-2 text-sm text-red-600">{reissueState.error}</p>}
           {activeState.error && <p role="alert" className="mt-2 text-sm text-red-600">{activeState.error}</p>}
           {renameState.error && <p role="alert" className="mt-2 text-sm text-red-600">{renameState.error}</p>}
+          {deleteState.error && <p role="alert" className="mt-2 text-sm text-red-600">{deleteState.error}</p>}
+          {deleteState.deleted && (
+            <p className="mt-2 text-sm text-slate-600">
+              {deleteState.deleted.label} borttagen
+              {deleteState.deleted.erased > 0 &&
+                ` — ${deleteState.deleted.erased} rapporter raderade`}
+              .
+            </p>
+          )}
         </section>
 
         {/* ── Flytta person ── */}

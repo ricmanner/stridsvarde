@@ -87,7 +87,7 @@ export default async function LoginPage({
                 Dagens rapport är obesvarad för{' '}
                 <span className="font-mono text-slate-700">P1G1-01</span> till{' '}
                 <span className="font-mono text-slate-700">P1G1-08</span>, så flera
-                kan prova incheckningen samtidigt utan att krocka. Övriga soldater
+                kan prova incheckningen samtidigt utan att krocka. Övriga värnpliktiga
                 har redan svarat idag och visar översikten i stället.
               </p>
             </div>

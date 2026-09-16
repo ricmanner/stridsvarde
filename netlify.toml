@@ -14,5 +14,19 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# Önskad region för funktionen.
+#
+# HAR INGEN EFFEKT PÅ NUVARANDE PLAN. Netlify kör funktionen i us-east-2
+# medan Turso ligger i eu-west-1, så varje SQL-anrop korsar Atlanten: samma
+# adminsida tar 0,3 s lokalt men runt 0,9 s i drift. Regionval kräver betald
+# plan — försök att sätta det via API:et avvisas med 422 — och raden står
+# kvar eftersom den blir verksam den dagen planen ändras.
+#
+# Det är också fel geografi i sak: hälsodata bör ligga inom EU, och då bör
+# koden som läser den göra det med. Vid ett skarpt införande driftar
+# Försvarsmakten själv och frågan ser annorlunda ut.
+[functions]
+  region = "eu-west-1"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"

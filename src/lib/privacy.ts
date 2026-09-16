@@ -41,7 +41,7 @@ export function guard<T>(
     return {
       ok: false,
       reason: 'too_few_members',
-      message: `Enheten är för liten för att visa sammanställd data (minst ${k} soldater krävs).`,
+      message: `Enheten är för liten för att visa sammanställd data (minst ${k} värnpliktiga krävs).`,
       responders,
       eligible,
     };

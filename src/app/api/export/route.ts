@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     const { children } = await getChildComparison(session.unitId, period);
 
     headers.push(
-      'Enhet', 'Soldater', 'Svarande', ...CATEGORIES.map((c) => c.label),
+      'Enhet', 'Värnpliktiga', 'Svarande', ...CATEGORIES.map((c) => c.label),
       'Snitt', 'Gröna', 'Gula', 'Röda',
     );
     for (const c of children) {

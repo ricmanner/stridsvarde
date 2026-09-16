@@ -78,7 +78,7 @@ export default async function RapportPage({
         </p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{session.unitName}</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Sammanställning {from} – {to} ({period} dagar) · {overview.eligible} soldater
+          Sammanställning {from} – {to} ({period} dagar) · {overview.eligible} värnpliktiga
         </p>
       </header>
 
@@ -93,8 +93,8 @@ export default async function RapportPage({
             <Box label="Svarat idag" value={`${overview.today.pct} %`} sub={`${overview.today.responders} av ${overview.eligible}`} />
             {overview.soldierStatus.ok && (
               <>
-                <Box label="Gröna soldater" value={String(overview.soldierStatus.data.green)} />
-                <Box label="Röda soldater" value={String(overview.soldierStatus.data.red)} />
+                <Box label="Gröna värnpliktiga" value={String(overview.soldierStatus.data.green)} />
+                <Box label="Röda värnpliktiga" value={String(overview.soldierStatus.data.red)} />
               </>
             )}
           </div>
@@ -201,7 +201,7 @@ export default async function RapportPage({
 
       <footer className="border-t border-slate-300 pt-3 text-xs leading-relaxed text-slate-500">
         <p>
-          Rapporten innehåller endast sammanställd data. Enskilda soldaters svar
+          Rapporten innehåller endast sammanställd data. Enskilda värnpliktigas svar
           redovisas aldrig. Värden markerade &quot;—&quot; har undanhållits för att
           underlaget varit för litet för att kunna redovisas utan att röja enskilda.
         </p>

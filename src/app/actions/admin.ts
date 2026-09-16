@@ -5,7 +5,9 @@ import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/auth/guard';
 import {
   createUnit,
+  canDeleteUser,
   createUsers,
+  deleteUser,
   moveUser,
   reissueCode,
   renameUser,
@@ -62,7 +64,7 @@ export async function createUsersAction(
   const unitName = String(formData.get('unitName') ?? '');
   const role = String(formData.get('role') ?? 'soldat') as Role;
   const count = Number(formData.get('count'));
-  const labelPrefix = String(formData.get('labelPrefix') ?? 'Soldat').trim() || 'Soldat';
+  const labelPrefix = String(formData.get('labelPrefix') ?? 'Värnpliktig').trim() || 'Värnpliktig';
 
   const allowed: Role[] = ['soldat', 'pluton', 'kompani', 'bataljon'];
   if (!allowed.includes(role)) return { error: 'Ogiltig roll.' };
@@ -189,4 +191,46 @@ export async function renameUserAction(
 
   revalidatePath('/admin');
   return { renamedId: userId };
+}
+
+export interface DeleteState {
+  error?: string;
+  /** Namnet på den som togs bort, och hur många rapporter som följde med. */
+  deleted?: { label: string; erased: number };
+}
+
+/**
+ * Tar bort ett konto och personens rapporter.
+ *
+ * Två steg med flit. Hälsodatan går via erasePersonalData() i retention.ts,
+ * som räknar och loggar posterna; själva kontot via deleteUser() i
+ * queries/admin.ts, som strukturellt inte får röra check_ins. Ordningen
+ * spelar roll: räkningen måste ske innan raden försvinner, eftersom
+ * incheckningarna annars städas bort av databasens ON DELETE CASCADE och
+ * granskningsloggen skulle säga noll.
+ */
+export async function deleteUserAction(
+  _prev: DeleteState,
+  formData: FormData,
+): Promise<DeleteState> {
+  const admin = await requireRole('admin');
+
+  const userId = Number(formData.get('userId'));
+  if (!Number.isInteger(userId)) return { error: 'Ogiltig användare.' };
+
+  /*
+   * Kontrollen FÖRE raderingen av hälsodata. Görs den efteråt hinner
+   * uppgifterna försvinna innan vi upptäcker att kontot inte får tas bort —
+   * och då står personen kvar utan sin historik.
+   */
+  const tillaten = await canDeleteUser(admin.id, userId);
+  if (!tillaten.ok) return { error: tillaten.error };
+
+  const erased = await erasePersonalData(admin.id, userId);
+
+  const result = await deleteUser(admin.id, userId);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath('/admin');
+  return { deleted: { label: result.label, erased } };
 }
