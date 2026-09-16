@@ -1,0 +1,705 @@
+<title>PSVI-genomgången</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+
+<style>
+  :root {
+    --ground:      #F6F7F9;
+    --surface:     #FFFFFF;
+    --surface-sunk:#EEF1F4;
+    --ink:         #131A22;
+    --ink-muted:   #5C6773;
+    --ink-faint:   #8A94A0;
+    --line:        #E1E6EB;
+    --line-strong: #C8D1DA;
+    --accent:      #1C6C68;
+    --accent-soft: #E4EFEE;
+    --signal:      #A34F08;
+    --signal-soft: #FBF1E4;
+
+    --step: clamp(1.9rem, 5vw, 2.6rem);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #0C1015;
+      --surface:     #141B23;
+      --surface-sunk:#0F151B;
+      --ink:         #E7ECF1;
+      --ink-muted:   #97A3B0;
+      --ink-faint:   #6E7C8A;
+      --line:        #232D38;
+      --line-strong: #35434F;
+      --accent:      #62BEB7;
+      --accent-soft: #15302E;
+      --signal:      #DCA163;
+      --signal-soft: #261C10;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #0C1015;
+    --surface:     #141B23;
+    --surface-sunk:#0F151B;
+    --ink:         #E7ECF1;
+    --ink-muted:   #97A3B0;
+    --ink-faint:   #6E7C8A;
+    --line:        #232D38;
+    --line-strong: #35434F;
+    --accent:      #62BEB7;
+    --accent-soft: #15302E;
+    --signal:      #DCA163;
+    --signal-soft: #261C10;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 47rem;
+    margin: 0 auto;
+    padding: 0 1.15rem 5rem;
+  }
+
+  /* ── Sidhuvud ─────────────────────────────────────────────── */
+
+  header.top {
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .top-inner {
+    max-width: 47rem;
+    margin: 0 auto;
+    padding: 2.4rem 1.15rem 1.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+  }
+
+  .eyebrow {
+    font-size: .6875rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 6vw, 2.45rem);
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+
+  .lede {
+    margin: 0;
+    max-width: 38rem;
+    color: var(--ink-muted);
+    font-size: .95rem;
+  }
+
+  .addr {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    align-self: flex-start;
+    margin-top: .3rem;
+    padding: .45rem .7rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface-sunk);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .8125rem;
+    color: var(--ink);
+    text-decoration: none;
+    word-break: break-all;
+  }
+  .addr:hover { border-color: var(--accent); }
+
+  /* ── Navigering ───────────────────────────────────────────── */
+
+  nav.jump {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--ground);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 2.6rem;
+  }
+
+  .jump-inner {
+    max-width: 47rem;
+    margin: 0 auto;
+    padding: .55rem 1.15rem;
+    display: flex;
+    gap: .35rem;
+    overflow-x: auto;
+  }
+
+  .jump a {
+    flex: none;
+    padding: .4rem .7rem;
+    border-radius: 5px;
+    font-size: .78rem;
+    font-weight: 600;
+    letter-spacing: .01em;
+    color: var(--ink-muted);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .jump a:hover { background: var(--surface-sunk); color: var(--ink); }
+
+  /* ── Sektioner ────────────────────────────────────────────── */
+
+  section { margin-bottom: 3.4rem; scroll-margin-top: 3.6rem; }
+
+  h2 {
+    margin: 0 0 .35rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+  }
+
+  .sec-note {
+    margin: 0 0 1.4rem;
+    color: var(--ink-muted);
+    font-size: .9rem;
+    max-width: 36rem;
+  }
+
+  /* ── Förberedelser ────────────────────────────────────────── */
+
+  ul.checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+
+  ul.checks li {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+
+  ul.checks label {
+    display: flex;
+    gap: .75rem;
+    align-items: flex-start;
+    padding: .8rem .9rem;
+    cursor: pointer;
+    font-size: .92rem;
+  }
+
+  ul.checks input { margin: .2rem 0 0; accent-color: var(--accent); width: 1rem; height: 1rem; flex: none; }
+  ul.checks input:checked + span { color: var(--ink-faint); text-decoration: line-through; }
+
+  /* ── Varning inför steg 3 ─────────────────────────────────── */
+
+  .heads-up {
+    margin-top: 1.1rem;
+    padding: .95rem 1.05rem;
+    border: 1px solid var(--signal);
+    border-left-width: 3px;
+    border-radius: 6px;
+    background: var(--signal-soft);
+    font-size: .92rem;
+  }
+  .heads-up b { color: var(--signal); }
+
+  /* ── Manusets steg ────────────────────────────────────────── */
+
+  ol.script { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2.1rem; }
+
+  .part-head {
+    display: flex;
+    align-items: baseline;
+    gap: .7rem;
+    padding-bottom: .55rem;
+    border-bottom: 2px solid var(--line-strong);
+    margin-bottom: 1.1rem;
+  }
+
+  .tc {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .8125rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    flex: none;
+  }
+
+  .part-head h3 { margin: 0; font-size: 1.05rem; font-weight: 700; flex: 1; }
+
+  .dur { font-size: .75rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; flex: none; }
+
+  .beats { display: flex; flex-direction: column; gap: 1.15rem; }
+
+  .beat { display: flex; flex-direction: column; gap: .5rem; }
+
+  /*
+    Block, inte flex. Med display:flex blir varje inline-element — <b>, <code>,
+    <i> — ett eget flexbarn med gap omkring sig, så "Tryck <b>Starta
+    incheckning</b>." renderas med ett glapp före punkten. Etiketten görs
+    inline-block i stället, och texten flyter som text.
+  */
+  .do {
+    margin: 0;
+    font-size: .845rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+  }
+  .do::before {
+    content: "GÖR";
+    display: inline-block;
+    margin-right: .5rem;
+    font-size: .625rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    color: var(--ink-faint);
+    vertical-align: .08em;
+  }
+
+  .say {
+    margin: 0;
+    padding: .2rem 0 .2rem 1rem;
+    border-left: 2px solid var(--accent);
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 1.08rem;
+    line-height: 1.62;
+    color: var(--ink);
+  }
+  .say em { color: var(--accent); font-style: italic; }
+
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .875em;
+    font-weight: 600;
+    padding: .1em .35em;
+    border-radius: 4px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .say code { font-size: .8em; }
+
+  /* ── Meddelandet ──────────────────────────────────────────── */
+
+  .msg-box { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); overflow: hidden; }
+
+  .msg-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .6rem .7rem .6rem .95rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-sunk);
+  }
+
+  .msg-bar span { font-size: .7rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-muted); }
+
+  button.copy {
+    font-family: inherit;
+    font-size: .8rem;
+    font-weight: 600;
+    padding: .42rem .8rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 5px;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  button.copy:hover { border-color: var(--accent); color: var(--accent); }
+  button.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.copy[data-done="1"] { border-color: var(--accent); color: var(--accent); }
+
+  .msg-body { padding: 1.15rem 1.15rem 1.35rem; display: flex; flex-direction: column; gap: .85rem; }
+
+  .msg-body p {
+    margin: 0;
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 1.02rem;
+    line-height: 1.6;
+  }
+
+  .msg-body p.link { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .85rem; word-break: break-all; }
+
+  /* ── Frågor ───────────────────────────────────────────────── */
+
+  dl.qa { margin: 0; display: flex; flex-direction: column; gap: 1.15rem; }
+  dl.qa dt { font-weight: 600; font-size: .95rem; }
+  dl.qa dd { margin: .3rem 0 0; color: var(--ink-muted); font-size: .92rem; line-height: 1.55; }
+
+  /* ── Om något går snett ───────────────────────────────────── */
+
+  ul.fixes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .9rem; }
+  ul.fixes li { padding-left: 1rem; border-left: 2px solid var(--line-strong); font-size: .92rem; }
+  ul.fixes b { display: block; margin-bottom: .15rem; }
+  ul.fixes span { color: var(--ink-muted); }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.3rem;
+    border-top: 1px solid var(--line);
+    font-size: .8rem;
+    color: var(--ink-faint);
+  }
+
+  @media (max-width: 30rem) {
+    .say { font-size: 1.02rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<header class="top">
+  <div class="top-inner">
+    <p class="eyebrow">Underlag till inspelningen</p>
+    <h1>PSVI-genomgången</h1>
+    <p class="lede">
+      Manus för skärminspelningen, och texten som följer med den till gruppen.
+      Ungefär fyra minuter i sex avsnitt. Läs det här i telefonen medan du spelar
+      in på datorn.
+    </p>
+    <a class="addr" href="https://fm-psvi-v2.netlify.app">fm-psvi-v2.netlify.app</a>
+  </div>
+</header>
+
+<nav class="jump">
+  <div class="jump-inner">
+    <a href="#forbered">Förberedelser</a>
+    <a href="#manus">Manus</a>
+    <a href="#meddelande">Meddelandet</a>
+    <a href="#snett">Om något går snett</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <section id="forbered">
+    <h2>Innan du trycker på inspelning</h2>
+    <p class="sec-note">Fem saker. Bocka av dem — rutorna kommer ihåg sig om du laddar om.</p>
+
+    <ul class="checks">
+      <li><label><input type="checkbox" data-k="1"><span>Slå på <b>Stör ej</b>, så inga notiser dyker upp i bild.</span></label></li>
+      <li><label><input type="checkbox" data-k="2"><span>Gör fönstret brett, ungefär helskärm, och dölj bokmärkesraden.</span></label></li>
+      <li><label><input type="checkbox" data-k="3"><span><b>Logga ut</b>, så du börjar på inloggningssidan.</span></label></li>
+      <li><label><input type="checkbox" data-k="4"><span>Ha koderna framme: <code>P1G1-03</code>, <code>BEF-P1</code>, <code>ADMIN-01</code>.</span></label></li>
+      <li><label><input type="checkbox" data-k="5"><span>Spela in i <b>en tagning</b>. Säger du fel — säg om meningen och fortsätt.</span></label></li>
+    </ul>
+
+    <div class="heads-up">
+      <b>En sak att veta i förväg.</b> I avsnitt 3 ska du svara <b>lågt</b> på sömn,
+      kost och energi — trea eller lägre. Det är det som gör att stödrutan dyker upp
+      i avsnitt 4, och den rutan är det viktigaste i hela genomgången. Svarar du högt
+      får du i stället en beröm-text, och poängen försvinner.
+    </div>
+  </section>
+
+  <section id="manus">
+    <h2>Manus</h2>
+    <p class="sec-note">
+      Det som står under <b>GÖR</b> är vad du klickar på. Det i serifstil är vad du
+      säger — med dina egna ord. Det är en stödlinje, inte en replik.
+    </p>
+
+    <ol class="script">
+
+      <li>
+        <div class="part-head">
+          <span class="tc">0:00</span>
+          <h3>Vad det är</h3>
+          <span class="dur">20 s</span>
+        </div>
+        <div class="beats">
+          <div class="beat">
+            <p class="do">Visa inloggningssidan. Rör inte musen.</p>
+            <p class="say">Det här är samma idé som ni såg i våras — men den här gången är det byggt som ett riktigt system, inte en skiss. Det heter FM – PSVI, Personlig stridsvärdesindikator. Kort sagt: en värnpliktig svarar på sex frågor om dagen, och befälet får se hur enheten mår utan att någonsin se en enskild persons svar.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Peka på den gula raden högst upp.</p>
+            <p class="say">Allt ni ser är påhittad data. Inga verkliga personer, inga verkliga hälsouppgifter.</p>
+          </div>
+        </div>
+      </li>
+
+      <li>
+        <div class="part-head">
+          <span class="tc">0:20</span>
+          <h3>Inloggning</h3>
+          <span class="dur">20 s</span>
+        </div>
+        <div class="beats">
+          <div class="beat">
+            <p class="do">Peka på kodrutan och listan med demokoder.</p>
+            <p class="say">Man loggar in med en kod man fått av sitt befäl. Inget personnummer, ingen mejladress, inget BankID. Systemet vet vilken grupp du tillhör — inte vem du är.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Skriv <code>P1G1-03</code> och logga in.</p>
+            <p class="say">Jag loggar in som en värnpliktig.</p>
+          </div>
+        </div>
+      </li>
+
+      <li>
+        <div class="part-head">
+          <span class="tc">0:40</span>
+          <h3>Den dagliga rapporten</h3>
+          <span class="dur">60 s</span>
+        </div>
+        <div class="beats">
+          <div class="beat">
+            <p class="do">Låt startsidan ligga kvar en stund.</p>
+            <p class="say">Sex frågor, ungefär två minuter. Kropp, psykiskt mående, trivsel i gruppen, sömn, kost och energi.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Tryck <b>Starta incheckning</b>.</p>
+            <p class="say">Och det står redan här att befälet bara ser sammanställd data för hela gruppen.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Svara dig igenom frågorna. Sömn, kost och energi: trea eller lägre.</p>
+            <p class="say">Skalan går från ett till tio. Nu svarar jag att jag sovit dåligt, ätit dåligt och har slut på energi — för att visa vad som händer då.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Skicka in.</p>
+            <p class="say">Så. Under två minuter.</p>
+          </div>
+        </div>
+      </li>
+
+      <li>
+        <div class="part-head">
+          <span class="tc">1:40</span>
+          <h3>Vad den värnpliktige får tillbaka</h3>
+          <span class="dur">70 s</span>
+        </div>
+        <div class="beats">
+          <div class="beat">
+            <p class="do">Stanna på stödrutan högst upp. Ta god tid — det här avsnittet betyder mest.</p>
+            <p class="say">Och det första man möts av är inte en siffra. Det är den här.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Peka på rubriken.</p>
+            <p class="say"><em>Du behöver inte lösa det här själv.</em> Sedan kommer kontaktvägarna — 112, Självmordslinjen, 1177, Jourhavande medmänniska. De fungerar oavsett vad appen tycker, och man behöver inte gå via någon för att använda dem.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Peka på de två knapparna.</p>
+            <p class="say">Och vill man hellre att någon hör av sig går det att be om det — sitt plutonsbefäl eller kompanichefen.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Peka på den lilla texten under.</p>
+            <p class="say">Det här är den viktigaste meningen i hela appen: <em>befälet får bara veta att du vill prata — aldrig vad du svarat.</em> Innehållet i dina svar delas inte. Bara att du sökt kontakt.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Skrolla ned till kategorierna.</p>
+            <p class="say">Sedan kommer dagens värden, sorterade så att det som är sämst ligger överst.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Skrolla till vägledningen.</p>
+            <p class="say">Och vägledning som säger både varför det spelar roll och vad man kan göra åt det. Inte en pekpinne, utan konkreta saker.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Skrolla till kurvan.</p>
+            <p class="say">Och en kurva över fjorton dagar, så man ser sitt eget mönster. Det är ofta där man upptäcker att det inte var en dålig dag utan en dålig vecka.</p>
+          </div>
+        </div>
+      </li>
+
+      <li>
+        <div class="part-head">
+          <span class="tc">2:50</span>
+          <h3>Vad befälet ser</h3>
+          <span class="dur">60 s</span>
+        </div>
+        <div class="beats">
+          <div class="beat">
+            <p class="do">Logga ut. Logga in med <code>BEF-P1</code>.</p>
+            <p class="say">Nu byter jag och loggar in som plutonchef.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Peka på notisraden överst, om den syns.</p>
+            <p class="say">Befälet får en notis när någon bett om ett samtal, och när enheten ligger illa till. Här ser ni att en värnpliktig vill prata — men inte vad hen svarat.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Peka på siffrorna i raden under.</p>
+            <p class="say">Här är hela plutonen: snittet, hur många som ligger grönt, gult och rött, och hur många som svarat idag.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Skrolla genom kategorierna, och vidare till Tröskelvärden och Befälsråd.</p>
+            <p class="say">Per kategori ser man snittet och fördelningen — sömn och kost ligger rött i den här plutonen. Och systemet säger rakt ut vad som kräver åtgärd, med ett konkret råd.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Peka på raden längst ned.</p>
+            <p class="say">Men lägg märke till det här: <em>du ser endast sammanställd data. Enskilda värnpliktigas svar visas aldrig för befäl.</em> Det är inte en inställning som går att slå av — det är byggt så.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Klicka på <b>Jämförelse</b>.</p>
+            <p class="say">Här jämförs grupperna mot varandra — en kurva per grupp, och man kan växla mellan sju, fjorton och tjugoen dagar. Och en profil per grupp, där man väljer vilka kategorier man vill jämföra.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Skrolla till tabellen <b>Rangordning</b>. Peka på den nedersta raden, <i>Direkt i enheten</i>.</p>
+            <p class="say">Men titta på den nedersta raden. Där står <em>Underlag saknas</em> i stället för siffror. Det krävs minst fyra svar innan något visas överhuvudtaget — har för få svarat får befälet ingenting, för då skulle ett snitt i praktiken kunna avslöja en enskild person.</p>
+          </div>
+        </div>
+      </li>
+
+      <li>
+        <div class="part-head">
+          <span class="tc">3:50</span>
+          <h3>Administration, och avslutning</h3>
+          <span class="dur">30 s</span>
+        </div>
+        <div class="beats">
+          <div class="beat">
+            <p class="do">Logga ut. Logga in med <code>ADMIN-01</code>.</p>
+            <p class="say">Sist: någon måste kunna lägga upp organisationen.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Peka på trädet till vänster.</p>
+            <p class="say">Bataljon, kompanier, plutoner, grupper. Man skapar enheter, lägger till personer och delar ut koder. Tappar någon sin kod utfärdas en ny utan att historiken försvinner.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Peka på raden längst ned.</p>
+            <p class="say">Och det som är värt att notera: <em>administratörsrollen har ingen åtkomst till hälsodata.</em> Den som delar ut koderna kan inte läsa någons svar. Den som ser siffrorna vet inte vem som svarat. De två sakerna ligger hos olika roller med flit.</p>
+          </div>
+          <div class="beat">
+            <p class="do">Avsluta.</p>
+            <p class="say">Det här är var vi står. Länken ligger i meddelandet — testa gärna själva, alla koder finns på inloggningssidan. Jag är mest nyfiken på vad ni tycker om frågorna: är det rätt sex, och är vägledningen rimlig? Säg till om något känns fel.</p>
+          </div>
+        </div>
+      </li>
+
+    </ol>
+  </section>
+
+  <section id="meddelande">
+    <h2>Meddelandet till gruppen</h2>
+    <p class="sec-note">Skickas tillsammans med videon. Länken ligger sist, så den inte öppnas innan texten lästs.</p>
+
+    <div class="msg-box">
+      <div class="msg-bar">
+        <span>Klistras in som det är</span>
+        <button class="copy" id="kopiera" type="button">Kopiera texten</button>
+      </div>
+      <div class="msg-body" id="meddelandetext">
+        <p>Hej! Här kommer en uppdatering på hälsoappen, med en kort genomgång i video.</p>
+        <p>Kort om vad som hänt sedan i våras: det ni såg då var en skiss. Den såg ut som en app men det fanns ingenting bakom — siffrorna var påhittade och ingenting sparades. Nu är det byggt på riktigt.</p>
+        <p>Svaren sparas och följs över tid. En värnpliktig svarar på sex frågor om dagen — kropp, psykiskt mående, trivsel i gruppen, sömn, kost och energi — och ser sin egen kurva över fjorton dagar. Det är där man upptäcker att det inte var en dålig dag utan en dålig vecka.</p>
+        <p>Var och en loggar in med en egen kod. Inget personnummer, ingen mejladress, inget BankID. Systemet vet vilken grupp du tillhör, inte vem du är.</p>
+        <p>Befäl ser aldrig enskilda svar. De ser snitt och fördelning för hela enheten, och har för få svarat i en grupp visas ingenting alls — annars skulle ett snitt kunna avslöja en enskild person. Det är inte en inställning utan byggt så att det inte går att slå av.</p>
+        <p>Den som mår dåligt möts av stöd, inte av en siffra. Svarar man lågt ligger kontaktvägarna överst: 112, Självmordslinjen, 1177 och Jourhavande medmänniska. Man kan också be sitt befäl höra av sig — och då får befälet bara veta att man vill prata, aldrig vad man svarat.</p>
+        <p>Det går att administrera. Lägga upp plutoner och grupper, dela ut koder, utfärda en ny kod när någon tappat sin, och radera uppgifter på begäran. Den som delar ut koderna kan för övrigt inte läsa någons svar — det ligger med flit hos olika roller.</p>
+        <p>Allt fungerar lika bra i telefonen som på datorn.</p>
+        <p>All data i demon är påhittad. Inga verkliga personer och inga verkliga hälsouppgifter — det står överst på varje sida. Testa gärna själva, alla koder står på inloggningssidan. Vill ni se det som en värnpliktig, prova P1G1-03. Vill ni se befälsvyn, prova BEF-P1.</p>
+        <p>Det jag helst vill ha synpunkter på: är det rätt sex frågor, och är vägledningen man får tillbaka rimlig? Ni kan det här bättre än jag.</p>
+        <p class="link">https://fm-psvi-v2.netlify.app</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="fragor">
+    <h2>Om någon frågar</h2>
+    <p class="sec-note">Svar att ha i bakhuvudet. Inget du behöver säga i videon.</p>
+
+    <dl class="qa">
+      <div>
+        <dt>Är det här färdigt?</dt>
+        <dd>Nej. Det fungerar, men innan det används skarpt behövs en säkerhetsgranskning och ett beslut från Försvarsmaktens dataskyddsombud om hur länge uppgifterna får sparas. Det är sådant som ska göras av folk som kan det.</dd>
+      </div>
+      <div>
+        <dt>Var ligger uppgifterna?</dt>
+        <dd>I demon på en vanlig molntjänst, och där är allt påhittat. Vid ett skarpt införande ska det köras på Försvarsmaktens egen infrastruktur.</dd>
+      </div>
+      <div>
+        <dt>Kan mitt befäl se vad jag svarat?</dt>
+        <dd>Nej. Befälet ser bara sammanställningar för hela enheten, och ingenting alls om för få svarat. Ber du om ett samtal får befälet veta att du vill prata — inte vad du svarat.</dd>
+      </div>
+      <div>
+        <dt>Vad händer om någon svarar rött?</dt>
+        <dd>Befälet får en notis om att enheten ligger illa till — inte om vem. Den värnpliktige får kontaktvägar direkt på skärmen och kan själv välja att be någon höra av sig.</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section id="snett">
+    <h2>Om något går snett</h2>
+
+    <ul class="fixes">
+      <li>
+        <b>Du kommer till översikten i stället för incheckningen.</b>
+        <span>Då har den koden redan svarat idag. Prova <code>P1G1-04</code> eller någon annan mellan 02 och 07.</span>
+      </li>
+      <li>
+        <b>Stödrutan dyker inte upp.</b>
+        <span>Du svarade för högt. Klicka <i>Korrigera dagens rapport</i> och sätt en trea eller lägre på sömn.</span>
+      </li>
+      <li>
+        <b>En sida tar ett par sekunder.</b>
+        <span>Det är väntat. Servern ligger i USA och databasen i Irland — i skarp drift hos Försvarsmakten skulle det inte se ut så. Nämn det inte i videon; det är en detalj i den här uppsättningen, inte i systemet.</span>
+      </li>
+    </ul>
+  </section>
+
+  <footer>
+    Underlag till Richards inspelning av FM – PSVI. Inte ett dokument från
+    Försvarsmakten. All data i demoversionen är påhittad.
+  </footer>
+
+</div>
+
+<script>
+  // Bockarna kommer ihåg sig mellan omladdningar. Misslyckas lagringen — privat
+  // fönster, blockerade kakor — fungerar rutorna ändå, de glöms bara.
+  const rutor = document.querySelectorAll('ul.checks input');
+
+  try {
+    const sparat = JSON.parse(localStorage.getItem('psvi-forbered') || '{}');
+    rutor.forEach((r) => { if (sparat[r.dataset.k]) r.checked = true; });
+  } catch (e) { /* strunt samma */ }
+
+  rutor.forEach((r) => r.addEventListener('change', () => {
+    try {
+      const ut = {};
+      rutor.forEach((x) => { if (x.checked) ut[x.dataset.k] = 1; });
+      localStorage.setItem('psvi-forbered', JSON.stringify(ut));
+    } catch (e) { /* strunt samma */ }
+  }));
+
+  // Kopiera meddelandet som ren text, ett blankt radbyte mellan styckena.
+  const knapp = document.getElementById('kopiera');
+
+  knapp.addEventListener('click', async () => {
+    const text = [...document.querySelectorAll('#meddelandetext p')]
+      .map((p) => p.textContent.trim())
+      .join('\n\n');
+
+    let lyckades = false;
+    try {
+      await navigator.clipboard.writeText(text);
+      lyckades = true;
+    } catch (e) {
+      const ruta = document.createElement('textarea');
+      ruta.value = text;
+      ruta.style.position = 'fixed';
+      ruta.style.opacity = '0';
+      document.body.appendChild(ruta);
+      ruta.select();
+      try { lyckades = document.execCommand('copy'); } catch (e2) { lyckades = false; }
+      ruta.remove();
+    }
+
+    knapp.textContent = lyckades ? 'Kopierad' : 'Markera och kopiera själv';
+    knapp.dataset.done = lyckades ? '1' : '0';
+    setTimeout(() => { knapp.textContent = 'Kopiera texten'; delete knapp.dataset.done; }, 2600);
+  });
+</script>
