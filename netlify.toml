@@ -2,8 +2,16 @@
 #
 # v2 körs på https://fm-psvi-v2.vercel.app sedan september 2026: där kan
 # funktionen ligga i Dublin bredvid databasen, vilket gjorde sidorna ungefär
-# fyra gånger snabbare. Netlify-sidan ligger kvar med sin senaste
-# driftsättning men byggs inte om.
+# fyra gånger snabbare.
+#
+# fm-psvi-v2.netlify.app är i dag bara en vidarekoppling dit, driftsatt som
+# en statisk mapp med en enda regel i _redirects:
+#
+#     /*  https://fm-psvi-v2.vercel.app/:splat  302!
+#
+# Sökvägen följer med, så gamla länkar fungerar. 302 med flit: en 301 minns
+# webbläsaren för alltid. Sajten har inga miljövariabler kvar — varken
+# databasnyckeln eller pepparen ligger på Netlify.
 #
 # Ska den ändå driftsättas igen behövs lappen för @netlify/plugin-nextjs
 # 5.15.13 tillbaka — scripts/netlify-forbered.mjs, se git-historiken. Utan
