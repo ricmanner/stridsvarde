@@ -1,0 +1,16 @@
+# Laddas aldrig upp vid `vercel deploy`.
+#
+# Skrivet uttryckligen i stället för att förlita sig på att CLI:t läser
+# .gitignore. Här ligger den lokala utvecklingspepparen och den lokala
+# databasen — ingetdera hör hemma i ett bygge, och miljövariablerna sätts
+# i Vercels projektinställningar.
+.env
+.env.*
+!.env.example
+data/
+.netlify/
+.next/
+node_modules/
+underlag/
+*.tsbuildinfo
+deno.lock

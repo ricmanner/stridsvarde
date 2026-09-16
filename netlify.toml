@@ -1,3 +1,14 @@
+# ERSATT AV VERCEL. Den här filen driver inte längre någon driftsättning.
+#
+# v2 körs på https://fm-psvi-v2.vercel.app sedan september 2026: där kan
+# funktionen ligga i Dublin bredvid databasen, vilket gjorde sidorna ungefär
+# fyra gånger snabbare. Netlify-sidan ligger kvar med sin senaste
+# driftsättning men byggs inte om.
+#
+# Ska den ändå driftsättas igen behövs lappen för @netlify/plugin-nextjs
+# 5.15.13 tillbaka — scripts/netlify-forbered.mjs, se git-historiken. Utan
+# den dör bygget på ENOENT för server/functions-config-manifest.json.
+
 # Netlify-konfiguration för FM – PSVI.
 #
 # Appen är inte statisk. Den har serverkomponenter, sessioner och en databas,
