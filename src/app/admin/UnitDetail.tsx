@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { ArrowRightLeft, KeyRound, Plus, Trash2, UserCheck, UserX } from 'lucide-react';
+import { ArrowRightLeft, KeyRound, Pencil, Plus, Trash2, UserCheck, UserX } from 'lucide-react';
 
 import {
   createUnitAction,
@@ -9,11 +9,13 @@ import {
   erasePersonalDataAction,
   moveUserAction,
   reissueCodeAction,
+  renameUserAction,
   toggleUserActiveAction,
   type ActiveState,
   type CodeState,
   type EraseState,
   type MoveState,
+  type RenameState,
   type UnitState,
 } from '@/app/actions/admin';
 import type { AdminUser, MoveTarget } from '@/lib/db/queries/admin';
@@ -52,7 +54,10 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
   const [activeState, activeFormAction] = useActionState<ActiveState, FormData>(toggleUserActiveAction, {});
   const [moveState, moveFormAction, moving] = useActionState<MoveState, FormData>(moveUserAction, {});
   const [eraseState, eraseFormAction, erasing] = useActionState<EraseState, FormData>(erasePersonalDataAction, {});
+  const [renameState, renameFormAction] = useActionState<RenameState, FormData>(renameUserAction, {});
   const [dismissed, setDismissed] = useState(0);
+  /** Raden vars benämning redigeras just nu, om någon. */
+  const [editing, setEditing] = useState<number | null>(null);
 
   const soldiers = members.filter((m) => m.role === 'soldat');
   const leaders = members.filter((m) => m.role !== 'soldat');
@@ -178,9 +183,16 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
 
         {/* ── Personer i enheten ── */}
         <section>
-          <h3 className="mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+          <h3 className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
             Personer i enheten ({members.length})
           </h3>
+          <p className="mb-2 text-[11px] leading-relaxed text-slate-500">
+            Klicka på en benämning för att ändra den. Koden lagras bara som hash
+            och går inte att söka på, så benämningen är det enda som knyter en
+            rad till en person — den behöver vara något enheten känner igen.
+            Vad som räcker är er bedömning: ett tjänstenummer eller en plats i
+            gruppen fungerar lika bra som ett namn, med färre uppgifter.
+          </p>
 
           {members.length === 0 ? (
             <p className="rounded-md border border-slate-200 bg-white px-4 py-5 text-center text-[13px] text-slate-400">
@@ -197,16 +209,74 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                     i > 0 ? 'border-t border-slate-100' : ''
                   } ${!m.active ? 'bg-slate-50' : isSelf ? 'bg-amber-50' : ''}`}
                 >
-                  <span className={`text-sm ${m.active ? 'text-slate-700' : 'text-slate-400 line-through'}`}>
-                    {m.label}
-                  </span>
-                  {dupeLabels.has(m.label) && (
-                    <span
-                      className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500"
-                      title="Referensnummer — flera personer i enheten har samma namn"
+                  {editing === m.id ? (
+                    <form
+                      /*
+                       * Stänger direkt vid submit. Fälten har required och
+                       * maxLength, så de fel servern kan svara med går knappt
+                       * att nå härifrån — och kommer ett ändå visas det under
+                       * listan.
+                       */
+                      action={(fd) => {
+                        renameFormAction(fd);
+                        setEditing(null);
+                      }}
+                      className="flex flex-wrap items-center gap-1.5"
                     >
-                      #{m.id}
-                    </span>
+                      <input type="hidden" name="userId" value={m.id} />
+                      <input
+                        name="label"
+                        defaultValue={m.label}
+                        required
+                        /* Servern är den som avgör — se MAX_LABEL i queries/admin.ts. */
+                        maxLength={60}
+                        autoFocus
+                        aria-label="Benämning"
+                        className="w-52 max-w-full rounded border-[1.5px] border-slate-900 px-2 py-1 text-sm outline-none"
+                      />
+                      <button
+                        type="submit"
+                        className="cursor-pointer rounded bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-slate-800"
+                      >
+                        Spara
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditing(null)}
+                        className="cursor-pointer rounded px-2 py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-900"
+                      >
+                        Avbryt
+                      </button>
+                    </form>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setEditing(m.id)}
+                        title="Byt benämning"
+                        className="flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 -mx-1 text-left hover:bg-slate-100"
+                      >
+                        <span
+                          className={`text-sm ${m.active ? 'text-slate-700' : 'text-slate-400 line-through'}`}
+                        >
+                          {m.label}
+                        </span>
+                        {/*
+                          Alltid synlig, inte bara vid hover: på en pekskärm
+                          finns ingen hover, och då vore funktionen omöjlig
+                          att hitta.
+                        */}
+                        <Pencil size={11} className="shrink-0 text-slate-300" aria-hidden />
+                      </button>
+                      {dupeLabels.has(m.label) && (
+                        <span
+                          className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500"
+                          title="Referensnummer — flera personer i enheten har samma namn"
+                        >
+                          #{m.id}
+                        </span>
+                      )}
+                    </>
                   )}
                   {isSelf && (
                     <span className="rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
@@ -283,6 +353,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
 
           {reissueState.error && <p role="alert" className="mt-2 text-sm text-red-600">{reissueState.error}</p>}
           {activeState.error && <p role="alert" className="mt-2 text-sm text-red-600">{activeState.error}</p>}
+          {renameState.error && <p role="alert" className="mt-2 text-sm text-red-600">{renameState.error}</p>}
         </section>
 
         {/* ── Flytta person ── */}

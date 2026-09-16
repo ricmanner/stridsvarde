@@ -410,6 +410,61 @@ export async function setUserActive(
   return { ok: true };
 }
 
+/** Längsta tillåtna benämning. Samma gräns som vid skapandet av befäl. */
+export const MAX_LABEL = 60;
+
+/**
+ * Byter benämning på en person.
+ *
+ * Utan det här gick systemet inte att administrera i praktiken. Soldater
+ * skapas som "Soldat 01", "Soldat 02" … och koden lagras bara som hash, så
+ * den går inte att söka på. När någon tappat sin kod fanns därför inget sätt
+ * för administratören att avgöra vilken rad som var rätt person — och med fel
+ * rad spärras någon annans kod i stället.
+ *
+ * VAD SOM FÅR STÅ I FÄLTET ÄR ETT BESLUT FÖR FÖRSVARSMAKTEN, inte för
+ * appen. Ett efternamn gör fältet till en personuppgift; "3. grp plats 7"
+ * eller ett tjänstenummer löser samma problem med mindre uppgifter. Därför
+ * validerar vi bara längden och säger i gränssnittet vad valet innebär.
+ *
+ * Det påverkar inte hälsodatans skydd. Administratören når fortfarande aldrig
+ * check_ins — se filhuvudet — och befäl ser bara aggregat, aldrig individer.
+ * Att veta vem som har vilken kod och att se någons mående är två skilda
+ * saker, och de ligger kvar hos två skilda roller.
+ */
+export async function renameUser(
+  actorUserId: number,
+  userId: number,
+  label: string,
+): Promise<{ ok: true; label: string } | { ok: false; error: string }> {
+  const trimmed = label.trim();
+
+  if (trimmed.length < 1) return { ok: false, error: 'Benämningen får inte vara tom.' };
+  if (trimmed.length > MAX_LABEL) {
+    return { ok: false, error: `Benämningen får vara högst ${MAX_LABEL} tecken.` };
+  }
+
+  const [target] = await db
+    .select({ label: users.label })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!target) return { ok: false, error: 'Personen saknas.' };
+  if (target.label === trimmed) return { ok: true, label: trimmed };
+
+  await db.update(users).set({ label: trimmed }).where(eq(users.id, userId));
+
+  /*
+   * Den gamla benämningen loggas INTE. Ändringen ska gå att spåra, men en
+   * granskningslogg som sparar varje tidigare namn blir med tiden en egen
+   * samling personuppgifter — och den som raderas via erasePersonalData
+   * skulle ligga kvar i den.
+   */
+  await audit(actorUserId, 'user.rename', `användare ${userId}`);
+  return { ok: true, label: trimmed };
+}
+
 /** Enkel driftsöversikt för adminstartsidan. Inga hälsovärden. */
 export async function getAdminStats() {
   const one = async (q: Promise<{ n: number }[]>) => (await q)[0]?.n ?? 0;

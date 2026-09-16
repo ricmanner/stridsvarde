@@ -3,6 +3,7 @@ import { Shield } from 'lucide-react';
 
 import LoginForm from '@/app/_components/LoginForm';
 import { getSessionUser } from '@/lib/auth/session';
+import { environment } from '@/lib/db/client';
 import { homeFor } from '@/lib/roles';
 
 export const dynamic = 'force-dynamic';
@@ -19,20 +20,27 @@ export default async function LoginPage({
   const { utgangen } = await searchParams;
 
   /*
-   * Demokoderna läses på SERVERN och skickas bara vidare i utvecklingsläge.
-   * I demon låg listan hårdkodad i sidan och följde med i webbläsarpaketet —
-   * alltså publicerade vi en lista över giltiga inloggningsuppgifter.
+   * Demokoderna avgörs på SERVERN och följer bara med till webbläsaren i
+   * demoläge. I den gamla demon låg listan hårdkodad i sidan och skickades
+   * alltid med — alltså publicerades en lista över giltiga
+   * inloggningsuppgifter oavsett vad appen användes till.
+   *
+   * Villkoret är driftläget, inte NODE_ENV. En demo ÄR driftsatt i
+   * produktionsläge; hade vi låst listan till utvecklingsläge hade den aldrig
+   * synts för den som fick länken, vilket var hela poängen. Och i pilotläge,
+   * där riktiga soldater rapporterar, finns blocket inte alls.
    */
-  const demoCodes =
-    process.env.NODE_ENV === 'development' && process.env.SEED_DEMO_DATA === 'true'
-      ? [
-          { roll: 'Värnpliktig', kod: 'P1G1-01' },
-          { roll: 'Plutonchef', kod: 'BEF-P1' },
-          { roll: 'Kompanichef', kod: 'BEF-KP1' },
-          { roll: 'Bataljonschef', kod: 'BEF-BAT' },
-          { roll: 'Administratör', kod: 'ADMIN-01' },
-        ]
-      : null;
+  const demo = environment() === 'demo';
+
+  const demoCodes = demo
+    ? [
+        { roll: 'Värnpliktig', kod: 'P1G1-01' },
+        { roll: 'Plutonchef', kod: 'BEF-P1' },
+        { roll: 'Kompanichef', kod: 'BEF-KP1' },
+        { roll: 'Bataljonschef', kod: 'BEF-BAT' },
+        { roll: 'Administratör', kod: 'ADMIN-01' },
+      ]
+    : null;
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -60,17 +68,28 @@ export default async function LoginPage({
 
           {demoCodes && (
             <div className="mt-8 rounded-md border border-slate-200 bg-slate-100 p-4">
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">
-                Demokoder · endast utvecklingsläge
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">
+                Demokoder
+              </p>
+              <p className="mb-3 text-[11px] leading-relaxed text-slate-500">
+                Logga in med vilken som helst för att se appen ur den rollens
+                perspektiv.
               </p>
               <div className="flex flex-col gap-1">
                 {demoCodes.map(({ roll, kod }) => (
                   <div key={kod} className="flex items-center justify-between gap-3">
                     <span className="text-xs text-slate-500">{roll}</span>
-                    <span className="font-mono text-xs text-slate-900">{kod}</span>
+                    <span className="font-mono text-xs font-semibold text-slate-900">{kod}</span>
                   </div>
                 ))}
               </div>
+              <p className="mt-3 border-t border-slate-200 pt-3 text-[11px] leading-relaxed text-slate-500">
+                Dagens rapport är obesvarad för{' '}
+                <span className="font-mono text-slate-700">P1G1-01</span> till{' '}
+                <span className="font-mono text-slate-700">P1G1-08</span>, så flera
+                kan prova incheckningen samtidigt utan att krocka. Övriga soldater
+                har redan svarat idag och visar översikten i stället.
+              </p>
             </div>
           )}
         </div>

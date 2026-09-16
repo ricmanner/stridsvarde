@@ -40,7 +40,22 @@ export const users = sqliteTable(
     id: integer('id').primaryKey({ autoIncrement: true }),
     /** sha256 av inloggningskoden. Klartextkoden lagras aldrig. */
     codeHash: text('code_hash').notNull().unique(),
-    /** Visningsnamn i admin, t.ex. "Soldat 3" eller "Plutonchef". Inte en personuppgift. */
+    /**
+     * Visningsnamn i admin, t.ex. "Soldat 03" eller "Plutonchef Pluton 1".
+     *
+     * Sätts automatiskt vid skapandet och kan sedan ändras — se renameUser().
+     * Utan det gick systemet inte att administrera: koden lagras bara som
+     * hash, så den som tappat sin kod kan inte hittas genom att söka på den.
+     *
+     * Fältet är därför INTE garanterat fritt från personuppgifter. Vad som
+     * står i det avgör den som administrerar; ett efternamn gör det till en
+     * personuppgift, ett tjänstenummer eller "3. grp plats 7" löser samma
+     * problem med mindre uppgifter.
+     *
+     * Kopplingen till hälsodata skyddas inte av det här fältet utan av att
+     * administratörsrollen aldrig når check_ins och att befäl bara ser
+     * aggregat. Se queries/admin.ts.
+     */
     label: text('label').notNull(),
     role: text('role', {
       enum: ['soldat', 'pluton', 'kompani', 'bataljon', 'admin'],

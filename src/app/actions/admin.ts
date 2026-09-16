@@ -8,6 +8,7 @@ import {
   createUsers,
   moveUser,
   reissueCode,
+  renameUser,
   setUserActive,
   type IssuedCode,
 } from '@/lib/db/queries/admin';
@@ -165,4 +166,27 @@ export async function toggleUserActiveAction(
   revalidatePath('/admin');
 
   return result.ok ? {} : { error: result.error };
+}
+
+export interface RenameState {
+  error?: string;
+  /** Id:t som ändrades, så vyn kan stänga rätt rad efteråt. */
+  renamedId?: number;
+}
+
+export async function renameUserAction(
+  _prev: RenameState,
+  formData: FormData,
+): Promise<RenameState> {
+  const admin = await requireRole('admin');
+
+  const userId = Number(formData.get('userId'));
+  const label = String(formData.get('label') ?? '');
+  if (!Number.isInteger(userId)) return { error: 'Ogiltig användare.' };
+
+  const result = await renameUser(admin.id, userId, label);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath('/admin');
+  return { renamedId: userId };
 }

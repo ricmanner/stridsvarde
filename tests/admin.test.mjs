@@ -204,3 +204,64 @@ test('listan byter inte ordning när någon spärras eller aktiveras', async () 
   assert.equal(efter.find((u) => u.id === ids[1]).active, false);
   assert.equal(efter.find((u) => u.id === ids[3]).active, false);
 });
+
+test('en ny benämning ändrar bara namnet, inte personen', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const soldat = org.soldater['Grupp A'][0];
+
+  await checkIn(client, [soldat], dayOffset(2), 6);
+  await checkIn(client, [soldat], dayOffset(1), 7);
+
+  const { renameUser, getUsersInUnit } = await import('../src/lib/db/queries/admin.ts');
+  const { getOwnHistory } = await import('../src/lib/db/queries/checkins.ts');
+
+  const före = await getOwnHistory(soldat, 14);
+  const resultat = await renameUser(soldat, soldat, '  Andersson 3. grp  ');
+  assert.equal(resultat.ok, true);
+
+  // Trimmas, inte sparas som den skrevs.
+  assert.equal(resultat.label, 'Andersson 3. grp');
+
+  const rader = await getUsersInUnit(org.grupper['Grupp A']);
+  const rad = rader.find((r) => r.id === soldat);
+  assert.equal(rad.label, 'Andersson 3. grp');
+
+  // Benämningen är en etikett på raden. Den får inte röra vare sig kod,
+  // behörighet eller historik — annars vore ett namnbyte ett riskmoment
+  // i stället för ett administrativt handgrepp.
+  const efter = await getOwnHistory(soldat, 14);
+  assert.deepEqual(
+    efter.map((r) => r.serviceDate),
+    före.map((r) => r.serviceDate),
+    'historiken ska vara oförändrad efter namnbyte',
+  );
+});
+
+test('en tom eller för lång benämning avvisas', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const soldat = org.soldater['Grupp A'][1];
+
+  const { renameUser, getUsersInUnit, MAX_LABEL } = await import(
+    '../src/lib/db/queries/admin.ts'
+  );
+
+  const ursprunglig = (await getUsersInUnit(org.grupper['Grupp A'])).find(
+    (r) => r.id === soldat,
+  ).label;
+
+  for (const ogiltig of ['', '   ', 'x'.repeat(MAX_LABEL + 1)]) {
+    const resultat = await renameUser(soldat, soldat, ogiltig);
+    assert.equal(resultat.ok, false, `"${ogiltig.slice(0, 12)}…" borde avvisas`);
+  }
+
+  // Ingen av de avvisade försöken får ha hunnit skriva något.
+  const efteråt = (await getUsersInUnit(org.grupper['Grupp A'])).find(
+    (r) => r.id === soldat,
+  ).label;
+  assert.equal(efteråt, ursprunglig);
+
+  // Gränsen ska gå precis där den sägs gå, inte en bit därifrån.
+  assert.equal((await renameUser(soldat, soldat, 'x'.repeat(MAX_LABEL))).ok, true);
+});
