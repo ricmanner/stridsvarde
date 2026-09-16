@@ -4,6 +4,7 @@ import { Shield } from 'lucide-react';
 import LoginForm from '@/app/_components/LoginForm';
 import { getSessionUser } from '@/lib/auth/session';
 import { environment } from '@/lib/db/client';
+import { PUBLICERADE_DEMOKODER } from '@/lib/demo';
 import { homeFor } from '@/lib/roles';
 
 export const dynamic = 'force-dynamic';
@@ -30,17 +31,7 @@ export default async function LoginPage({
    * synts för den som fick länken, vilket var hela poängen. Och i pilotläge,
    * där riktiga soldater rapporterar, finns blocket inte alls.
    */
-  const demo = environment() === 'demo';
-
-  const demoCodes = demo
-    ? [
-        { roll: 'Värnpliktig', kod: 'P1G1-01' },
-        { roll: 'Plutonchef', kod: 'BEF-P1' },
-        { roll: 'Kompanichef', kod: 'BEF-KP1' },
-        { roll: 'Bataljonschef', kod: 'BEF-BAT' },
-        { roll: 'Administratör', kod: 'ADMIN-01' },
-      ]
-    : null;
+  const demoCodes = environment() === 'demo' ? PUBLICERADE_DEMOKODER : null;
 
   return (
     <div className="flex min-h-dvh flex-col">

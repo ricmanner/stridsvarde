@@ -4,8 +4,10 @@ import { and, asc, eq, sql } from 'drizzle-orm';
 
 import { generateCode, hashCode } from '../../auth/codes';
 import { serviceDate } from '../../date';
+import { DEMOKONTO_SKYDDAT, PUBLICERADE_DEMOKODER } from '../../demo';
 import { ROLE_LABEL, type Role } from '../../roles';
 import { db } from '..';
+import { environment } from '../client';
 import { auditLog, sessions, units, users } from '../schema';
 
 /*
@@ -91,6 +93,13 @@ export interface AdminUser {
   active: boolean;
   lastLoginAt: string | null;
   createdAt: string;
+  /**
+   * Publicerat demokonto: står på inloggningssidan och går varken att
+   * spärra, byta kod på eller radera. Alltid falskt i pilotläge.
+   *
+   * Beräknas på servern ur kodhashen, som aldrig lämnar den här funktionen.
+   */
+  skyddad: boolean;
 }
 
 export async function getUsersInUnit(unitId: number): Promise<AdminUser[]> {
@@ -102,6 +111,7 @@ export async function getUsersInUnit(unitId: number): Promise<AdminUser[]> {
       active: users.active,
       lastLoginAt: users.lastLoginAt,
       createdAt: users.createdAt,
+      codeHash: users.codeHash,
     })
     .from(users)
     .where(eq(users.unitId, unitId))
@@ -115,7 +125,20 @@ export async function getUsersInUnit(unitId: number): Promise<AdminUser[]> {
      */
     .orderBy(asc(users.role), asc(users.label), asc(users.id));
 
-  return rows as AdminUser[];
+  /*
+   * Hashen används här och skickas inte vidare. Vyn behöver veta VILKA rader
+   * som är låsta för att kunna gråa ut knapparna, men den behöver inte — och
+   * ska inte — få kodhashar till webbläsaren.
+   */
+  const skyddade =
+    environment() === 'demo'
+      ? new Set(PUBLICERADE_DEMOKODER.map(({ kod }) => hashCode(kod)))
+      : null;
+
+  return rows.map(({ codeHash, ...rad }) => ({
+    ...rad,
+    skyddad: skyddade?.has(codeHash) ?? false,
+  })) as AdminUser[];
 }
 
 export async function getUnit(unitId: number) {
@@ -270,6 +293,10 @@ export async function reissueCode(
     };
   }
 
+  if (await arPublicerattDemokonto(userId)) {
+    return { ok: false, error: DEMOKONTO_SKYDDAT };
+  }
+
   const [user] = await db
     .select({ id: users.id, label: users.label })
     .from(users)
@@ -384,6 +411,33 @@ export async function moveUser(
   return { ok: true, unitName: target.name };
 }
 
+/**
+ * Sant för de konton vars koder står på inloggningssidan i demoläge.
+ *
+ * Demon publicerar sina koder så att den som får länken kan gå in utan att
+ * fråga. Följden är att vem som helst kan logga in som administratör — och
+ * därmed spärra, byta kod på eller radera just de konton länken bygger på.
+ * Ett klick och demonstrationen är trasig för alla som kommer efter.
+ *
+ * Skyddet gäller de fem publicerade kontona och ingenting annat. Konton som
+ * besökaren skapar själv går att spärra, byta kod på och radera som vanligt,
+ * så funktionerna går fortfarande att visa upp.
+ *
+ * I pilotläge returnerar den alltid falskt: då finns inga kända koder.
+ */
+async function arPublicerattDemokonto(userId: number): Promise<boolean> {
+  if (environment() !== 'demo') return false;
+
+  const [row] = await db
+    .select({ codeHash: users.codeHash })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!row) return false;
+  return PUBLICERADE_DEMOKODER.some(({ kod }) => hashCode(kod) === row.codeHash);
+}
+
 /** Antal aktiva administratörer utöver en given användare. */
 async function otherActiveAdmins(exceptUserId: number): Promise<number> {
   const [row] = await db
@@ -403,6 +457,10 @@ export async function setUserActive(
     // gör det. Behöver man byta administratör lägger man upp den nya först.
     if (userId === actorUserId) {
       return { ok: false, error: 'Du kan inte spärra ditt eget konto.' };
+    }
+
+    if (await arPublicerattDemokonto(userId)) {
+      return { ok: false, error: DEMOKONTO_SKYDDAT };
     }
 
     // Sista administratören får inte spärras — då kan ingen administrera
@@ -458,6 +516,10 @@ export async function canDeleteUser(
     .limit(1);
 
   if (!target) return { ok: false, error: 'Personen saknas.' };
+
+  if (await arPublicerattDemokonto(userId)) {
+    return { ok: false, error: DEMOKONTO_SKYDDAT };
+  }
 
   // Samma skydd som vid spärr: utan en administratör går systemet inte att
   // administrera, och återställning kräver tillgång till servern.

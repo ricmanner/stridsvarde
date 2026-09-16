@@ -126,7 +126,8 @@ export default async function AdminPage({
         <div className="grid gap-5 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
           {/* ── Enhetsträd ── */}
           <section className="no-print">
-            <h2 className="mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+            {/* Överflödig på mobil — där står vald enhet i väljarens huvud. */}
+            <h2 className="mb-2 hidden text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500 lg:block">
               Organisation
             </h2>
             <UnitTree tree={tree} selectedId={selectedId} />

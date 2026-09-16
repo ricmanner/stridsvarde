@@ -285,7 +285,14 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                 return (
                 <div
                   key={m.id}
-                  className={`flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 ${
+                  /*
+                    Staplad på mobil, en rad från sm och uppåt.
+                    Namn, brickor, inloggningsdatum och tre knappar fick
+                    annars radbrytas fritt på en 390 px skärm, och `ml-auto`
+                    slutade betyda något så fort det skedde — knapparna
+                    hamnade var som helst.
+                  */
+                  className={`flex flex-col gap-y-2 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:py-2.5 ${
                     i > 0 ? 'border-t border-slate-100' : ''
                   } ${!m.active ? 'bg-slate-50' : isSelf ? 'bg-amber-50' : ''}`}
                 >
@@ -329,7 +336,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                       </button>
                     </form>
                   ) : (
-                    <>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 sm:contents">
                       <button
                         type="button"
                         onClick={() => setEditing(m.id)}
@@ -356,7 +363,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                           #{m.id}
                         </span>
                       )}
-                    </>
+                    </div>
                   )}
                   {isSelf && (
                     <span className="rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
@@ -372,7 +379,18 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                     {m.lastLoginAt ? `senast inloggad ${m.lastLoginAt.slice(0, 10)}` : 'aldrig inloggad'}
                   </span>
 
-                  <div className="ml-auto flex items-center gap-1">
+                  {/*
+                    Publicerade demokonton visas som låsta i stället för att
+                    ge ett felmeddelande efter en bekräftelseruta. Servern
+                    vägrar ändå — se arPublicerattDemokonto() — men en knapp
+                    som alltid misslyckas är sämre än ingen knapp.
+                  */}
+                  {m.skyddad ? (
+                    <span className="text-[11px] text-slate-400 sm:ml-auto">
+                      Låst — demonstrationens ingång
+                    </span>
+                  ) : (
+                  <div className="-mx-1 flex items-center gap-0.5 sm:mx-0 sm:ml-auto sm:gap-1">
                     {/*
                       Ingen kodknapp på den egna raden.
 
@@ -392,7 +410,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                         <button
                           type="submit"
                           title="Spärra nuvarande kod och utfärda en ny"
-                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 sm:py-1"
                         >
                           <KeyRound size={12} aria-hidden /> Ny kod
                         </button>
@@ -407,7 +425,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                         <button
                           type="submit"
                           title={m.active ? 'Spärra åtkomst' : 'Återaktivera'}
-                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 sm:py-1"
                         >
                           {m.active ? <UserX size={12} aria-hidden /> : <UserCheck size={12} aria-hidden />}
                           {m.active ? 'Spärra' : 'Aktivera'}
@@ -444,13 +462,14 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                         <button
                           type="submit"
                           title="Ta bort kontot och alla rapporter permanent"
-                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold text-slate-400 hover:bg-red-50 hover:text-red-700"
+                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-[11px] font-semibold text-slate-400 hover:bg-red-50 hover:text-red-700 sm:py-1"
                         >
                           <Trash size={12} aria-hidden /> Ta bort
                         </button>
                       </form>
                     )}
                   </div>
+                  )}
                 </div>
                 );
               })}

@@ -369,3 +369,65 @@ test('den sista administratören går inte att ta bort', async () => {
 
   assert.equal((await canDeleteUser(annan, admin)).ok, true);
 });
+
+test('demons publicerade konton går inte att förstöra — men bara i demoläge', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const admin = org.soldater['Grupp A'][3];
+
+  const { hashCode } = await import('../src/lib/auth/codes.ts');
+  const { PUBLICERADE_DEMOKODER } = await import('../src/lib/demo.ts');
+  const { reissueCode, canDeleteUser, setUserActive } = await import(
+    '../src/lib/db/queries/admin.ts'
+  );
+
+  // Ett konto med en av de publicerade koderna, och ett helt vanligt.
+  const skapa = async (codeHash, label) =>
+    Number(
+      (
+        await client.execute({
+          sql: 'INSERT INTO users (code_hash, label, role, unit_id, active, created_at) VALUES (?,?,?,?,1,?) RETURNING id',
+          args: [codeHash, label, 'soldat', org.grupper['Grupp A'], new Date().toISOString()],
+        })
+      ).rows[0].id,
+    );
+
+  const publicerat = await skapa(hashCode(PUBLICERADE_DEMOKODER[0].kod), 'Demoingång');
+  const eget = await skapa(`hash-eget-${Date.now()}`, 'Egen testperson');
+
+  const tidigare = process.env.PSVI_ENVIRONMENT;
+  try {
+    process.env.PSVI_ENVIRONMENT = 'demo';
+
+    /*
+     * Demon publicerar sina koder. Utan det här kan vem som helst logga in
+     * som administratör och spärra, byta kod på eller radera just det konto
+     * länken bygger på — och då är demonstrationen trasig för alla som
+     * kommer efter, tills någon seedar om databasen.
+     */
+    assert.equal((await reissueCode(admin, publicerat)).ok, false, 'ny kod ska vägras');
+    assert.equal((await canDeleteUser(admin, publicerat)).ok, false, 'radering ska vägras');
+    assert.equal(
+      (await setUserActive(admin, publicerat, false)).ok,
+      false,
+      'spärr ska vägras',
+    );
+
+    // Skyddet gäller de fem, inte administrationen i stort. Ett konto som
+    // besökaren skapat själv ska gå att hantera som vanligt — annars går
+    // funktionerna inte att visa upp.
+    assert.equal((await reissueCode(admin, eget)).ok, true, 'eget konto ska gå att röra');
+    assert.equal((await canDeleteUser(admin, eget)).ok, true);
+
+    // I pilotläge finns inga kända koder, och därmed inget att skydda.
+    process.env.PSVI_ENVIRONMENT = 'pilot';
+    assert.equal(
+      (await canDeleteUser(admin, publicerat)).ok,
+      true,
+      'skyddet hör till demoläget, inte till kontot',
+    );
+  } finally {
+    if (tidigare === undefined) delete process.env.PSVI_ENVIRONMENT;
+    else process.env.PSVI_ENVIRONMENT = tidigare;
+  }
+});
