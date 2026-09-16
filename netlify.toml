@@ -1,0 +1,18 @@
+# Netlify-konfiguration för FM – PSVI.
+#
+# Appen är inte statisk. Den har serverkomponenter, sessioner och en databas,
+# så den körs som serverlösa funktioner via Netlifys Next.js-plugin — inte som
+# filer i en mapp, vilket demoversionen var.
+#
+# Databasen kan INTE ligga på disk här: filsystemet är flyktigt och delas inte
+# mellan anrop. DATABASE_URL måste peka på en libsql://-databas.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

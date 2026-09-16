@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { serviceDate } from '../date';
-import { client, dbPath } from './client';
+import { client, dbPath, isRemote } from './client';
 
 const KEEP_DAYS = 14;
 
@@ -17,6 +17,15 @@ const KEEP_DAYS = 14;
  * kopiera filen medan WAL-loggen skrivs.
  */
 export async function backupIfNeeded(): Promise<void> {
+  /*
+   * Bara mot en lokal fil. `VACUUM INTO` skriver till serverns eget
+   * filsystem — på en serverlös värd är det flyktigt, och mot en
+   * fjärrdatabas finns ingen disk att skriva till. Den som driver en
+   * fjärrdatabas sköter säkerhetskopiorna där i stället, och det är ett
+   * krav att kontrollera innan skarp drift.
+   */
+  if (isRemote) return;
+
   const dir = path.join(path.dirname(dbPath), 'backups');
   fs.mkdirSync(dir, { recursive: true });
 

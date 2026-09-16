@@ -5,7 +5,7 @@ import { sql } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/libsql/migrator';
 
 import { backupIfNeeded } from './backup';
-import { applyPragmas, db, dbPath, isSeedDemoData } from './client';
+import { applyPragmas, db, dbPath, environment, isSeedDemoData } from './client';
 import { purgeExpiredCheckIns } from './retention';
 import { seedIfNeeded } from './seed';
 import { checkIns, units, users } from './schema';
@@ -49,6 +49,13 @@ export function ensureDb(): Promise<void> {
  */
 async function assertNotDemoInProduction(): Promise<void> {
   if (process.env.NODE_ENV !== 'production') return;
+
+  /*
+   * En demo-driftsättning SKA ha seedad data — annars finns inget att visa.
+   * Skyddet gäller därför pilotläget, där riktiga soldater rapporterar.
+   * Demoläget visar i stället en banner så att ingen kan missta den för skarp.
+   */
+  if (environment() === 'demo') return;
 
   if (isSeedDemoData()) {
     throw new Error(

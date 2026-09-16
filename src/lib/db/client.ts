@@ -7,51 +7,69 @@ import { drizzle } from 'drizzle-orm/libsql';
 
 import * as schema from './schema';
 
-/**
- * Lokal SQLite-fil via libSQL.
+/*
+ * Databasanslutning — lokal fil eller fjärrdatabas, samma frågor.
  *
- * libSQL används framför better-sqlite3 för att samma kod ska kunna peka mot
- * en fjärrdatabas (Turso) senare genom att bara byta URL — utan att någon
- * fråga i appen skrivs om.
+ * libSQL valdes framför better-sqlite3 just för det här: en fjärrdatabas
+ * (Turso) talar samma protokoll, så inte en enda SQL-fråga i appen behöver
+ * skrivas om när den flyttar ut. Det som skiljer är anslutningen och några
+ * saker som bara är meningsfulla mot en fil på disk.
+ *
+ * Varför en fjärrdatabas alls behövs: Netlify och liknande kör serverlöst med
+ * ett flyktigt filsystem. En SQLite-fil där töms mellan anrop och delas inte
+ * mellan dem — varje förfrågan skulle i praktiken få en egen tom databas,
+ * utan att något ser trasigt ut förrän någon försöker logga in.
  */
+
+/** Sant när vi kör mot en fjärrdatabas i stället för en fil på disk. */
+export const isRemote = Boolean(process.env.DATABASE_URL?.startsWith('libsql://'));
+
 function resolveDbPath(): string {
   const configured = process.env.DATABASE_PATH ?? './data/psvi.db';
   return path.isAbsolute(configured) ? configured : path.join(process.cwd(), configured);
 }
 
-export const dbPath = resolveDbPath();
+export const dbPath = isRemote ? (process.env.DATABASE_URL as string) : resolveDbPath();
 
-fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+if (!isRemote) fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
-export const client = createClient({
-  url: `file:${dbPath}`,
-  /**
-   * EN anslutning, inte den förvalda poolen om 20.
-   *
-   * libSQL öppnar annars flera oberoende anslutningar, och pragmas som
-   * `foreign_keys` gäller *per anslutning*. Ett `PRAGMA foreign_keys = ON`
-   * skulle då träffa en enda slumpmässig anslutning medan resten körde utan
-   * referensintegritet — tyst, och omöjligt att upptäcka i efterhand.
-   *
-   * Med en anslutning blir pragmas deterministiska och SQLITE_BUSY
-   * strukturellt omöjligt. För ett par hundra användare mot en lokal fil är
-   * varje fråga ändå en bråkdel av en millisekund. Det här är raden att ändra
-   * den dag databasen flyttar till en riktig server.
-   */
-  concurrency: 1,
-});
+export const client = isRemote
+  ? createClient({
+      url: process.env.DATABASE_URL as string,
+      authToken: process.env.DATABASE_AUTH_TOKEN,
+    })
+  : createClient({
+      url: `file:${dbPath}`,
+      /**
+       * EN anslutning, inte den förvalda poolen om 20.
+       *
+       * Gäller bara lokal fil. libSQL öppnar annars flera oberoende
+       * anslutningar, och pragmas som `foreign_keys` gäller *per anslutning*.
+       * Ett `PRAGMA foreign_keys = ON` skulle då träffa en enda slumpmässig
+       * anslutning medan resten körde utan referensintegritet — tyst, och
+       * omöjligt att upptäcka i efterhand.
+       *
+       * Mot en fjärrdatabas vore samma inställning bara en flaskhals: där
+       * sköts både integritet och samtidighet på serversidan.
+       */
+      concurrency: 1,
+    });
 
 export const db = drizzle(client, { schema });
 
 /**
- * SQLite har foreign keys AVSTÄNGDA som standard (libSQL har dem på, men det
- * är inget vi vill förlita oss på). WAL ger samtidiga läsare medan någon
- * skriver — precis vad en pluton som checkar in samtidigt behöver.
+ * Pragmas som bara är meningsfulla mot en lokal fil.
+ *
+ * WAL och journalläge är egenskaper hos filen; foreign_keys sätts per
+ * anslutning. En fjärrdatabas sköter båda själv, och att skicka dit dem vore
+ * i bästa fall verkningslöst.
  *
  * Kastar om referensintegriteten inte gick att slå på. Att starta en server
  * med hälsodata och tyst avstängda foreign keys är inte acceptabelt.
  */
 export async function applyPragmas(): Promise<void> {
+  if (isRemote) return;
+
   await client.execute('PRAGMA journal_mode = WAL'); // sparas i filen
   await client.execute('PRAGMA foreign_keys = ON'); // per anslutning
   await client.execute('PRAGMA busy_timeout = 5000');
@@ -64,6 +82,25 @@ export async function applyPragmas(): Promise<void> {
       'Kunde inte aktivera foreign keys. Startar inte med oskyddad referensintegritet.',
     );
   }
+}
+
+/*
+ * Driftläge.
+ *
+ * En DEMO och ett PILOTTEST är inte samma sak och får inte behandlas lika.
+ *
+ *   demo   — seedad organisation, kända koder, ingen verklig person berörs.
+ *            Visar en tydlig banner så att ingen kan missta den för skarp.
+ *   pilot  — riktiga soldater. Ingen demodata, inga kända koder, gallring
+ *            och lagringstid enligt beslut.
+ *
+ * Skyddet mot att råka köra demodata skarpt finns kvar: `pilot` vägrar starta
+ * om seedning är påslagen eller om en känd demokod ligger i databasen.
+ */
+export type Environment = 'demo' | 'pilot';
+
+export function environment(): Environment {
+  return process.env.PSVI_ENVIRONMENT === 'demo' ? 'demo' : 'pilot';
 }
 
 /** Seedar demodata (organisation + påhittad historik) endast när påslaget. */

@@ -1,4 +1,7 @@
 import type { Metadata, Viewport } from 'next';
+
+import DemoBanner from '@/components/DemoBanner';
+
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -21,7 +24,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         Demons 430px telefonram är borttagen. Appen är nu responsiv på riktigt:
         soldater checkar in i mobilen, befäl analyserar på en bred skärm.
       */}
-      <body>{children}</body>
+      <body>
+        <DemoBanner />
+        {children}
+      </body>
     </html>
   );
 }
