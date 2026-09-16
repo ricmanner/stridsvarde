@@ -5,7 +5,7 @@ import { sql } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/libsql/migrator';
 
 import { backupIfNeeded } from './backup';
-import { applyPragmas, db, dbPath, environment, isSeedDemoData } from './client';
+import { applyPragmas, db, dbPath, environment, isRemote, isSeedDemoData } from './client';
 import { purgeExpiredCheckIns } from './retention';
 import { seedIfNeeded } from './seed';
 import { checkIns, units, users } from './schema';
@@ -78,19 +78,46 @@ async function assertNotDemoInProduction(): Promise<void> {
   }
 }
 
-async function init(): Promise<void> {
+/**
+ * Migrerar, seedar och optimerar. Körs av `npm run db:setup` — aldrig av
+ * servern under drift.
+ *
+ * Skilt från `ensureDb()` eftersom det här arbetet kräver filsystemet och tar
+ * tid. Migratorn läser `drizzle/`-mappen från disk, och den mappen följer
+ * inte med in i en serverlös funktion. Seedningen tog dessutom 10,8 sekunder
+ * mot en fjärrdatabas; det är tusentals insättningar över nätet, och en
+ * kallstartande funktion hinner inte igenom dem innan tidsgränsen.
+ */
+export async function setupDb(): Promise<void> {
   // Migrationerna först — SQLite bygger ibland om tabeller, vilket krockar
   // med påslagna foreign keys.
-  await migrate(db, { migrationsFolder: path.join(process.cwd(), 'drizzle') });
+  await migrate(db, {
+    migrationsFolder: path.join(/* turbopackIgnore: true */ process.cwd(), 'drizzle'),
+  });
   await applyPragmas();
   await seedIfNeeded();
-  await assertNotDemoInProduction();
 
   // Hjälper SQLites frågeplanerare att välja rätt index för aggregaten.
   await db.run(sql`ANALYZE`);
+}
+
+async function init(): Promise<void> {
+  /*
+   * Mot en lokal fil gör servern allt själv: databasen är utvecklarens egen,
+   * och ingen ska behöva köra ett migrationskommando för hand.
+   *
+   * Mot en fjärrdatabas är den delad och långsammare att nå, och schemat ska
+   * ändras som ett beslut — inte som en bieffekt av att en funktion råkade
+   * kallstarta. Där gäller `npm run db:setup`, kört före driftsättning.
+   */
+  if (!isRemote) await setupDb();
+
+  await assertNotDemoInProduction();
 
   // Säkerhetskopian tas FÖRE gallringen, så att en felaktigt satt
   // lagringstid inte raderar data som inte finns kvar någon annanstans.
+  // Gallringen körs i båda lägena — lagringstiden är ett krav, inte en
+  // utvecklarbekvämlighet.
   await backupIfNeeded();
   await purgeExpiredCheckIns();
 }

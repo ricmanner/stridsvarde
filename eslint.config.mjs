@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Netlifys byggplugin packar upp sina egna buntade beroenden hit.
+    // Inte vår kod, och git-ignorerad.
+    ".netlify/**",
   ]),
 ]);
 

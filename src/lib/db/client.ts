@@ -2,8 +2,6 @@ import 'server-only';
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { createClient } from '@libsql/client';
-import { drizzle } from 'drizzle-orm/libsql';
 
 import * as schema from './schema';
 
@@ -32,6 +30,40 @@ function resolveDbPath(): string {
 export const dbPath = isRemote ? (process.env.DATABASE_URL as string) : resolveDbPath();
 
 if (!isRemote) fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
+/*
+ * Klient och drivrutin väljs vid körning i stället för med vanliga importer.
+ *
+ * Standardingången till `@libsql/client` importerar `libsql` — ett
+ * native-bibliotek för inbäddad SQLite som finns i en variant per plattform.
+ * Vi bygger på macOS och Netlify kör Linux, så binären som följer med bygget
+ * är fel plattform. Funktionen dog på `Cannot find module
+ * '@libsql/linux-x64-gnu'` redan när modulen laddades, långt innan någon av
+ * våra rader kördes.
+ *
+ * Mot en fjärrdatabas behövs den binären aldrig: där talar vi bara HTTP.
+ * `/web`-ingångarna är samma klient och samma drivrutin utan native-delen,
+ * och de klarar även transaktioner.
+ *
+ * Båda måste bytas, inte bara klienten: `drizzle-orm/libsql` importerar
+ * `@libsql/client` på sin första rad. Att bara byta vår egen import räckte
+ * inte — drivrutinen drog in native-varianten ändå.
+ *
+ * Importerna måste vara dynamiska. En vanlig `import` körs alltid, oavsett
+ * vilken gren koden sedan tar, och det är själva laddningen som kraschar.
+ */
+type ClientModule = typeof import('@libsql/client');
+type DriverModule = typeof import('drizzle-orm/libsql');
+
+const [{ createClient }, { drizzle }] = isRemote
+  ? ((await Promise.all([
+      import('@libsql/client/web'),
+      import('drizzle-orm/libsql/web'),
+    ])) as unknown as [ClientModule, DriverModule])
+  : ((await Promise.all([
+      import('@libsql/client'),
+      import('drizzle-orm/libsql'),
+    ])) as unknown as [ClientModule, DriverModule]);
 
 export const client = isRemote
   ? createClient({

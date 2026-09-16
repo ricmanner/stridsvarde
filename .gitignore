@@ -43,3 +43,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local Netlify folder
+.netlify
+
+# Netlifys edge-bundling (Deno) skapar den här vid varje bygge.
+deno.lock

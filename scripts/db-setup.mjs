@@ -49,9 +49,9 @@ if (remote && !process.env.DATABASE_AUTH_TOKEN) {
 }
 
 const started = Date.now();
-const { ensureDb, dbStatus } = await import('../src/lib/db/index.ts');
+const { setupDb, dbStatus } = await import('../src/lib/db/index.ts');
 
-await ensureDb();
+await setupDb();
 const status = await dbStatus();
 
 console.log(`  Klart på ${((Date.now() - started) / 1000).toFixed(1)} s.\n`);
