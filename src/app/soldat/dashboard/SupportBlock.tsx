@@ -46,7 +46,7 @@ export default function SupportBlock() {
               >
                 {c.name}
               </p>
-              <p className="text-xs text-slate-400">{c.detail}</p>
+              <p className="text-xs text-slate-500">{c.detail}</p>
             </div>
             {c.phone && (
               <a
@@ -96,7 +96,7 @@ export default function SupportBlock() {
             </button>
           </div>
 
-          <p className="mt-2.5 text-xs leading-relaxed text-slate-400">
+          <p className="mt-2.5 text-xs leading-relaxed text-slate-500">
             Befälet får bara veta att du vill prata — aldrig vad du svarat.
           </p>
 

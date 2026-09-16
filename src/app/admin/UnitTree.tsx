@@ -68,7 +68,7 @@ export default function UnitTree({
           <span className={`h-5 w-[3px] shrink-0 rounded ${KIND_STYLE[current.kind].bar}`} aria-hidden />
         )}
         <span className="min-w-0 flex-1">
-          <span className="block text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+          <span className="block text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">
             Vald enhet
           </span>
           <span className="block truncate text-sm font-semibold text-slate-900">
@@ -131,7 +131,7 @@ export default function UnitTree({
 
                 <span
                   className={`ml-auto shrink-0 text-[11px] tabular-nums ${
-                    isSelected ? 'text-slate-300' : 'text-slate-400'
+                    isSelected ? 'text-slate-300' : 'text-slate-500'
                   }`}
                 >
                   {node.totalSoldiers > 0 && `${node.totalSoldiers} vpl.`}

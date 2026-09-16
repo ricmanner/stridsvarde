@@ -14,6 +14,7 @@ import Suppressed from '@/components/leader/Suppressed';
 import { CATEGORIES, getStatus } from '@/lib/data';
 import type { ChildComparison, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
 import { ALLOWED_PERIODS, type Period } from '@/lib/privacy';
+import { formatScore } from '@/lib/format';
 
 const ICONS: Record<string, React.ReactNode> = {
   Activity: <Activity size={15} strokeWidth={1.5} />,
@@ -106,19 +107,19 @@ export default function LeaderDashboard({
       <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-5 gap-y-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+            <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">
               {levelLabel} · {period} dagar
             </p>
             <div className="flex items-baseline gap-2">
               {overall !== null ? (
                 <>
                   <span className="text-2xl font-extrabold tabular-nums text-slate-900">
-                    {overall.toFixed(1)}
+                    {formatScore(overall)}
                   </span>
                   <StatusBadge status={getStatus(overall)} />
                 </>
               ) : (
-                <span className="text-sm text-slate-400">Underlag saknas</span>
+                <span className="text-sm text-slate-500">Underlag saknas</span>
               )}
             </div>
           </div>
@@ -133,8 +134,8 @@ export default function LeaderDashboard({
             </>
           ) : null}
 
-          <span className="text-xs text-slate-400">{overview.eligible} värnpliktiga</span>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-500">{overview.eligible} värnpliktiga</span>
+          <span className="text-xs text-slate-500">
             {overview.today.pct}% svarat idag ({overview.today.responders}/{overview.eligible})
           </span>
 
@@ -157,7 +158,7 @@ export default function LeaderDashboard({
               key={t}
               onClick={() => setTab(t)}
               className={`flex-1 cursor-pointer border-b-2 px-2 py-3.5 text-[11px] font-bold uppercase tracking-[0.08em] transition-colors ${
-                tab === t ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-400'
+                tab === t ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500'
               }`}
             >
               {t === 'overview' ? 'Översikt' : t === 'trends' ? 'Trender' : 'Jämförelse'}
@@ -186,7 +187,7 @@ export default function LeaderDashboard({
                         <span className="text-slate-400">{ICONS[cat.icon]}</span>
                         <span className="flex-1 text-[13px] text-slate-600">{cat.label}</span>
                         <span className="mr-1.5 text-[15px] font-bold tabular-nums text-slate-900">
-                          {score.toFixed(1)}
+                          {formatScore(score)}
                         </span>
                         <StatusBadge status={getStatus(score)} size="sm" />
                       </div>
@@ -196,9 +197,9 @@ export default function LeaderDashboard({
                         <div style={{ width: `${(d.red / total) * 100}%`, background: '#DC2626' }} />
                       </div>
                       <div className="flex gap-3 text-[11px]">
-                        <span className="font-semibold text-emerald-600">{d.green} <span className="font-normal text-slate-400">gröna</span></span>
-                        <span className="font-semibold text-amber-600">{d.yellow} <span className="font-normal text-slate-400">gula</span></span>
-                        <span className="font-semibold text-red-600">{d.red} <span className="font-normal text-slate-400">röda</span></span>
+                        <span className="font-semibold text-emerald-600">{d.green} <span className="font-normal text-slate-500">gröna</span></span>
+                        <span className="font-semibold text-amber-600">{d.yellow} <span className="font-normal text-slate-500">gula</span></span>
+                        <span className="font-semibold text-red-600">{d.red} <span className="font-normal text-slate-500">röda</span></span>
                       </div>
                     </div>
                   );
@@ -224,7 +225,7 @@ export default function LeaderDashboard({
                       <AlertTriangle size={14} className="shrink-0 text-red-600" aria-hidden />
                       <span className="text-[13px] text-red-900">
                         <strong>{cat.label}</strong> understiger kritisk nivå — snitt{' '}
-                        {cats.data[cat.key].toFixed(1)}
+                        {formatScore(cats.data[cat.key])}
                       </span>
                     </div>
                   ))}
@@ -271,7 +272,7 @@ export default function LeaderDashboard({
                     style={{
                       borderColor: activeCats.has(cat.key) ? CAT_COLORS[cat.key] : '#E2E8F0',
                       background: activeCats.has(cat.key) ? CAT_COLORS[cat.key] + '20' : 'white',
-                      color: activeCats.has(cat.key) ? CAT_COLORS[cat.key] : '#94A3B8',
+                      color: activeCats.has(cat.key) ? CAT_COLORS[cat.key] : '#64748B',
                     }}
                   >
                     {cat.label.split(' ')[0]}
@@ -284,13 +285,13 @@ export default function LeaderDashboard({
                   <ReferenceArea y1={7} y2={10} fill="#059669" fillOpacity={0.05} />
                   <ReferenceArea y1={4} y2={7} fill="#D97706" fillOpacity={0.05} />
                   <ReferenceArea y1={1} y2={4} fill="#DC2626" fillOpacity={0.05} />
-                  <XAxis dataKey="label" tick={{ fill: '#94A3B8', fontSize: 10 }} axisLine={false} tickLine={false} interval={period === 7 ? 0 : period === 14 ? 1 : 2} />
-                  <YAxis domain={[1, 10]} ticks={[1, 4, 7, 10]} tick={{ fill: '#94A3B8', fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="label" tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} interval={period === 7 ? 0 : period === 14 ? 1 : 2} />
+                  <YAxis domain={[1, 10]} ticks={[1, 4, 7, 10]} tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} />
                   <ReferenceLine y={7} stroke="#059669" strokeDasharray="3 3" strokeOpacity={0.35} />
                   <ReferenceLine y={4} stroke="#DC2626" strokeDasharray="3 3" strokeOpacity={0.35} />
                   <Tooltip
                     contentStyle={{ background: '#0F172A', border: 'none', borderRadius: 6, color: 'white', fontSize: 11, padding: '8px 12px' }}
-                    formatter={(v, name) => [typeof v === 'number' ? v.toFixed(1) : v, CATEGORIES.find(c => c.key === name)?.label ?? name]}
+                    formatter={(v, name) => [typeof v === 'number' ? formatScore(v) : v, CATEGORIES.find(c => c.key === name)?.label ?? name]}
                   />
                   {CATEGORIES.filter(c => activeCats.has(c.key)).map(cat => (
                     <Line key={cat.key} dataKey={cat.key} stroke={CAT_COLORS[cat.key]} strokeWidth={1.5} dot={false} activeDot={{ r: 3 }} connectNulls={false} />
@@ -303,7 +304,7 @@ export default function LeaderDashboard({
             <div className="mb-4 overflow-x-auto rounded-md border border-slate-200 bg-white">
               <table className="w-full min-w-[420px] text-left">
                 <thead className="bg-slate-50">
-                  <tr className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                  <tr className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">
                     <th className="px-4 py-2.5 font-bold">Dag</th>
                     <th className="px-4 py-2.5 text-center font-bold">Svar</th>
                     <th className="px-4 py-2.5 text-center font-bold">Andel</th>
@@ -321,8 +322,8 @@ export default function LeaderDashboard({
                         {p.eligible ? Math.round((p.responders / p.eligible) * 100) : 0}%
                       </td>
                       <td className="px-4 py-2.5 text-right text-[13px] font-bold tabular-nums text-slate-900">
-                        {p.overall !== null ? p.overall.toFixed(1) : (
-                          <span className="font-normal text-slate-300" title="För få svar för att visa">—</span>
+                        {p.overall !== null ? formatScore(p.overall) : (
+                          <span className="font-normal text-slate-400" title="För få svar för att visa">—</span>
                         )}
                       </td>
                     </tr>
@@ -355,8 +356,8 @@ export default function LeaderDashboard({
                       <ReferenceArea y1={7} y2={10} fill="#059669" fillOpacity={0.05} />
                       <ReferenceArea y1={4} y2={7} fill="#D97706" fillOpacity={0.05} />
                       <ReferenceArea y1={1} y2={4} fill="#DC2626" fillOpacity={0.05} />
-                      <XAxis dataKey="label" tick={{ fill: '#94A3B8', fontSize: 10 }} axisLine={false} tickLine={false} interval={period === 7 ? 0 : period === 14 ? 1 : 2} />
-                      <YAxis domain={[1, 10]} ticks={[1, 4, 7, 10]} tick={{ fill: '#94A3B8', fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="label" tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} interval={period === 7 ? 0 : period === 14 ? 1 : 2} />
+                      <YAxis domain={[1, 10]} ticks={[1, 4, 7, 10]} tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} />
                       <ReferenceLine y={7} stroke="#059669" strokeDasharray="3 3" strokeOpacity={0.35} />
                       <ReferenceLine y={4} stroke="#DC2626" strokeDasharray="3 3" strokeOpacity={0.35} />
                       <Tooltip contentStyle={{ background: '#0F172A', border: 'none', borderRadius: 6, color: 'white', fontSize: 11, padding: '8px 12px' }} />
@@ -380,7 +381,7 @@ export default function LeaderDashboard({
                         style={{
                           borderColor: activeRadarCats.has(cat.key) ? CAT_COLORS[cat.key] : '#E2E8F0',
                           background: activeRadarCats.has(cat.key) ? CAT_COLORS[cat.key] + '20' : 'white',
-                          color: activeRadarCats.has(cat.key) ? CAT_COLORS[cat.key] : '#94A3B8',
+                          color: activeRadarCats.has(cat.key) ? CAT_COLORS[cat.key] : '#64748B',
                         }}
                       >
                         {cat.label.split(' ')[0]}
@@ -407,7 +408,7 @@ export default function LeaderDashboard({
                 <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
                   <table className="w-full min-w-[480px] text-left">
                     <thead className="bg-slate-50">
-                      <tr className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                      <tr className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">
                         <th className="px-4 py-2.5 font-bold">Enhet</th>
                         <th className="px-4 py-2.5 text-center font-bold">Svar</th>
                         <th className="px-4 py-2.5 text-center font-bold">Gröna</th>
@@ -442,7 +443,7 @@ export default function LeaderDashboard({
                                 {child.responders}/{child.eligible}
                               </td>
                               {child.overall === null ? (
-                                <td colSpan={4} className="px-4 py-3 text-right text-xs text-slate-400">
+                                <td colSpan={4} className="px-4 py-3 text-right text-xs text-slate-500">
                                   Underlag saknas
                                 </td>
                               ) : (
@@ -451,7 +452,7 @@ export default function LeaderDashboard({
                                   <td className="px-4 py-3 text-center text-[13px] font-semibold text-amber-600">{child.yellow}</td>
                                   <td className="px-4 py-3 text-center text-[13px] font-semibold text-red-600">{child.red}</td>
                                   <td className="px-4 py-3 text-right text-[14px] font-bold tabular-nums text-slate-900">
-                                    {child.overall.toFixed(1)}
+                                    {formatScore(child.overall)}
                                   </td>
                                 </>
                               )}
@@ -477,7 +478,7 @@ function Stat({ n, label, color }: { n: number; label: string; color: string }) 
     <div className="flex items-center gap-1.5">
       <span className="size-2 rounded-full" style={{ background: color }} />
       <span className="text-base font-bold tabular-nums text-slate-900">{n}</span>
-      <span className="text-xs text-slate-400">{label}</span>
+      <span className="text-xs text-slate-500">{label}</span>
     </div>
   );
 }
@@ -506,7 +507,7 @@ function PeriodPicker({ current, pathname }: { current: Period; pathname: string
           className={`rounded border-[1.5px] px-2.5 py-1 text-[11px] font-bold transition-colors ${
             current === d
               ? 'border-slate-900 bg-slate-900 text-white'
-              : 'border-slate-200 bg-white text-slate-400 hover:border-slate-300'
+              : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
           }`}
         >
           {d}d
@@ -518,7 +519,7 @@ function PeriodPicker({ current, pathname }: { current: Period; pathname: string
 
 function PrivacyFooter() {
   return (
-    <p className="mt-6 text-center text-xs leading-relaxed text-slate-400">
+    <p className="mt-6 text-center text-xs leading-relaxed text-slate-500">
       Du ser endast sammanställd data. Enskilda värnpliktigas svar visas aldrig för befäl.
     </p>
   );

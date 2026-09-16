@@ -12,6 +12,7 @@ import {
 } from '@/lib/db/queries/aggregates';
 import { parsePeriod } from '@/lib/privacy';
 import { homeFor } from '@/lib/roles';
+import { formatScore } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,7 +62,7 @@ export default async function RapportPage({
               className={`rounded border-[1.5px] px-2.5 py-1 text-[11px] font-bold ${
                 period === d
                   ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-200 text-slate-400'
+                  : 'border-slate-200 text-slate-500'
               }`}
             >
               {d}d
@@ -89,7 +90,7 @@ export default async function RapportPage({
         </h2>
         {cats.ok && overall !== null ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Box label="Samlat mående" value={overall.toFixed(1)} sub={statusLabel(getStatus(overall))} />
+            <Box label="Samlat mående" value={formatScore(overall)} sub={statusLabel(getStatus(overall))} />
             <Box label="Svarat idag" value={`${overview.today.pct} %`} sub={`${overview.today.responders} av ${overview.eligible}`} />
             {overview.soldierStatus.ok && (
               <>
@@ -125,7 +126,7 @@ export default async function RapportPage({
                 return (
                   <tr key={c.key} className="border-b border-slate-100">
                     <td className="py-1.5 text-slate-700">{c.label}</td>
-                    <td className="py-1.5 text-right font-bold tabular-nums text-slate-900">{s.toFixed(1)}</td>
+                    <td className="py-1.5 text-right font-bold tabular-nums text-slate-900">{formatScore(s)}</td>
                     <td className="py-1.5 text-right text-slate-600">{statusLabel(getStatus(s))}</td>
                   </tr>
                 );
@@ -158,7 +159,7 @@ export default async function RapportPage({
                     {c.responders}/{c.eligible}
                   </td>
                   <td className="py-1.5 text-right font-bold tabular-nums text-slate-900">
-                    {c.overall !== null ? c.overall.toFixed(1) : '—'}
+                    {c.overall !== null ? formatScore(c.overall) : '—'}
                   </td>
                   <td className="py-1.5 text-right tabular-nums text-slate-600">
                     {c.overall !== null ? `${c.green} / ${c.yellow} / ${c.red}` : 'underlag saknas'}
@@ -191,7 +192,7 @@ export default async function RapportPage({
                   {p.responders}/{p.eligible}
                 </td>
                 <td className="py-1.5 text-right font-bold tabular-nums text-slate-900">
-                  {p.overall !== null ? p.overall.toFixed(1) : '—'}
+                  {p.overall !== null ? formatScore(p.overall) : '—'}
                 </td>
               </tr>
             ))}

@@ -18,7 +18,7 @@ export default function Suppressed({
   if (compact) {
     return (
       <span
-        className="text-xs text-slate-400"
+        className="text-xs text-slate-500"
         title={text}
         aria-label={text}
       >

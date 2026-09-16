@@ -5,6 +5,7 @@ import { Activity, Brain, Users, Moon, Utensils, Zap, ChevronLeft, ChevronRight,
 import ScoreSlider from '@/components/ScoreSlider';
 import { CATEGORIES, type Category, getStatus, statusColor } from '@/lib/data';
 import { submitCheckIn, type CheckInState } from '@/app/actions/checkin';
+import { formatScore } from '@/lib/format';
 
 const ICONS: Record<string, React.ReactNode> = {
   Activity: <Activity size={20} strokeWidth={1.5} />,
@@ -111,7 +112,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             <span style={{ color: '#64748B', fontSize: 12, fontWeight: 600 }}>
               Fråga {step} av {CATEGORIES.length}
             </span>
-            <span style={{ color: '#94A3B8', fontSize: 12 }}>{Math.round(progress * 100)}%</span>
+            <span style={{ color: '#64748B', fontSize: 12 }}>{Math.round(progress * 100)}%</span>
           </div>
           <div style={{ height: 3, background: '#F1F5F9', borderRadius: 2 }}>
             <div style={{ height: '100%', width: `${progress * 100}%`, background: '#0F172A', borderRadius: 2, transition: 'width 0.25s' }} />
@@ -135,7 +136,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             <span style={{ color: color, fontSize: 64, fontWeight: 800, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
               {score}
             </span>
-            <span style={{ color: '#94A3B8', fontSize: 20 }}>/10</span>
+            <span style={{ color: '#64748B', fontSize: 20 }}>/10</span>
             <div style={{
               marginLeft: 12,
               background: status === 'green' ? '#ECFDF5' : status === 'yellow' ? '#FFFBEB' : '#FEF2F2',
@@ -168,7 +169,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'auto', paddingTop: 4 }}>
             {[1,2,3,4,5,6,7,8,9,10].map(n => (
               <span key={n} style={{
-                color: n === score ? '#0F172A' : '#CBD5E1',
+                color: n === score ? '#0F172A' : '#94A3B8',
                 fontSize: 11, fontWeight: n === score ? 700 : 400,
                 transition: 'color 0.1s',
               }}>
@@ -216,9 +217,9 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             <div>
               <p style={{ color: '#64748B', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0, marginBottom: 4 }}>Samlat mående</p>
               <span style={{ color: '#0F172A', fontSize: 36, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
-                {overallScore.toFixed(1)}
+                {formatScore(overallScore)}
               </span>
-              <span style={{ color: '#94A3B8', fontSize: 16 }}> /10</span>
+              <span style={{ color: '#64748B', fontSize: 16 }}> /10</span>
             </div>
             <div style={{
               background: statusBg2(overallStatus),
@@ -291,7 +292,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             <Check size={16} aria-hidden /> {pending ? 'Sparar…' : editing ? 'Spara ändringen' : 'Bekräfta och skicka'}
           </button>
         </form>
-        <p style={{ color: '#94A3B8', fontSize: 12, textAlign: 'center', marginTop: 10 }}>
+        <p style={{ color: '#64748B', fontSize: 12, textAlign: 'center', marginTop: 10 }}>
           Ditt befäl ser bara sammanställd data för hela gruppen, aldrig dina enskilda svar.
         </p>
       </div>

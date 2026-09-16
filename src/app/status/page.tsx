@@ -21,7 +21,7 @@ export default async function StatusPage() {
   return (
     <main className="mx-auto max-w-2xl px-5 py-10">
       <header className="mb-8">
-        <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+        <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
           FM – PSVI
         </p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">Systemstatus</h1>
@@ -56,7 +56,7 @@ export default async function StatusPage() {
             />
           </dl>
 
-          <p className="mt-4 break-all text-xs text-slate-400">
+          <p className="mt-4 break-all text-xs text-slate-500">
             Databasfil: {status.path}
           </p>
         </>
@@ -78,7 +78,7 @@ function Row({
     <div className="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-3.5 last:border-b-0">
       <div>
         <span className="text-sm text-slate-700">{label}</span>
-        {hint && <p className="text-xs text-slate-400">{hint}</p>}
+        {hint && <p className="text-xs text-slate-500">{hint}</p>}
       </div>
       <span className="text-lg font-bold tabular-nums text-slate-900">{value}</span>
     </div>

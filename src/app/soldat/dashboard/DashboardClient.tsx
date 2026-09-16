@@ -8,6 +8,7 @@ import StatusBadge from '@/components/StatusBadge';
 import { CATEGORIES, type Category, getStatus, statusColor, avgScore } from '@/lib/data';
 import { getSoldierTips } from '@/lib/advice';
 import SupportBlock from './SupportBlock';
+import { formatScore } from '@/lib/format';
 
 const ICONS: Record<string, React.ReactNode> = {
   Activity: <Activity size={16} strokeWidth={1.5} />,
@@ -65,7 +66,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
             style={{
               flex: 1, padding: '14px 0', background: 'none', border: 'none',
               borderBottom: tab === t ? '2px solid #0F172A' : '2px solid transparent',
-              color: tab === t ? '#0F172A' : '#94A3B8',
+              color: tab === t ? '#0F172A' : '#64748B',
               fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
               cursor: 'pointer', transition: 'color 0.15s',
             }}
@@ -85,7 +86,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
               <MetricCard
                 label="Hälsostatus idag"
-                value={overall.toFixed(1)}
+                value={formatScore(overall)}
                 sub={<StatusBadge status={overallStatus} />}
                 trend={trend}
               />
@@ -164,11 +165,11 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                 <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, padding: '20px 16px 16px', marginBottom: 16 }}>
                   <div style={{ display: 'flex', gap: 20, marginBottom: 16 }}>
                     <div>
-                      <p style={{ color: '#94A3B8', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0, marginBottom: 2 }}>Senaste värde</p>
-                      <span style={{ color: '#0F172A', fontSize: 20, fontWeight: 700 }}>{chartData[chartData.length - 1]?.score.toFixed(1)}</span>
+                      <p style={{ color: '#64748B', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0, marginBottom: 2 }}>Senaste värde</p>
+                      <span style={{ color: '#0F172A', fontSize: 20, fontWeight: 700 }}>{chartData.length > 0 ? formatScore(chartData[chartData.length - 1].score) : ''}</span>
                     </div>
                     <div>
-                      <p style={{ color: '#94A3B8', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0, marginBottom: 2 }}>Riktning</p>
+                      <p style={{ color: '#64748B', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0, marginBottom: 2 }}>Riktning</p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         {trend === 'up' ? <TrendingUp size={18} color="#059669" /> : trend === 'down' ? <TrendingDown size={18} color="#DC2626" /> : <Minus size={18} color="#D97706" />}
                         <span style={{ fontSize: 13, color: trend === 'up' ? '#059669' : trend === 'down' ? '#DC2626' : '#D97706', fontWeight: 600 }}>
@@ -192,13 +193,13 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <span style={{ color: '#64748B', fontSize: 13 }}>Registrerade incheckningar</span>
                 <span style={{ color: '#0F172A', fontSize: 20, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
-                  {freq.checkedIn}<span style={{ color: '#94A3B8', fontSize: 13, fontWeight: 400 }}> / {freq.total}</span>
+                  {freq.checkedIn}<span style={{ color: '#64748B', fontSize: 13, fontWeight: 400 }}> / {freq.total}</span>
                 </span>
               </div>
               <div style={{ height: 6, background: '#F1F5F9', borderRadius: 3, marginTop: 10 }}>
                 <div style={{ height: '100%', width: `${freq.pct}%`, background: freq.pct >= 70 ? '#059669' : freq.pct >= 40 ? '#D97706' : '#DC2626', borderRadius: 3, transition: 'width 0.3s' }} />
               </div>
-              <p style={{ color: '#94A3B8', fontSize: 12, marginTop: 8, marginBottom: 0 }}>
+              <p style={{ color: '#64748B', fontSize: 12, marginTop: 8, marginBottom: 0 }}>
                 {freq.pct >= 70 ? 'Bra närvaro — fortsätt så.' : freq.pct >= 40 ? 'Försök checka in dagligen.' : 'Lägre närvaro — befälet ser inga data.'}
               </p>
             </div>
@@ -210,7 +211,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                   <ZoneChart data={chartData} />
                 </>
               ) : (
-                <p style={{ color: '#94A3B8', fontSize: 13, margin: 0, textAlign: 'center', padding: '20px 0' }}>
+                <p style={{ color: '#64748B', fontSize: 13, margin: 0, textAlign: 'center', padding: '20px 0' }}>
                   Fler incheckningar behövs för att visa trend.
                 </p>
               )}
@@ -255,13 +256,13 @@ function ZoneChart({ data }: { data: Array<{ day: string; score: number }> }) {
           <ReferenceArea y1={7} y2={10} fill="#059669" fillOpacity={0.07} />
           <ReferenceArea y1={4} y2={7}  fill="#D97706" fillOpacity={0.07} />
           <ReferenceArea y1={1} y2={4}  fill="#DC2626" fillOpacity={0.07} />
-          <XAxis dataKey="day" tick={{ fill: '#94A3B8', fontSize: 10 }} axisLine={false} tickLine={false} />
-          <YAxis domain={[1, 10]} tick={{ fill: '#94A3B8', fontSize: 10 }} axisLine={false} tickLine={false} ticks={[1, 4, 7, 10]} />
+          <XAxis dataKey="day" tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} />
+          <YAxis domain={[1, 10]} tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} ticks={[1, 4, 7, 10]} />
           <ReferenceLine y={7} stroke="#059669" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: 'GRÖNT', position: 'insideTopRight', fontSize: 8, fill: '#059669', fontWeight: 700 }} />
           <ReferenceLine y={4} stroke="#DC2626" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: 'RÖTT', position: 'insideBottomRight', fontSize: 8, fill: '#DC2626', fontWeight: 700 }} />
           <Tooltip
             contentStyle={{ background: '#0F172A', border: 'none', borderRadius: 6, color: 'white', fontSize: 12, padding: '8px 12px' }}
-            formatter={(val) => [typeof val === 'number' ? val.toFixed(1) : val, 'Mående']}
+            formatter={(val) => [typeof val === 'number' ? formatScore(val) : val, 'Mående']}
           />
           <Line dataKey="score" stroke="#0F172A" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#0F172A' }} />
         </LineChart>
@@ -270,7 +271,7 @@ function ZoneChart({ data }: { data: Array<{ day: string; score: number }> }) {
         {[['#059669', 'Grön ≥ 7'], ['#D97706', 'Gul 4–6'], ['#DC2626', 'Röd ≤ 3']].map(([color, label]) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <div style={{ width: 10, height: 10, borderRadius: 2, background: color, opacity: 0.5 }} />
-            <span style={{ color: '#94A3B8', fontSize: 10 }}>{label}</span>
+            <span style={{ color: '#64748B', fontSize: 10 }}>{label}</span>
           </div>
         ))}
       </div>

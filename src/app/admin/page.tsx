@@ -98,13 +98,13 @@ export default async function AdminPage({
         {/* Lagringstid — beslutet är Försvarsmaktens, inte appens. */}
         <div className="no-print mb-6 rounded-md border border-slate-200 bg-white px-4 py-3">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+            <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">
               Gallring av hälsodata
             </span>
             {retention.enabled ? (
               <span className="text-sm text-slate-700">
                 Aktiv — sparas i {retention.days} dagar.
-                {retention.affected > 0 && ` ${retention.affected} poster raderas vid nästa start.`}
+                {retention.affected > 0 && ` ${retention.affected} äldre poster raderas automatiskt inom kort.`}
               </span>
             ) : (
               <span className="text-sm text-slate-700">
@@ -112,13 +112,13 @@ export default async function AdminPage({
               </span>
             )}
             {retention.oldest && (
-              <span className="text-xs text-slate-400">äldsta uppgift: {retention.oldest}</span>
+              <span className="text-xs text-slate-500">äldsta uppgift: {retention.oldest}</span>
             )}
           </div>
           {!retention.enabled && (
-            <p className="mt-1 text-xs leading-relaxed text-slate-400">
-              GDPR tillåter inte att hälsodata sparas längre än nödvändigt. Lagringstiden
-              sätts med RETENTION_DAYS och bör beslutas av Försvarsmaktens dataskyddsombud.
+            <p className="mt-1 text-xs leading-relaxed text-slate-500">
+              GDPR tillåter inte att hälsodata sparas längre än nödvändigt. Hur länge
+              uppgifterna får sparas ska beslutas av Försvarsmaktens dataskyddsombud.
             </p>
           )}
         </div>
@@ -168,7 +168,7 @@ function StatCard({
 }) {
   return (
     <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
-      <div className="mb-1 flex items-center gap-1.5 text-slate-400">
+      <div className="mb-1 flex items-center gap-1.5 text-slate-500">
         {icon}
         <span className="text-[10px] font-bold uppercase tracking-[0.08em]">{label}</span>
       </div>

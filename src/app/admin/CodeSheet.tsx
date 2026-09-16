@@ -65,14 +65,14 @@ export default function CodeSheet({
             className="rounded border border-dashed border-slate-400 bg-white px-4 py-3"
             style={{ breakInside: 'avoid' }}
           >
-            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
+            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
               FM – PSVI{unitName ? ` · ${unitName}` : ''}
             </p>
             <p className="mt-0.5 text-[13px] text-slate-600">{c.label}</p>
             <p className="mt-1.5 font-mono text-lg font-bold tracking-[0.12em] text-slate-900">
               {c.code}
             </p>
-            <p className="mt-1.5 text-[10px] leading-snug text-slate-400">
+            <p className="mt-1.5 text-[10px] leading-snug text-slate-500">
               Din personliga kod. Dela den inte med någon.
             </p>
           </div>

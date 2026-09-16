@@ -216,7 +216,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                     <button
                       type="button"
                       onClick={() => setVisaVpl(false)}
-                      className="cursor-pointer px-2 py-2 text-[13px] font-semibold text-slate-400 hover:text-slate-700"
+                      className="cursor-pointer px-2 py-2 text-[13px] font-semibold text-slate-500 hover:text-slate-700"
                     >
                       Avbryt
                     </button>
@@ -267,15 +267,15 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
             Personer i enheten ({members.length})
           </h3>
           <p className="mb-2 text-[11px] leading-relaxed text-slate-500">
-            Klicka på en benämning för att ändra den. Koden lagras bara som hash
-            och går inte att söka på, så benämningen är det enda som knyter en
-            rad till en person — den behöver vara något enheten känner igen.
+            Klicka på en benämning för att ändra den. En kod går inte att ta
+            fram i efterhand, så benämningen är det enda som knyter en rad till
+            en person — den behöver vara något enheten känner igen.
             Vad som räcker är er bedömning: ett tjänstenummer eller en plats i
             gruppen fungerar lika bra som ett namn, med färre uppgifter.
           </p>
 
           {members.length === 0 ? (
-            <p className="rounded-md border border-slate-200 bg-white px-4 py-5 text-center text-[13px] text-slate-400">
+            <p className="rounded-md border border-slate-200 bg-white px-4 py-5 text-center text-[13px] text-slate-500">
               Inga personer här ännu.
             </p>
           ) : (
@@ -353,7 +353,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                           finns ingen hover, och då vore funktionen omöjlig
                           att hitta.
                         */}
-                        <Pencil size={11} className="shrink-0 text-slate-300" aria-hidden />
+                        <Pencil size={11} className="shrink-0 text-slate-400" aria-hidden />
                       </button>
                       {dupeLabels.has(m.label) && (
                         <span
@@ -375,7 +375,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                       {ROLE_LABEL[m.role]}
                     </span>
                   )}
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[11px] text-slate-500">
                     {m.lastLoginAt ? `senast inloggad ${m.lastLoginAt.slice(0, 10)}` : 'aldrig inloggad'}
                   </span>
 
@@ -386,7 +386,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                     som alltid misslyckas är sämre än ingen knapp.
                   */}
                   {m.skyddad ? (
-                    <span className="text-[11px] text-slate-400 sm:ml-auto">
+                    <span className="text-[11px] text-slate-500 sm:ml-auto">
                       Låst — demonstrationens ingång
                     </span>
                   ) : (
@@ -462,7 +462,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                         <button
                           type="submit"
                           title="Ta bort kontot och alla rapporter permanent"
-                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-[11px] font-semibold text-slate-400 hover:bg-red-50 hover:text-red-700 sm:py-1"
+                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-[11px] font-semibold text-slate-500 hover:bg-red-50 hover:text-red-700 sm:py-1"
                         >
                           <Trash size={12} aria-hidden /> Ta bort
                         </button>
@@ -602,7 +602,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
           </section>
         )}
 
-        <p className="text-center text-xs leading-relaxed text-slate-400">
+        <p className="text-center text-xs leading-relaxed text-slate-500">
           Administratörsrollen har ingen åtkomst till hälsodata. Att lägga upp enheter
           och dela ut koder kräver inte att man kan läsa någons svar.
         </p>

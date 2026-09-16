@@ -8,6 +8,7 @@ import { db } from '..';
 import { minResponders } from '../client';
 import { notifications } from '../schema';
 import { getUnitOverview } from './aggregates';
+import { formatScore } from '../../format';
 
 /*
  * Automatiska larm till befäl.
@@ -146,7 +147,7 @@ export async function evaluateAlerts(soldierUnitId: number): Promise<void> {
         title: `${node.unitName} ligger på kritisk nivå`,
         body:
           red.length === 1
-            ? `Snittet för ${names} är ${scores[red[0].key].toFixed(1)} sett över ${ALERT_PERIOD} dagar. Se över belastningen.`
+            ? `Snittet för ${names} är ${formatScore(scores[red[0].key])} sett över ${ALERT_PERIOD} dagar. Se över belastningen.`
             : `${red.length} kategorier ligger kritiskt: ${names}. Sett över ${ALERT_PERIOD} dagar.`,
       });
     }

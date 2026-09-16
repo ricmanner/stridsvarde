@@ -60,7 +60,7 @@ export async function createTalkRequest(params: {
       recipientUserId: params.recipientUserId,
       subjectUnitId: params.subjectUnitId,
       kind: 'red_values',
-      title: 'En soldat vill prata med dig',
+      title: 'En värnpliktig vill prata med dig',
       body: `${params.soldierLabel} i ${params.soldierUnitName} har begärt ett samtal. Ta kontakt så snart du kan.`,
       serviceDate: serviceDate(),
       createdAt: now,
