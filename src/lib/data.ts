@@ -24,9 +24,21 @@ export interface CheckIn {
 
 export type Status = 'green' | 'yellow' | 'red';
 
+/*
+ * Gränserna mellan grönt, gult och rött — definierade en enda gång.
+ *
+ * Siffrorna upprepades tidigare i rå SQL på åtta ställen i aggregates.ts.
+ * Ändrades getStatus slutade färgräkningarna stämma med märkena som ritades
+ * bredvid dem: en enhet kunde visa "3 gröna" med ett gult märke intill, utan
+ * att något gick sönder. Frågorna bygger redan sina kolumner ur CATEGORIES
+ * för att SQL:en inte ska kunna glida isär — samma resonemang gäller här.
+ */
+export const GREEN_MIN = 7;
+export const YELLOW_MIN = 4;
+
 export function getStatus(score: number): Status {
-  if (score >= 7) return 'green';
-  if (score >= 4) return 'yellow';
+  if (score >= GREEN_MIN) return 'green';
+  if (score >= YELLOW_MIN) return 'yellow';
   return 'red';
 }
 

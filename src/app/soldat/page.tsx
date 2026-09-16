@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import AppHeader from '@/components/AppHeader';
 import { requireRole } from '@/lib/auth/guard';
 import type { Category } from '@/lib/data';
+import { longDateLabel, serviceDate } from '@/lib/date';
 import { getTodayCheckIn } from '@/lib/db/queries/checkins';
 
 import SoldatCheckin from './CheckinWizard';
@@ -42,7 +43,11 @@ export default async function SoldatPage({
     <div className="flex min-h-dvh flex-col">
       <AppHeader unit={session.unitName} label={session.label} role={session.role} />
       <div className="mx-auto flex w-full max-w-xl flex-1 flex-col">
-        <SoldatCheckin initial={initial} editing={editing} />
+        <SoldatCheckin
+          initial={initial}
+          editing={editing}
+          dateLabel={longDateLabel(serviceDate())}
+        />
       </div>
     </div>
   );

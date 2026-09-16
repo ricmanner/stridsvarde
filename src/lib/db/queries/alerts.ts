@@ -5,6 +5,7 @@ import { sql } from 'drizzle-orm';
 import { CATEGORIES, getStatus } from '../../data';
 import { serviceDate, serviceDateDaysAgo } from '../../date';
 import { db } from '..';
+import { minResponders } from '../client';
 import { notifications } from '../schema';
 import { getUnitOverview } from './aggregates';
 
@@ -156,7 +157,16 @@ export async function evaluateAlerts(soldierUnitId: number): Promise<void> {
     const igår = serviceDateDaysAgo(1);
     const rate = await responseRateFor(node.unitId, igår);
 
-    if (rate.eligible >= 4 && rate.pct < LOW_RESPONSE_PCT) {
+    /*
+     * Samma tröskel som aggregaten, hämtad från samma ställe.
+     *
+     * Stod tidigare som en fyra inskriven för hand. Den råkade stämma
+     * eftersom standardvärdet är fyra — men höjs MIN_RESPONDERS slutar
+     * aggregaten visas medan larmen fortsatte gå ut om enheter under den nya
+     * gränsen. Integritetströskeln får inte gälla på ett ställe och inte på
+     * ett annat.
+     */
+    if (rate.eligible >= minResponders() && rate.pct < LOW_RESPONSE_PCT) {
       await raise({
         recipientUserId: node.leaderUserId,
         subjectUnitId: node.unitId,

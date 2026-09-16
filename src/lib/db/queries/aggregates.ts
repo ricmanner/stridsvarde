@@ -3,7 +3,7 @@ import 'server-only';
 import { cache } from 'react';
 import { sql } from 'drizzle-orm';
 
-import { CATEGORIES, type Category, getStatus, type Status } from '../../data';
+import { CATEGORIES, type Category, GREEN_MIN, getStatus, type Status, YELLOW_MIN } from '../../data';
 import { serviceDate, serviceDateDaysAgo, shortLabel } from '../../date';
 import { db } from '..';
 import { minResponders } from '../client';
@@ -30,6 +30,20 @@ const CAT_KEYS = CATEGORIES.map((c) => c.key);
 /** "(ci.fysisk + ci.psykisk + ...) / 6.0" — byggs ur CATEGORIES så att en ny
  *  kategori automatiskt räknas med i stället för att glömmas bort i SQL. */
 const OVERALL_EXPR = `(${CAT_KEYS.map((k) => `ci.${k}`).join(' + ')}) / ${CAT_KEYS.length}.0`;
+
+/**
+ * Bygger grön/gul/röd-räkningen för ett uttryck, ur samma gränser som
+ * getStatus() i data.ts. Skrevs tidigare ut som sjuor och fyror på åtta
+ * ställen — ändrades tröskeln slutade siffrorna stämma med märkena bredvid.
+ */
+function colourCounts(expr: string, prefix = ''): string {
+  const p = prefix ? `${prefix}_` : '';
+  return [
+    `SUM(CASE WHEN ${expr} >= ${GREEN_MIN} THEN 1 ELSE 0 END) AS ${p}green`,
+    `SUM(CASE WHEN ${expr} >= ${YELLOW_MIN} AND ${expr} < ${GREEN_MIN} THEN 1 ELSE 0 END) AS ${p}yellow`,
+    `SUM(CASE WHEN ${expr} < ${YELLOW_MIN} THEN 1 ELSE 0 END) AS ${p}red`,
+  ].join(',\n             ');
+}
 
 /** Rekursiv nedstigning genom enhetsträdet. */
 const SUBTREE = (unitId: number) => sql`
@@ -156,11 +170,7 @@ export const getUnitOverview = cache(
     const avgCols = CAT_KEYS.map((key) => `ROUND(AVG(ci.${key}), 2) AS ${key}`).join(',\n             ');
     // Fördelning per kategori — byggs ur CATEGORIES så SQL:en inte kan glida
     // isär från frågelistan.
-    const bucketCols = CAT_KEYS.flatMap((key) => [
-      `SUM(CASE WHEN ci.${key} >= 7 THEN 1 ELSE 0 END) AS ${key}_green`,
-      `SUM(CASE WHEN ci.${key} >= 4 AND ci.${key} < 7 THEN 1 ELSE 0 END) AS ${key}_yellow`,
-      `SUM(CASE WHEN ci.${key} < 4 THEN 1 ELSE 0 END) AS ${key}_red`,
-    ]).join(',\n             ');
+    const bucketCols = CAT_KEYS.map((key) => colourCounts(`ci.${key}`, key)).join(',\n             ');
 
     const [agg] = (await db.all(sql`
       ${SUBTREE(unitId)},
@@ -213,9 +223,7 @@ export const getUnitOverview = cache(
          WHERE ci.service_date BETWEEN ${from} AND ${to}
          GROUP BY ci.user_id
       )
-      SELECT SUM(CASE WHEN avg_score >= 7 THEN 1 ELSE 0 END) AS green,
-             SUM(CASE WHEN avg_score >= 4 AND avg_score < 7 THEN 1 ELSE 0 END) AS yellow,
-             SUM(CASE WHEN avg_score < 4 THEN 1 ELSE 0 END) AS red
+      SELECT ${sql.raw(colourCounts('avg_score'))}
         FROM per_soldier
     `)) as Row[];
 
@@ -338,9 +346,7 @@ export const getChildComparison = cache(
       ),
       buckets AS (
         SELECT child_id,
-               SUM(CASE WHEN avg_score >= 7 THEN 1 ELSE 0 END) AS green,
-               SUM(CASE WHEN avg_score >= 4 AND avg_score < 7 THEN 1 ELSE 0 END) AS yellow,
-               SUM(CASE WHEN avg_score < 4 THEN 1 ELSE 0 END) AS red
+               ${sql.raw(colourCounts('avg_score'))}
           FROM per_soldier GROUP BY child_id
       )
       SELECT un.id, un.name, un.kind,
@@ -477,9 +483,9 @@ async function directMembersSummary(
            COUNT(DISTINCT ci.user_id) AS responders,
            ${sql.raw(avgCols)},
            ROUND(AVG(${sql.raw(OVERALL_EXPR)}), 2) AS overall,
-           (SELECT COUNT(*) FROM per_soldier WHERE avg_score >= 7) AS green,
-           (SELECT COUNT(*) FROM per_soldier WHERE avg_score >= 4 AND avg_score < 7) AS yellow,
-           (SELECT COUNT(*) FROM per_soldier WHERE avg_score < 4) AS red
+           (SELECT COUNT(*) FROM per_soldier WHERE avg_score >= ${GREEN_MIN}) AS green,
+           (SELECT COUNT(*) FROM per_soldier WHERE avg_score >= ${YELLOW_MIN} AND avg_score < ${GREEN_MIN}) AS yellow,
+           (SELECT COUNT(*) FROM per_soldier WHERE avg_score < ${YELLOW_MIN}) AS red
       FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
      WHERE ci.service_date BETWEEN ${from} AND ${to}
   `)) as Row[];

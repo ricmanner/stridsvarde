@@ -51,3 +51,14 @@ export function weekdayLabel(isoDate: string): string {
     .toLocaleDateString('sv-SE', { weekday: 'short', timeZone: 'UTC' })
     .replace('.', '');
 }
+
+/** '2026-09-16' → 'onsdag 16 september'. För rubriker. */
+export function longDateLabel(isoDate: string): string {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('sv-SE', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'UTC',
+  });
+}

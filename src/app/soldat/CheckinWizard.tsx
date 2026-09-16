@@ -21,6 +21,16 @@ interface Props {
   /** Dagens redan sparade svar, när soldaten korrigerar en rapport. */
   initial?: Record<Category, number>;
   editing?: boolean;
+  /**
+   * Dagens datum som text, färdigformaterat av servern.
+   *
+   * Räknades tidigare ut här med `new Date().toLocaleDateString('sv-SE', …)`.
+   * Det här är en klientkomponent, så den formaterade i WEBBLÄSARENS tidszon:
+   * en soldat i en annan zon såg en dag i rubriken medan servern sparade en
+   * annan som tjänstedatum. Exakt det fel kodbasen i övrigt är byggd för att
+   * omöjliggöra, men flyttat till klienten.
+   */
+  dateLabel: string;
 }
 
 /**
@@ -28,7 +38,7 @@ interface Props {
  * page.tsx. Wizarden håller bara svaren medan de fylls i — de sparas till
  * databasen via en Server Action, inte till localStorage.
  */
-export default function SoldatCheckin({ initial, editing = false }: Props) {
+export default function SoldatCheckin({ initial, editing = false, dateLabel }: Props) {
   const [step, setStep] = useState(0);
   const [scores, setScores] = useState<Record<Category, number>>(initial ?? EMPTY);
   const [state, formAction, pending] = useActionState<CheckInState, FormData>(
@@ -45,7 +55,7 @@ export default function SoldatCheckin({ initial, editing = false }: Props) {
               {editing ? 'Korrigera dagens rapport' : 'Daglig rapportering'}
             </p>
             <h1 style={{ color: '#0F172A', fontSize: 22, fontWeight: 700, margin: 0, marginBottom: 12 }}>
-              {new Date().toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' })}
+              {dateLabel}
             </h1>
             <p style={{ color: '#64748B', fontSize: 14, margin: 0, lineHeight: 1.6 }}>
               {editing
