@@ -45,7 +45,7 @@ Vill ni se befälsvyn, prova `BEF-P1`.
 Det jag helst vill ha synpunkter på: är det rätt sex frågor, och är
 vägledningen man får tillbaka rimlig? Ni kan det här bättre än jag.
 
-👉 https://fm-psvi-v2.netlify.app
+👉 https://fm-psvi-v2.vercel.app
 
 ---
 
@@ -57,7 +57,7 @@ och ett beslut från Försvarsmaktens dataskyddsombud om hur länge uppgifterna
 får sparas. Det är sådant som ska göras av folk som kan det.
 
 **"Var ligger uppgifterna?"**
-I demon på en vanlig molntjänst, och där är allt påhittat. Vid ett skarpt
+I demon på en vanlig molntjänst inom EU, och där är allt påhittat. Vid ett skarpt
 införande ska det köras på Försvarsmaktens egen infrastruktur.
 
 **"Kan mitt befäl se vad jag svarat?"**

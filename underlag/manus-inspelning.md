@@ -3,7 +3,7 @@
 Ungefär fyra minuter. Vänsterkolumnen är vad du gör, högerkolumnen vad du
 säger. Säg det med dina egna ord — det här är en stödlinje, inte en replik.
 
-**Adress:** https://fm-psvi-v2.netlify.app
+**Adress:** https://fm-psvi-v2.vercel.app
 
 ---
 
@@ -92,7 +92,3 @@ Det här är avsnittet som betyder mest. Ta god tid.
   redan svarat idag. Prova `P1G1-04` eller någon annan mellan 01 och 08.
 - **Stödrutan dyker inte upp** — du svarade för högt. Klicka *Korrigera dagens
   rapport* och sätt en trea eller lägre på sömn.
-- **En sida tar ett par sekunder** — det är väntat. Servern ligger i USA och
-  databasen i Irland; i skarp drift hos Försvarsmakten skulle det inte se ut så.
-  Nämn det inte i videon, det är en detalj i den här uppsättningen och inte i
-  systemet.
