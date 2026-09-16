@@ -74,12 +74,17 @@ export default async function LoginPage({
                   </div>
                 ))}
               </div>
+              {/*
+                Ingen uppräkning av vilka koder som råkar vara obesvarade. Vilka
+                det är ändras så fort någon provar demon, och en sida som lovar
+                fel sak är sämre än en som säger hur det fungerar.
+              */}
               <p className="mt-3 border-t border-slate-200 pt-3 text-[11px] leading-relaxed text-slate-500">
-                Dagens rapport är obesvarad för{' '}
+                Vill du prova själva incheckningen, använd en kod i serien{' '}
                 <span className="font-mono text-slate-700">P1G1-01</span> till{' '}
-                <span className="font-mono text-slate-700">P1G1-08</span>, så flera
-                kan prova incheckningen samtidigt utan att krocka. Övriga värnpliktiga
-                har redan svarat idag och visar översikten i stället.
+                <span className="font-mono text-slate-700">P1G1-08</span>. Har den
+                koden redan rapporterat idag visas översikten i stället — ta då
+                nästa kod i ordningen.
               </p>
             </div>
           )}

@@ -72,7 +72,8 @@ Det här är avsnittet som betyder mest. Ta god tid.
 | Peka på raden längst ned. | "Men lägg märke till det här: *du ser endast sammanställd data. Enskilda värnpliktigas svar visas aldrig för befäl.* Det är inte en inställning som går att slå av — det är byggt så." |
 | Klicka på **Jämförelse**. | "Här jämförs grupperna mot varandra — en kurva per grupp, och man kan växla mellan sju, fjorton och tjugoen dagar." |
 | Peka på spindeldiagrammet och knapparna ovanför det. | "Och en profil per grupp, där man kan välja vilka kategorier man vill jämföra." |
-| Skrolla till tabellen **Rangordning**. Peka på den nedersta raden, *Direkt i enheten*. | "Men titta på den nedersta raden. Där står *Underlag saknas* i stället för siffror. Det krävs minst fyra svar innan något visas överhuvudtaget — har för få svarat får befälet ingenting, för då skulle ett snitt i praktiken kunna avslöja en enskild person." |
+| Skrolla till tabellen **Rangordning**. | "Här ligger grupperna mot varandra — svarsfrekvens, hur många som är gröna, gula och röda, och snittet." |
+| Stanna kvar på tabellen. | "Och en sak som inte syns här, just därför att den fungerar: det krävs minst fyra svar i en grupp innan någonting visas. Har färre svarat får befälet en tom rad i stället för siffror — för med två eller tre svar skulle ett snitt i praktiken kunna avslöja en enskild person. Här har alla tre grupper svarat, så allt syns." |
 
 ## 6 · Administration och avslutning (30 sekunder)
 
