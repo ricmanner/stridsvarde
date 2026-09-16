@@ -18,7 +18,8 @@ const dayOffset = (n) => {
 test('en ny kod behåller soldatens historik', async () => {
   const { client } = await database();
   const org = await buildOrg(client);
-  const soldat = org.soldater['Grupp A'][0];
+  // Utfärdaren är en annan person — sin egen kod går inte att byta.
+  const [soldat, befal] = org.soldater['Grupp A'];
 
   await checkIn(client, [soldat], dayOffset(2), 6);
   await checkIn(client, [soldat], dayOffset(1), 7);
@@ -29,7 +30,7 @@ test('en ny kod behåller soldatens historik', async () => {
   const före = await getOwnHistory(soldat, 14);
   assert.equal(före.length, 2);
 
-  const resultat = await reissueCode(soldat, soldat);
+  const resultat = await reissueCode(befal, soldat);
   assert.equal(resultat.ok, true);
 
   // Koden är bara en nyckel till dörren, inte identiteten. Historiken hänger
@@ -42,7 +43,7 @@ test('en ny kod behåller soldatens historik', async () => {
   );
 });
 
-test('en ny kod loggar ut den gamla, men inte en själv', async () => {
+test('en ny kod loggar ut den gamla — och den egna går inte att byta', async () => {
   const { client } = await database();
   const org = await buildOrg(client);
   const [admin, annan] = org.soldater['Grupp B'];
@@ -70,10 +71,26 @@ test('en ny kod loggar ut den gamla, men inte en själv', async () => {
   await reissueCode(admin, annan);
   assert.equal(await sessions(annan), 0, 'den vars kod byttes ska loggas ut');
 
-  // Den egna koden byts ut -> sessionen behålls, annars hinner man aldrig
-  // läsa den nya koden innan man kastas ut, och blir permanent utelåst.
-  await reissueCode(admin, admin);
-  assert.equal(await sessions(admin), 1, 'den som byter sin egen kod ska förbli inloggad');
+  /*
+   * Sin egen kod går inte att byta.
+   *
+   * Tidigare gick det, med sessionen bevarad så att man hann läsa den nya
+   * koden. Det räckte inte: koden visas en enda gång och lagras bara som
+   * hash, och ett felklick låste ute administratören tre gånger under
+   * utvecklingen. Varje gång krävdes terminalåtkomst för att komma in igen.
+   */
+  const svar = await reissueCode(admin, admin);
+  assert.equal(svar.ok, false, 'den egna koden ska inte gå att byta');
+
+  // Och ingenting får ha hänt: varken kod eller session.
+  assert.equal(await sessions(admin), 1, 'den egna sessionen rörs inte');
+
+  const kvar = await client.execute({
+    sql: 'SELECT code_hash FROM users WHERE id = ?',
+    args: [admin],
+  });
+  assert.equal(kvar.rows[0].code_hash, `hash-${org.grupper['Grupp B']}-1`,
+    'den egna koden ska vara oförändrad');
 });
 
 test('en soldat kan flyttas och behåller kod och historik', async () => {

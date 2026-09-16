@@ -245,16 +245,31 @@ export async function createUsers(
  * Användarens sessioner avslutas samtidigt — annars skulle den som har den
  * gamla lappen kunna fortsätta vara inloggad efter att koden spärrats.
  *
- * MED ETT UNDANTAG: byter man ut sin EGEN kod behålls den pågående sessionen.
- * Annars loggas man ut i samma ögonblick som den nya koden visas, hinner inte
- * läsa den, och är utelåst för alltid — koden lagras bara som hash och kan
- * inte hämtas fram igen. Det är säkert, eftersom sessionen hör till personen
- * och inte till koden, och det är personen själv som just begärt bytet.
+ * SIN EGEN KOD KAN MAN INTE BYTA. Den nya koden visas en enda gång och
+ * lagras bara som hash; hinner man inte skriva av den är man utelåst för
+ * gott. Det hände tre gånger under utvecklingen, och varje gång krävdes
+ * terminalåtkomst till servern för att ta sig in igen. Varningsrutor och
+ * bekräftelser räckte inte — en åtgärd som inte går att ångra och som inte
+ * behöver kunna göras av personen själv ska inte finnas där.
+ *
+ * Behöver en administratör en ny kod finns två vägar: en annan
+ * administratör utfärdar den, eller `npm run aterstall-admin` på servern.
+ * Det är dessutom rimligare i sak — man utfärdar inte sina egna
+ * inloggningsuppgifter.
  */
 export async function reissueCode(
   actorUserId: number,
   userId: number,
 ): Promise<{ ok: true; code: string; label: string } | { ok: false; error: string }> {
+  if (userId === actorUserId) {
+    return {
+      ok: false,
+      error:
+        'Du kan inte byta din egen kod. Be en annan administratör utfärda en, ' +
+        'eller kör "npm run aterstall-admin" på servern.',
+    };
+  }
+
   const [user] = await db
     .select({ id: users.id, label: users.label })
     .from(users)
@@ -266,9 +281,8 @@ export async function reissueCode(
   const code = generateCode();
   await db.update(users).set({ codeHash: hashCode(code) }).where(eq(users.id, userId));
 
-  if (userId !== actorUserId) {
-    await db.delete(sessions).where(eq(sessions.userId, userId));
-  }
+  // Den som har den gamla lappen ska inte kunna fortsätta vara inloggad.
+  await db.delete(sessions).where(eq(sessions.userId, userId));
 
   await audit(actorUserId, 'code.reissue', `användare ${userId}`);
   return { ok: true, code, label: user.label };

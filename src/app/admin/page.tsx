@@ -6,10 +6,9 @@ import {
   KIND_FOR_ROLE,
   KIND_LABEL,
   getAdminStats,
-  getUnit,
-  getUnitPaths,
   getUnitTree,
   getUsersInUnit,
+  type TreeNode,
 } from '@/lib/db/queries/admin';
 import { retentionStatus } from '@/lib/db/retention';
 
@@ -26,39 +25,63 @@ export default async function AdminPage({
   const session = await requireRole('admin');
 
   /*
-   * Två vågor, inte fyra.
+   * En våg, inte fyra.
    *
-   * Varje fråga mot en fjärrdatabas är ett eget anrop över nätet, runt
-   * hundra millisekunder från en serverlös funktion. Sidan gjorde nio
-   * frågor i fyra led efter varandra och tog över en sekund att byta enhet
-   * i. Allt som inte beror på något annat hämtas nu samtidigt.
+   * Varje fråga mot en fjärrdatabas är ett eget anrop över nätet. Sidan
+   * gjorde nio frågor i fyra led efter varandra; nu fyra frågor samtidigt.
+   *
+   * Två av dem behövdes inte alls. Enhetens namn och nivå fanns redan i
+   * trädet, och sökvägarna till flyttmålen går att räkna fram ur parentId —
+   * de hämtades med en egen rekursiv fråga för uppgifter vi redan hade.
+   *
+   * Medlemmarna hämtas på den enhet som står i adressen, utan att först
+   * vänta på trädet för att kontrollera att den finns. Är den påhittad
+   * kostar det en extra fråga; i det normala fallet — någon klickar i
+   * listan — sparar det ett helt led.
    */
   const requested = Number((await searchParams).unit);
+  const wanted = Number.isInteger(requested) && requested > 0 ? requested : null;
 
-  const [tree, stats, retention, unitPaths] = await Promise.all([
+  const [tree, stats, retention, membersOfWanted] = await Promise.all([
     getUnitTree(),
     getAdminStats(),
     retentionStatus(),
-    getUnitPaths(),
+    wanted === null ? Promise.resolve(null) : getUsersInUnit(wanted),
   ]);
 
-  const selectedId = tree.some((n) => n.id === requested) ? requested : tree[0]?.id;
+  const selected = tree.find((n) => n.id === wanted) ?? tree[0] ?? null;
+  const selectedId = selected?.id;
 
-  const [selected, members] = selectedId
-    ? await Promise.all([getUnit(selectedId), getUsersInUnit(selectedId)])
-    : [null, []];
+  const members = !selected
+    ? []
+    : selected.id === wanted && membersOfWanted !== null
+      ? membersOfWanted
+      : await getUsersInUnit(selected.id);
 
   /*
    * Målenheter för förflyttning. Rollen i enheten avgör vilka nivåer som är
    * giltiga — en plutonchef kan inte placeras på en grupp. Har enheten både
    * värnpliktiga och befäl listas unionen, och servern avvisar ändå ett
    * omöjligt val i moveUser().
-   *
-   * Filtreras här ur listan vi redan hämtat, i stället för med en egen fråga
-   * per roll.
    */
+  const byId = new Map(tree.map((n) => [n.id, n]));
+
+  /** Hela vägen ned, så att två "Grupp 1" går att skilja åt. */
+  const pathOf = (node: TreeNode): string => {
+    const delar = [node.name];
+    for (let id = node.parentId; id !== null; ) {
+      const upp = byId.get(id);
+      if (!upp) break;
+      delar.unshift(upp.name);
+      id = upp.parentId;
+    }
+    return delar.join(' › ');
+  };
+
   const kinds = new Set(members.flatMap((m) => KIND_FOR_ROLE[m.role]));
-  const moveTargets = unitPaths.filter((t) => kinds.has(t.kind));
+  const moveTargets = tree
+    .filter((n) => kinds.has(n.kind))
+    .map((n) => ({ id: n.id, name: n.name, kind: n.kind, path: pathOf(n) }));
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -117,7 +140,7 @@ export default async function AdminPage({
                   id: selected.id,
                   name: selected.name,
                   kind: selected.kind,
-                  kindLabel: KIND_LABEL[selected.kind as keyof typeof KIND_LABEL],
+                  kindLabel: KIND_LABEL[selected.kind],
                 }}
                 members={members}
                 currentUserId={session.id}

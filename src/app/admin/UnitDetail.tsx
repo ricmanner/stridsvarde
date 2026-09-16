@@ -373,41 +373,31 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
                   </span>
 
                   <div className="ml-auto flex items-center gap-1">
-                    <form
-                      action={reissueFormAction}
-                      onSubmit={(e) => {
-                        /*
-                         * Bara för den egna raden. Den gamla koden slutar gälla
-                         * omedelbart, och den nya visas en enda gång — hinner
-                         * man inte skriva av den är man utelåst. Ett oavsiktligt
-                         * klick här får inte kunna låsa ute administratören.
-                         */
-                        if (
-                          isSelf &&
-                          !confirm(
-                            'Byta din egen inloggningskod?\n\n' +
-                              'Den nuvarande slutar gälla direkt. Den nya visas en enda gång — ' +
-                              'skriv av den innan du går vidare.\n\n' +
-                              'Blir du ändå utelåst: kör "npm run aterstall-admin" i terminalen.',
-                          )
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                    >
-                      <input type="hidden" name="userId" value={m.id} />
-                      <button
-                        type="submit"
-                        title={
-                          isSelf
-                            ? 'Byt din egen kod. Du förblir inloggad, men den gamla koden slutar gälla.'
-                            : 'Spärra nuvarande kod och utfärda en ny'
-                        }
-                        className="flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                      >
-                        <KeyRound size={12} aria-hidden /> Ny kod
-                      </button>
-                    </form>
+                    {/*
+                      Ingen kodknapp på den egna raden.
+
+                      Den nya koden visas en enda gång och går inte att hämta
+                      fram igen. Ett felklick här låste ute administratören
+                      tre gånger under utvecklingen, och varje gång krävdes
+                      terminalåtkomst till servern. Bekräftelseruta räckte
+                      inte — knappen är borta i stället, och servern avvisar
+                      försöket även om någon anropar action:en direkt.
+
+                      Behövs en ny adminkod: en annan administratör utfärdar
+                      den, eller "npm run aterstall-admin" på servern.
+                    */}
+                    {!isSelf && (
+                      <form action={reissueFormAction}>
+                        <input type="hidden" name="userId" value={m.id} />
+                        <button
+                          type="submit"
+                          title="Spärra nuvarande kod och utfärda en ny"
+                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                        >
+                          <KeyRound size={12} aria-hidden /> Ny kod
+                        </button>
+                      </form>
+                    )}
 
                     {/* Det egna kontot kan inte spärras — se setUserActive(). */}
                     {!isSelf && (
