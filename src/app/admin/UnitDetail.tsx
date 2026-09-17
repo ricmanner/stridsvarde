@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { ArrowRightLeft, KeyRound, Pencil, Plus, Trash, Trash2, UserCheck, UserX } from 'lucide-react';
+import { ArrowRightLeft, Info, KeyRound, Pencil, Plus, Trash, Trash2, UserCheck, UserX } from 'lucide-react';
 
 import {
   createUnitAction,
@@ -185,13 +185,26 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                 </button>
               ) : (
                 <>
-                  <p className="mb-3 text-[12px] leading-relaxed text-slate-500">
-                    Värnpliktiga hör normalt hemma i en grupp. De som läggs direkt
-                    på plutonen står utanför grupperna och redovisas som
-                    <span className="font-semibold"> Direkt i enheten</span> i
-                    befälets jämförelse. Använd det bara för den som ännu inte
-                    tilldelats en grupp.
-                  </p>
+                  {/*
+                    Bärnsten, inte grått och inte rött. Grå text säger "oviktigt",
+                    men det här är ett val med en följd. Rött är reserverat för
+                    det som inte går att ångra — radering — och skulle tappa sin
+                    tyngd om det användes för en upplysning.
+                  */}
+                  <div
+                    role="note"
+                    className="mb-3 flex gap-2.5 rounded-md border border-amber-300 bg-amber-50 px-3.5 py-3"
+                  >
+                    <Info size={16} className="mt-0.5 shrink-0 text-amber-700" aria-hidden />
+                    <div className="text-[13px] leading-relaxed text-amber-950">
+                      <p className="font-semibold">Värnpliktiga hör normalt hemma i en grupp.</p>
+                      <p className="mt-0.5">
+                        De du lägger till här hamnar utanför grupperna och visas som{' '}
+                        <strong>Direkt i enheten</strong> i befälets jämförelse. Använd det
+                        bara för den som ännu inte fått en grupp.
+                      </p>
+                    </div>
+                  </div>
                   <form action={codeFormAction} className="flex flex-wrap items-end gap-2">
                     <input type="hidden" name="unitId" value={unit.id} />
                     <input type="hidden" name="unitName" value={unit.name} />
