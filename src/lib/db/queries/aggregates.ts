@@ -3,7 +3,7 @@ import 'server-only';
 import { cache } from 'react';
 import { sql } from 'drizzle-orm';
 
-import { CATEGORIES, type Category, GREEN_MIN, getStatus, type Status, YELLOW_MIN } from '../../data';
+import { CATEGORIES, type Category, GREEN_MIN, getStatus, roundScoreSql, type Status, YELLOW_MIN } from '../../data';
 import { serviceDate, serviceDateDaysAgo, shortLabel } from '../../date';
 import { db } from '..';
 import { minResponders } from '../client';
@@ -36,8 +36,10 @@ const OVERALL_EXPR = `(${CAT_KEYS.map((k) => `ci.${k}`).join(' + ')}) / ${CAT_KE
  * getStatus() i data.ts. Skrevs tidigare ut som sjuor och fyror på åtta
  * ställen — ändrades tröskeln slutade siffrorna stämma med märkena bredvid.
  */
-function colourCounts(expr: string, prefix = ''): string {
+function colourCounts(rawExpr: string, prefix = ''): string {
   const p = prefix ? `${prefix}_` : '';
+  // Samma avrundning som getStatus(): färgen följer det tal som visas.
+  const expr = roundScoreSql(rawExpr);
   return [
     `SUM(CASE WHEN ${expr} >= ${GREEN_MIN} THEN 1 ELSE 0 END) AS ${p}green`,
     `SUM(CASE WHEN ${expr} >= ${YELLOW_MIN} AND ${expr} < ${GREEN_MIN} THEN 1 ELSE 0 END) AS ${p}yellow`,
@@ -84,7 +86,7 @@ export const getUnitCategorySeries = cache(
 
     const avgCols = CAT_KEYS.map((key) => `AVG(ci.${key}) AS ${key}`).join(',\n             ');
     const guardedCols = CAT_KEYS.map(
-      (key) => `CASE WHEN COALESCE(r.responders,0) >= ${k} THEN ROUND(r.${key}, 2) END AS ${key}`,
+      (key) => `CASE WHEN COALESCE(r.responders,0) >= ${k} THEN r.${key} END AS ${key}`,
     ).join(',\n           ');
 
     const rows = (await db.all(sql`
@@ -113,7 +115,7 @@ export const getUnitCategorySeries = cache(
              (SELECT COUNT(*) FROM member)    AS eligible,
              COALESCE(r.responders, 0)        AS responders,
              ${sql.raw(guardedCols)},
-             CASE WHEN COALESCE(r.responders,0) >= ${k} THEN ROUND(r.overall, 2) END AS overall
+             CASE WHEN COALESCE(r.responders,0) >= ${k} THEN r.overall END AS overall
         FROM cal
         LEFT JOIN r ON r.d = cal.d
        ORDER BY cal.d
@@ -167,7 +169,7 @@ export const getUnitOverview = cache(
     const from = serviceDateDaysAgo(days - 1);
     const to = serviceDate();
 
-    const avgCols = CAT_KEYS.map((key) => `ROUND(AVG(ci.${key}), 2) AS ${key}`).join(',\n             ');
+    const avgCols = CAT_KEYS.map((key) => `AVG(ci.${key}) AS ${key}`).join(',\n             ');
     // Fördelning per kategori — byggs ur CATEGORIES så SQL:en inte kan glida
     // isär från frågelistan.
     const bucketCols = CAT_KEYS.map((key) => colourCounts(`ci.${key}`, key)).join(',\n             ');
@@ -312,7 +314,7 @@ export const getChildComparison = cache(
     const to = serviceDate();
     const k = minResponders();
 
-    const avgCols = CAT_KEYS.map((key) => `ROUND(AVG(ci.${key}), 2) AS ${key}`).join(',\n             ');
+    const avgCols = CAT_KEYS.map((key) => `AVG(ci.${key}) AS ${key}`).join(',\n             ');
 
     const childCte = sql`
       WITH RECURSIVE child(child_id, node_id) AS (
@@ -339,7 +341,7 @@ export const getChildComparison = cache(
         SELECT m.child_id,
                COUNT(DISTINCT ci.user_id) AS responders,
                ${sql.raw(avgCols)},
-               ROUND(AVG(${sql.raw(OVERALL_EXPR)}), 2) AS overall
+               AVG(${sql.raw(OVERALL_EXPR)}) AS overall
           FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
          WHERE ci.service_date BETWEEN ${from} AND ${to}
          GROUP BY m.child_id
@@ -408,7 +410,7 @@ export const getChildComparison = cache(
          GROUP BY m.child_id, ci.service_date
       )
       SELECT cal.d AS date, un.id AS child_id, un.name AS child_name,
-             CASE WHEN COALESCE(r.responders,0) >= ${k} THEN ROUND(r.overall, 2) END AS overall
+             CASE WHEN COALESCE(r.responders,0) >= ${k} THEN r.overall END AS overall
         FROM units un
         CROSS JOIN cal
         LEFT JOIN r ON r.child_id = un.id AND r.d = cal.d
@@ -463,7 +465,7 @@ async function directMembersSummary(
   to: string,
   k: number,
 ): Promise<{ summary: ChildUnitSummary; byDate: Map<string, number | null> } | null> {
-  const avgCols = CAT_KEYS.map((key) => `ROUND(AVG(ci.${key}), 2) AS ${key}`).join(',\n             ');
+  const avgCols = CAT_KEYS.map((key) => `AVG(ci.${key}) AS ${key}`).join(',\n             ');
 
   const member = sql`
     member AS (
@@ -482,10 +484,10 @@ async function directMembersSummary(
     SELECT (SELECT COUNT(*) FROM member) AS eligible,
            COUNT(DISTINCT ci.user_id) AS responders,
            ${sql.raw(avgCols)},
-           ROUND(AVG(${sql.raw(OVERALL_EXPR)}), 2) AS overall,
-           (SELECT COUNT(*) FROM per_soldier WHERE avg_score >= ${GREEN_MIN}) AS green,
-           (SELECT COUNT(*) FROM per_soldier WHERE avg_score >= ${YELLOW_MIN} AND avg_score < ${GREEN_MIN}) AS yellow,
-           (SELECT COUNT(*) FROM per_soldier WHERE avg_score < ${YELLOW_MIN}) AS red
+           AVG(${sql.raw(OVERALL_EXPR)}) AS overall,
+           (SELECT COUNT(*) FROM per_soldier WHERE ${sql.raw(roundScoreSql('avg_score'))} >= ${GREEN_MIN}) AS green,
+           (SELECT COUNT(*) FROM per_soldier WHERE ${sql.raw(roundScoreSql('avg_score'))} >= ${YELLOW_MIN} AND ${sql.raw(roundScoreSql('avg_score'))} < ${GREEN_MIN}) AS yellow,
+           (SELECT COUNT(*) FROM per_soldier WHERE ${sql.raw(roundScoreSql('avg_score'))} < ${YELLOW_MIN}) AS red
       FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
      WHERE ci.service_date BETWEEN ${from} AND ${to}
   `)) as Row[];
@@ -518,7 +520,7 @@ async function directMembersSummary(
     WITH ${member}
     SELECT ci.service_date AS date,
            CASE WHEN COUNT(DISTINCT ci.user_id) >= ${k}
-                THEN ROUND(AVG(${sql.raw(OVERALL_EXPR)}), 2) END AS overall
+                THEN AVG(${sql.raw(OVERALL_EXPR)}) END AS overall
       FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
      WHERE ci.service_date BETWEEN ${from} AND ${to}
      GROUP BY ci.service_date

@@ -200,7 +200,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
 
   // Summary
   const overallScore = Object.values(scores).reduce((a, b) => a + b, 0) / Object.values(scores).length;
-  const overallStatus = getStatus(Math.round(overallScore));
+  const overallStatus = getStatus(overallScore);
 
   return (
     <div style={{ flex: 1, background: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>

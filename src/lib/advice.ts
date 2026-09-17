@@ -231,12 +231,12 @@ export function generateSoldierAdvice(scores: Record<Category, number>): string 
  */
 export function generateLeaderAdvice(avgScores: Record<Category, number>): string {
   const overall = Object.values(avgScores).reduce((a, b) => a + b, 0) / Object.values(avgScores).length;
-  const redCount = Object.values(avgScores).filter(v => v < 4).length;
+  const redCount = Object.values(avgScores).filter(v => getStatus(v) === 'red').length;
 
   if (redCount >= 2) {
     return `Enheten ligger på kritisk nivå i ${redCount} kategorier. Det är ett tydligt tecken på att belastningen behöver ses över. Rekommendation: genomför enskilda samtal inom 48 timmar och justera träningsbelastningen tills värdena vänder.`;
   }
-  if (overall >= 7) {
+  if (getStatus(overall) === 'green') {
     return `Enheten rapporterar genomgående god hälsa. Fortsätt prioritera återhämtning och sammanhållning — det är de faktorer som är lättast att tappa när tempot ökar.`;
   }
   return `Enheten visar varierat mående utan kritiska nivåer. Håll koll på de kategorier som ligger gult och fånga upp dem tidigt, innan de utvecklas åt fel håll.`;

@@ -8,6 +8,7 @@ import ScoreTrendChart from '@/components/charts/ScoreTrendChart';
 import StatusBandLegend from '@/components/charts/StatusBandLegend';
 import StatusBadge from '@/components/StatusBadge';
 import { CATEGORIES, type Category, getStatus, statusColor, avgScore } from '@/lib/data';
+import { ownTrend } from '@/lib/own-trend';
 import { getSoldierTips } from '@/lib/advice';
 import SupportBlock from './SupportBlock';
 import { shortLabel } from '@/lib/date';
@@ -35,23 +36,11 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
   const [tab, setTab] = useState<'overview' | 'history'>('overview');
 
   const overall = avgScore(scores);
-  const overallStatus = getStatus(Math.round(overall));
+  const overallStatus = getStatus(overall);
   const tips = getSoldierTips(scores);
 
-  // Jämför snittet av de tre senaste dagarna mot de tre dessförinnan.
-  // Räknas på incheckningar, inte kalenderdagar: tomma dagar hoppas över.
-  const svar = chartData.filter((d): d is typeof d & { score: number } => d.score !== null);
-  const trend = (() => {
-    const recent = svar.slice(-3);
-    const prev = svar.slice(-6, -3);
-    if (recent.length < 2 || prev.length < 2) return 'neutral';
-
-    const mean = (xs: typeof svar) => xs.reduce((a, b) => a + b.score, 0) / xs.length;
-    const diff = mean(recent) - mean(prev);
-    if (diff > 0.3) return 'up';
-    if (diff < -0.3) return 'down';
-    return 'neutral';
-  })();
+  const svar = chartData.filter((d): d is typeof d & { score: number; scores: Record<Category, number> } => d.scores !== null);
+  const trend = ownTrend(svar.map(d => d.scores));
 
   // Sort categories worst first
   const sortedCats = [...CATEGORIES].sort((a, b) => scores[a.key] - scores[b.key]);

@@ -36,9 +36,28 @@ export type Status = 'green' | 'yellow' | 'red';
 export const GREEN_MIN = 7;
 export const YELLOW_MIN = 4;
 
+/**
+ * Ett snitt avrundat till en decimal — det tal som visas.
+ *
+ * Status bedöms på samma avrundade tal. Annars kan ett snitt på 6,96 visas
+ * som "7,0" med gult märke, trots att förklaringen under grafen säger
+ * "Grön från 7". Den som läser siffran och färgen ska få samma svar.
+ *
+ * Den lilla tillsatsen skyddar mot flyttal: 6,05 lagras som 6,0499999… och
+ * skulle annars avrundas nedåt. Verkliga snitt ligger aldrig så nära en
+ * avrundningsgräns utan att ligga exakt på den.
+ */
+export function roundScore(n: number): number {
+  return Math.round(n * 10 + 1e-9) / 10;
+}
+
+/** SQL-motsvarigheten till roundScore(), för färgräkningar i databasen. */
+export const roundScoreSql = (expr: string) => `ROUND((${expr}) + 1e-9, 1)`;
+
 export function getStatus(score: number): Status {
-  if (score >= GREEN_MIN) return 'green';
-  if (score >= YELLOW_MIN) return 'yellow';
+  const shown = roundScore(score);
+  if (shown >= GREEN_MIN) return 'green';
+  if (shown >= YELLOW_MIN) return 'yellow';
   return 'red';
 }
 
@@ -56,5 +75,5 @@ export function statusLabel(s: Status): string {
 
 export function avgScore(scores: Record<Category, number>): number {
   const vals = Object.values(scores) as number[];
-  return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10;
+  return roundScore(vals.reduce((a, b) => a + b, 0) / vals.length);
 }
