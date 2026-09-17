@@ -28,6 +28,22 @@ export function serviceDateDaysAgo(days: number, from: Date = new Date()): strin
 }
 
 /**
+ * Antal kalenderdagar från ett tjänstedatum till ett annat ('YYYY-MM-DD').
+ * Positivt när `to` ligger efter `from`.
+ *
+ * Räknar i UTC-rymden av samma skäl som serviceDateDaysAgo(): utan sommartid
+ * blir varje dygn exakt 24 timmar, och omställningen i mars eller oktober kan
+ * inte ge ett dygn för mycket eller för lite.
+ */
+export function daysBetween(from: string, to: string): number {
+  const utc = (iso: string) => {
+    const [y, m, d] = iso.split('-').map(Number);
+    return Date.UTC(y, m - 1, d);
+  };
+  return Math.round((utc(to) - utc(from)) / 86_400_000);
+}
+
+/**
  * En sammanhängande lista tjänstedatum, äldst först, inklusive idag.
  * Används för att rita grafer med luckor för dagar utan svar — annars
  * skulle en dag helt utan incheckningar tyst försvinna ur kurvan.

@@ -48,6 +48,15 @@ const PLUTON_BASE: Record<string, number> = {
   'Pluton 7': 5.6, 'Pluton 8': 6.8, 'Pluton 9': 7.1,
 };
 
+const KOMPANI_PLUTONER: Record<string, string[]> = {
+  '1. Kompaniet': ['Pluton 1', 'Pluton 2', 'Pluton 3'],
+  '2. Kompaniet': ['Pluton 4', 'Pluton 5', 'Pluton 6'],
+  '3. Kompaniet': ['Pluton 7', 'Pluton 8', 'Pluton 9'],
+};
+
+const GRUPPER_PER_PLUTON = 3;
+const SOLDATER_PER_GRUPP = 8;
+
 /**
  * Soldater som lämnas utan dagens incheckning.
  *
@@ -57,17 +66,14 @@ const PLUTON_BASE: Record<string, number> = {
  * Pluton 1 är ingången i demon och har därför dagen öppen. Att åtta av
  * plutonens tjugofyra saknas gör dessutom svarsfrekvensen realistisk i stället
  * för att stå på 100 %.
+ *
+ * Exporterad som lista, inte som mönster: `npm run demo:uppdatera` öppnar
+ * samma konton igen när demodatan flyttas fram, och måste veta exakt vilka.
  */
-const DAGEN_OPPEN = /^P1G1-/;
-
-const KOMPANI_PLUTONER: Record<string, string[]> = {
-  '1. Kompaniet': ['Pluton 1', 'Pluton 2', 'Pluton 3'],
-  '2. Kompaniet': ['Pluton 4', 'Pluton 5', 'Pluton 6'],
-  '3. Kompaniet': ['Pluton 7', 'Pluton 8', 'Pluton 9'],
-};
-
-const GRUPPER_PER_PLUTON = 3;
-const SOLDATER_PER_GRUPP = 8;
+export const DAGEN_OPPEN: readonly string[] = Array.from(
+  { length: SOLDATER_PER_GRUPP },
+  (_, i) => `P1G1-${String(i + 1).padStart(2, '0')}`,
+);
 const HISTORIK_DAGAR = 14;
 /** Ungefärlig svarsfrekvens i demodatan — så att siffran betyder något. */
 const SVARSSANNOLIKHET = 0.82;
@@ -247,7 +253,7 @@ async function seedInTransaction(tx: Tx): Promise<void> {
     const personal = (rnd() - 0.5) * 2.4;
 
     for (let d = HISTORIK_DAGAR - 1; d >= 0; d--) {
-      if (d === 0 && DAGEN_OPPEN.test(soldier.code)) continue; // se DAGEN_OPPEN ovan
+      if (d === 0 && DAGEN_OPPEN.includes(soldier.code)) continue; // se DAGEN_OPPEN ovan
       if (rnd() > SVARSSANNOLIKHET) continue; // soldaten checkade inte in den dagen
 
       const dayShift = (rnd() - 0.5) * 1.6;
