@@ -99,7 +99,13 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                 const s = scores[cat.key];
                 const st = getStatus(s);
                 const col = statusColor(st);
-                const pct = ((s - 1) / 9) * 100;
+                /*
+                 * Andel av skalan, inte plats mellan lägsta och högsta värdet.
+                 * Räknat som (värdet − 1) / 9 blev en etta en HELT tom stapel,
+                 * omöjlig att skilja från en rad utan svar — och det är det
+                 * värsta värdet, det som minst av allt ska se ut som ingenting.
+                 */
+                const pct = (s / 10) * 100;
                 return (
                   <div key={cat.key} style={{
                     padding: '14px 20px',

@@ -61,7 +61,10 @@ export default function ComparisonGrid({
                 </td>
                 {child.scores === null || child.overall === null ? (
                   <td colSpan={CATEGORIES.length + 1} className="border-t border-slate-100 px-4 py-2 text-center text-[12px] text-slate-500">
-                    Underlag saknas — för få svar för att visa något
+                    {/* En nyskapad enhet saknar inte underlag — den saknar folk. */}
+                    {child.eligible === 0
+                      ? 'Inga värnpliktiga placerade här ännu'
+                      : 'Underlag saknas — för få svar för att visa något'}
                   </td>
                 ) : (
                   <>
