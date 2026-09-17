@@ -25,6 +25,7 @@ import { ROLE_LABEL, type Role } from '@/lib/roles';
 import { suggestChildName, type ChildKind } from '@/lib/unit-names';
 
 import CodeSheet from './CodeSheet';
+import UnitDeleteSection from './UnitDeleteSection';
 
 interface Props {
   unit: { id: number; name: string; kind: string; kindLabel: string };
@@ -604,6 +605,8 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
             )}
           </section>
         )}
+
+        <UnitDeleteSection unitId={unit.id} unitName={unit.name} />
 
         <p className="text-center text-xs leading-relaxed text-slate-500">
           Administratörsrollen har ingen åtkomst till hälsodata. Att lägga upp enheter

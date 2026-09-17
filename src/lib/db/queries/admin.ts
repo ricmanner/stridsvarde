@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 
 import { generateCode, hashCode } from '../../auth/codes';
 import { serviceDate } from '../../date';
@@ -543,6 +543,169 @@ export async function deleteUser(
 
   await audit(actorUserId, 'user.delete', `${tillaten.role} ${userId}`);
   return { ok: true, label: tillaten.label };
+}
+
+/**
+ * Vad som försvinner om en enhet raderas, och om det är tillåtet.
+ *
+ * En enhet raderas med allt under sig: underenheter, personer och — via
+ * retention.ts — deras rapporter. Det är den mest omfattande åtgärden i appen,
+ * så förhandsvisningen säger exakt vad som försvinner innan något görs.
+ *
+ * Raderingen får inte bli en bakväg förbi skydd som redan finns för enskilda
+ * konton. Därför vägras den om enheten, någonstans under sig, innehåller:
+ *   - ditt eget konto (du kan inte radera dig själv),
+ *   - den sista aktiva administratören,
+ *   - i demoläge, något av de publicerade demokontona.
+ */
+export interface UnitDeletion {
+  unitId: number;
+  name: string;
+  parentId: number | null;
+  /** Underenheter under den här, alla nivåer. Den själv räknas inte. */
+  subunits: number;
+  people: number;
+  /** Ingen anledning att vägra — då är raderingen tillåten. */
+  refusal: string | null;
+}
+
+interface UnitDeletionInternal extends UnitDeletion {
+  userIds: number[];
+  /** Från djupast till grunt — ordningen databasen kräver vid radering. */
+  unitIdsDeepestFirst: number[];
+}
+
+async function inspectUnitDeletion(
+  actorUserId: number,
+  unitId: number,
+): Promise<UnitDeletionInternal | null> {
+  const unit = await getUnit(unitId);
+  if (!unit) return null;
+
+  const subtree = (await db.all(sql`
+    WITH RECURSIVE sub(id, depth) AS (
+          SELECT id, 0 FROM units WHERE id = ${unitId}
+      UNION ALL
+          SELECT u.id, s.depth + 1 FROM units u JOIN sub s ON u.parent_id = s.id
+    )
+    SELECT id, depth FROM sub ORDER BY depth DESC
+  `)) as { id: number; depth: number }[];
+
+  const unitIds = subtree.map((r) => Number(r.id));
+
+  const people = await db
+    .select({ id: users.id, role: users.role, active: users.active, codeHash: users.codeHash })
+    .from(users)
+    .where(inArray(users.unitId, unitIds));
+
+  const userIds = people.map((p) => p.id);
+
+  let refusal: string | null = null;
+
+  if (userIds.includes(actorUserId)) {
+    refusal = 'Enheten innehåller ditt eget konto. Du kan inte radera enheten du själv tillhör.';
+  }
+
+  if (!refusal && people.some((p) => p.role === 'admin' && p.active)) {
+    const [kvar] = (await db.all(sql`
+      SELECT count(*) AS n FROM users
+       WHERE role = 'admin' AND active = 1 AND unit_id NOT IN ${unitIds}
+    `)) as { n: number }[];
+    if (Number(kvar?.n ?? 0) === 0) {
+      refusal = 'Enheten innehåller den sista aktiva administratören. Då kan ingen administrera systemet.';
+    }
+  }
+
+  if (!refusal && environment() === 'demo') {
+    const publicerade = new Set(PUBLICERADE_DEMOKODER.map(({ kod }) => hashCode(kod)));
+    if (people.some((p) => publicerade.has(p.codeHash))) {
+      refusal =
+        'Enheten innehåller konton som står på inloggningssidan och är demonstrationens ingång. ' +
+        'Radera en enhet som inte gör det.';
+    }
+  }
+
+  return {
+    unitId,
+    name: unit.name,
+    parentId: unit.parentId ?? null,
+    subunits: unitIds.length - 1,
+    people: userIds.length,
+    refusal,
+    userIds,
+    unitIdsDeepestFirst: unitIds,
+  };
+}
+
+/** Förhandsvisningen, utan interna id-listor — det här skickas till webbläsaren. */
+export async function getUnitDeletion(
+  actorUserId: number,
+  unitId: number,
+): Promise<UnitDeletion | null> {
+  const d = await inspectUnitDeletion(actorUserId, unitId);
+  if (!d) return null;
+  // Uttryckligen fält för fält: id-listorna ska inte följa med till webbläsaren.
+  return {
+    unitId: d.unitId,
+    name: d.name,
+    parentId: d.parentId,
+    subunits: d.subunits,
+    people: d.people,
+    refusal: d.refusal,
+  };
+}
+
+/** Personerna som raderas med enheten — för att deras rapporter ska kunna raderas först. */
+export async function getUnitDeletionUserIds(actorUserId: number, unitId: number): Promise<number[]> {
+  return (await inspectUnitDeletion(actorUserId, unitId))?.userIds ?? [];
+}
+
+/**
+ * Raderar en enhet med allt under sig.
+ *
+ * Är enheten inte tom måste `confirmName` vara exakt enhetens namn. Kontrollen
+ * görs HÄR och inte bara i formuläret, så att ingen väg till raderingen kan
+ * hoppa över den.
+ *
+ * Rapporterna raderas inte i den här filen — se eraseCheckInsForUsers() i
+ * retention.ts, som anropande action kör först. Skulle den glömmas raderas de
+ * ändå av databasen när personerna försvinner, men då räknas och loggas de inte.
+ */
+export async function deleteUnit(
+  actorUserId: number,
+  unitId: number,
+  confirmName: string,
+): Promise<
+  | { ok: true; name: string; parentId: number | null; subunits: number; people: number }
+  | { ok: false; error: string }
+> {
+  const d = await inspectUnitDeletion(actorUserId, unitId);
+  if (!d) return { ok: false, error: 'Enheten finns inte längre.' };
+  if (d.refusal) return { ok: false, error: d.refusal };
+
+  const tom = d.subunits === 0 && d.people === 0;
+  if (!tom && confirmName.trim() !== d.name) {
+    return { ok: false, error: `Skriv enhetens namn, ${d.name}, exakt för att bekräfta.` };
+  }
+
+  await db.transaction(async (tx) => {
+    // Personerna först — databasen vägrar radera en enhet som någon tillhör.
+    if (d.userIds.length > 0) {
+      await tx.delete(users).where(inArray(users.id, d.userIds));
+    }
+    // Sedan enheterna, djupast först: en enhet med underenheter går inte att radera.
+    for (const id of d.unitIdsDeepestFirst) {
+      await tx.delete(units).where(eq(units.id, id));
+    }
+  });
+
+  await audit(
+    actorUserId,
+    'unit.delete',
+    `${d.name} med ${d.subunits} underenheter och ${d.people} personer`,
+  );
+
+  return { ok: true, name: d.name, parentId: d.parentId, subunits: d.subunits, people: d.people };
 }
 
 /** Längsta tillåtna benämning. Samma gräns som vid skapandet av befäl. */

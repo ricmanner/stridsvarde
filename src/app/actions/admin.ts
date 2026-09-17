@@ -1,20 +1,25 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 import { requireRole } from '@/lib/auth/guard';
 import {
   createUnit,
   canDeleteUser,
   createUsers,
+  deleteUnit,
   deleteUser,
+  getUnitDeletion,
+  getUnitDeletionUserIds,
   moveUser,
   reissueCode,
   renameUser,
   setUserActive,
   type IssuedCode,
+  type UnitDeletion,
 } from '@/lib/db/queries/admin';
-import { erasePersonalData } from '@/lib/db/retention';
+import { eraseCheckInsForUsers, erasePersonalData } from '@/lib/db/retention';
 import type { Role } from '@/lib/roles';
 
 /*
@@ -233,4 +238,71 @@ export async function deleteUserAction(
 
   revalidatePath('/admin');
   return { deleted: { label: result.label, erased } };
+}
+
+/**
+ * Vad som skulle raderas med enheten. Anropas först när administratören
+ * klickar — adminsidan ska inte räkna ut det vid varje sidbyte.
+ */
+export async function previewUnitDeletionAction(
+  unitId: number,
+): Promise<UnitDeletion | { error: string }> {
+  const admin = await requireRole('admin');
+  if (!Number.isInteger(unitId)) return { error: 'Ogiltig enhet.' };
+
+  const d = await getUnitDeletion(admin.id, unitId);
+  return d ?? { error: 'Enheten finns inte längre.' };
+}
+
+export interface DeleteUnitState {
+  error?: string;
+}
+
+/**
+ * Raderar en enhet med underenheter, personer och rapporter.
+ *
+ * ALLA kontroller görs innan hälsodatan raderas. Görs de efteråt kan
+ * rapporterna vara borta när raderingen sedan nekas — exakt det fel som
+ * först smög sig in när personer fick kunna raderas. Namnbekräftelsen
+ * kontrolleras därför här, och igen i deleteUnit(): den första kontrollen
+ * skyddar ordningen, den andra skyddar varje annan väg dit.
+ */
+export async function deleteUnitAction(
+  _prev: DeleteUnitState,
+  formData: FormData,
+): Promise<DeleteUnitState> {
+  const admin = await requireRole('admin');
+
+  const unitId = Number(formData.get('unitId'));
+  const confirmName = String(formData.get('confirmName') ?? '');
+  if (!Number.isInteger(unitId)) return { error: 'Ogiltig enhet.' };
+
+  const d = await getUnitDeletion(admin.id, unitId);
+  if (!d) return { error: 'Enheten finns inte längre.' };
+  if (d.refusal) return { error: d.refusal };
+
+  const tom = d.subunits === 0 && d.people === 0;
+  if (!tom && confirmName.trim() !== d.name) {
+    return { error: `Skriv enhetens namn, ${d.name}, exakt för att bekräfta.` };
+  }
+
+  await eraseCheckInsForUsers(
+    admin.id,
+    await getUnitDeletionUserIds(admin.id, unitId),
+    d.name,
+  );
+
+  const result = await deleteUnit(admin.id, unitId, confirmName);
+  if (!result.ok) return { error: result.error };
+
+  /*
+   * Vidare till den överordnade enheten härifrån, på servern — inte från
+   * formuläret. Efter raderingen laddas sidan om, och eftersom enheten inte
+   * längre finns byts komponenten ut innan den hinner skicka vidare. Den
+   * vägen testades först, och adressen blev stående på den raderade enheten.
+   * Antalet raderade rapporter finns i granskningsloggen.
+   */
+  revalidatePath('/admin');
+  const raderad = encodeURIComponent(result.name);
+  redirect(result.parentId ? `/admin?unit=${result.parentId}&raderad=${raderad}` : `/admin?raderad=${raderad}`);
 }

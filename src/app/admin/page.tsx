@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ unit?: string }>;
+  searchParams: Promise<{ unit?: string; raderad?: string }>;
 }) {
   const session = await requireRole('admin');
 
@@ -39,7 +39,8 @@ export default async function AdminPage({
    * kostar det en extra fråga; i det normala fallet — någon klickar i
    * listan — sparar det ett helt led.
    */
-  const requested = Number((await searchParams).unit);
+  const { unit: unitParam, raderad } = await searchParams;
+  const requested = Number(unitParam);
   const wanted = Number.isInteger(requested) && requested > 0 ? requested : null;
 
   const [tree, stats, retention, membersOfWanted] = await Promise.all([
@@ -123,6 +124,12 @@ export default async function AdminPage({
           )}
         </div>
 
+        {raderad && (
+          <p role="status" className="no-print mb-4 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+            <strong>{raderad}</strong> raderades, med allt som låg under den.
+          </p>
+        )}
+
         <div className="grid gap-5 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
           {/* ── Enhetsträd ── */}
           <section className="no-print">
@@ -137,6 +144,9 @@ export default async function AdminPage({
           <section>
             {selected ? (
               <UnitDetail
+                /* Nyckeln nollställer formulärens läge när man byter enhet —
+                   annars ligger en påbörjad radering kvar på nästa enhet. */
+                key={selected.id}
                 unit={{
                   id: selected.id,
                   name: selected.name,

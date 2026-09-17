@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { eq, lt, sql } from 'drizzle-orm';
+import { eq, inArray, lt, sql } from 'drizzle-orm';
 
 import { serviceDateDaysAgo } from '../date';
 import { db } from '.';
@@ -129,6 +129,41 @@ export async function erasePersonalData(
     actorUserId,
     action: 'retention.erase_person',
     detail: `${count} incheckningar raderade för användare ${userId}`,
+    createdAt: new Date().toISOString(),
+  });
+
+  return count;
+}
+
+/**
+ * Raderar incheckningarna för flera personer på en gång — när en hel enhet
+ * tas bort.
+ *
+ * Samma skäl som erasePersonalData() ovan för att det ligger här och inte i
+ * queries/admin.ts: den filen får strukturellt inte röra check_ins. Kontot
+ * raderas där, hälsodatan här, och antalet loggas en gång för hela enheten i
+ * stället för en rad per person.
+ */
+export async function eraseCheckInsForUsers(
+  actorUserId: number,
+  userIds: readonly number[],
+  unitName: string,
+): Promise<number> {
+  if (userIds.length === 0) return 0;
+
+  const ids = [...userIds];
+  const [row] = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(checkIns)
+    .where(inArray(checkIns.userId, ids));
+
+  const count = Number(row?.n ?? 0);
+  await db.delete(checkIns).where(inArray(checkIns.userId, ids));
+
+  await db.insert(auditLog).values({
+    actorUserId,
+    action: 'retention.erase_unit',
+    detail: `${count} incheckningar raderade för ${ids.length} personer i ${unitName}`,
     createdAt: new Date().toISOString(),
   });
 
