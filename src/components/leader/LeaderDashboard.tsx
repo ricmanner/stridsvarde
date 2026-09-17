@@ -219,16 +219,21 @@ export default function LeaderDashboard({
             {alerts.length > 0 && cats.ok && (
               <>
                 <SL>Tröskelvärden — kräver åtgärd</SL>
-                <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3.5 sm:px-5">
-                  {alerts.map((cat, i) => (
-                    <div key={cat.key} className={`flex items-center gap-2.5 ${i > 0 ? 'mt-2' : ''}`}>
-                      <AlertTriangle size={14} className="shrink-0 text-red-600" aria-hidden />
-                      <span className="text-[13px] text-red-900">
-                        <strong>{cat.label}</strong> understiger kritisk nivå — snitt{' '}
-                        {formatScore(cats.data[cat.key])}
-                      </span>
-                    </div>
-                  ))}
+                <div className="mb-4">
+                  <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3.5 sm:px-5">
+                    {alerts.map((cat, i) => (
+                      <div key={cat.key} className={`flex items-center gap-2.5 ${i > 0 ? 'mt-2' : ''}`}>
+                        <AlertTriangle size={14} className="shrink-0 text-red-600" aria-hidden />
+                        <span className="text-[13px] text-red-900">
+                          <strong>{cat.label}</strong> understiger kritisk nivå — snitt{' '}
+                          {formatScore(cats.data[cat.key])}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <Preliminary>
+                    Gränserna är preliminära och ska fastställas tillsammans med Försvarshälsan.
+                  </Preliminary>
                 </div>
               </>
             )}
@@ -245,6 +250,9 @@ export default function LeaderDashboard({
                   </div>
                   <p className="text-sm leading-relaxed text-slate-700">{advice}</p>
                 </div>
+                <Preliminary>
+                  Råden är preliminära och ska fastställas tillsammans med Försvarshälsan.
+                </Preliminary>
               </>
             )}
 
@@ -481,6 +489,20 @@ function Stat({ n, label, color }: { n: number; label: string; color: string }) 
       <span className="text-xs text-slate-500">{label}</span>
     </div>
   );
+}
+
+/**
+ * Säger rakt ut att gränser och råd inte är fastställda.
+ *
+ * Problemanalysen från Skövde konstaterar att det saknas vetenskapligt
+ * fastställda gränser för röd, gul och grön. Appens gränser (7 och 4 på en
+ * tiogradig skala) och befälsråden sattes i prototypen. På en storskärm framför
+ * befäl ser "kräver åtgärd" och "samtal inom 48 timmar" ut som fakta; det ska
+ * framgå att de inte är det än. Innehållet ändras inte här — det är
+ * Försvarshälsans och fysioterapeuternas att fastställa.
+ */
+function Preliminary({ children }: { children: React.ReactNode }) {
+  return <p className="mt-1.5 text-[11px] leading-relaxed text-slate-500">{children}</p>;
 }
 
 function SL({ children, inline = false }: { children: React.ReactNode; inline?: boolean }) {

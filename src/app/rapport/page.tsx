@@ -206,6 +206,14 @@ export default async function RapportPage({
           redovisas aldrig. Värden markerade &quot;—&quot; har undanhållits för att
           underlaget varit för litet för att kunna redovisas utan att röja enskilda.
         </p>
+        {/*
+          En utskrift lämnar appen och vandrar vidare, utan sammanhang. Just här
+          måste det stå att indelningen i grön, gul och röd inte är fastställd.
+        */}
+        <p className="mt-1">
+          Gränserna för grön, gul och röd är preliminära och ska fastställas
+          tillsammans med Försvarshälsan.
+        </p>
         <p className="mt-1">
           Enhetstillhörighet visas enligt nuvarande organisation. Utskriven {to}.
         </p>
