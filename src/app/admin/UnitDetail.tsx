@@ -22,6 +22,7 @@ import {
 } from '@/app/actions/admin';
 import type { AdminUser, MoveTarget } from '@/lib/db/queries/admin';
 import { ROLE_LABEL, type Role } from '@/lib/roles';
+import { suggestChildName, type ChildKind } from '@/lib/unit-names';
 
 import CodeSheet from './CodeSheet';
 
@@ -32,6 +33,8 @@ interface Props {
   currentUserId: number;
   /** Enheter personer i den här enheten kan flyttas till. */
   moveTargets: MoveTarget[];
+  /** Namnen på enhetens befintliga underenheter — för att föreslå nästa. */
+  childNames: string[];
 }
 
 /** Vilken roll som hör hemma på vilken nivå. */
@@ -42,14 +45,14 @@ const ROLE_FOR_KIND: Record<string, Role | null> = {
   grupp: null,
 };
 
-const CHILD_KIND: Record<string, string | null> = {
+const CHILD_KIND: Record<string, ChildKind | null> = {
   bataljon: 'kompani',
   kompani: 'pluton',
   pluton: 'grupp',
   grupp: null,
 };
 
-export default function UnitDetail({ unit, members, currentUserId, moveTargets }: Props) {
+export default function UnitDetail({ unit, members, currentUserId, moveTargets, childNames }: Props) {
   const [unitState, unitFormAction, creatingUnit] = useActionState<UnitState, FormData>(createUnitAction, {});
   const [codeState, codeFormAction, creatingUsers] = useActionState<CodeState, FormData>(createUsersAction, {});
   const [reissueState, reissueFormAction] = useActionState<CodeState, FormData>(reissueCodeAction, {});
@@ -246,7 +249,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets }
               <input type="hidden" name="parentId" value={unit.id} />
               <input
                 name="name" required minLength={2} maxLength={60}
-                placeholder={childKind === 'grupp' ? 'Grupp 4' : childKind === 'pluton' ? 'Pluton 10' : '4. Kompaniet'}
+                placeholder={suggestChildName(childKind, childNames)}
                 className="w-56 max-w-full rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
               />
               <button

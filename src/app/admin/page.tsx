@@ -146,6 +146,7 @@ export default async function AdminPage({
                 members={members}
                 currentUserId={session.id}
                 moveTargets={moveTargets}
+                childNames={tree.filter((n) => n.parentId === selected.id).map((n) => n.name)}
               />
             ) : (
               <p className="text-sm text-slate-500">Ingen enhet vald.</p>
