@@ -4,12 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Activity, AlertTriangle, Brain, Download, FileText, Moon, Users, Utensils, Zap } from 'lucide-react';
-import {
-  Legend, Line, LineChart, PolarAngleAxis, PolarGrid, Radar, RadarChart,
-  ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from 'recharts';
 
+import CategoryTrendGrid from '@/components/charts/CategoryTrendGrid';
 import StatusBadge from '@/components/StatusBadge';
+import ChildFocus from '@/components/leader/ChildFocus';
+import ComparisonGrid from '@/components/leader/ComparisonGrid';
 import Suppressed from '@/components/leader/Suppressed';
 import { CATEGORIES, getStatus } from '@/lib/data';
 import type { ChildComparison, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
@@ -24,13 +23,6 @@ const ICONS: Record<string, React.ReactNode> = {
   Utensils: <Utensils size={15} strokeWidth={1.5} />,
   Zap: <Zap size={15} strokeWidth={1.5} />,
 };
-
-const CAT_COLORS: Record<string, string> = {
-  fysisk: '#2563EB', psykisk: '#7C3AED', social: '#DB2777',
-  somn: '#0891B2', kost: '#059669', energi: '#D97706',
-};
-
-const CHILD_COLORS = ['#2563EB', '#059669', '#D97706', '#7C3AED', '#DC2626', '#0891B2'];
 
 export interface LeaderDashboardProps {
   levelLabel: string;
@@ -55,22 +47,6 @@ export default function LeaderDashboard({
 }: LeaderDashboardProps) {
   const pathname = usePathname();
   const [tab, setTab] = useState<'overview' | 'trends' | 'compare'>('overview');
-  const [activeCats, setActiveCats] = useState<Set<string>>(new Set(CATEGORIES.map(c => c.key)));
-  const [activeRadarCats, setActiveRadarCats] = useState<Set<string>>(new Set(CATEGORIES.map(c => c.key)));
-
-  function toggle(setter: typeof setActiveCats, min: number) {
-    return (key: string) =>
-      setter(prev => {
-        const next = new Set(prev);
-        if (next.size <= min && next.has(key)) return prev;
-        if (next.has(key)) next.delete(key);
-        else next.add(key);
-        return next;
-      });
-  }
-  const toggleCat = toggle(setActiveCats, 1);
-  const toggleRadarCat = toggle(setActiveRadarCats, 2);
-
   // Lokala konstanter så att TypeScript kan smalna av unionen korrekt —
   // narrowing på en egenskap (overview.distribution.ok) håller inte genom JSX.
   const cats = overview.categories;
@@ -84,22 +60,7 @@ export default function LeaderDashboard({
     ? CATEGORIES.filter(c => getStatus(cats.data[c.key]) === 'red')
     : [];
 
-  // Kurvan ritas ur riktiga data — dagar utan tillräckligt underlag blir
-  // luckor, inte nollor.
-  const chartData = series.map(p => ({
-    label: p.label,
-    ...(p.scores ?? {}),
-  }));
-
   const visibleChildren = comparison.children.filter(c => c.scores !== null);
-
-  const radarData = CATEGORIES
-    .filter(c => activeRadarCats.has(c.key))
-    .map(cat => {
-      const entry: Record<string, string | number> = { subject: cat.label.split(' ')[0] };
-      for (const child of visibleChildren) entry[child.name] = child.scores![cat.key];
-      return entry;
-    });
 
   return (
     <div className="flex flex-1 flex-col bg-slate-50">
@@ -269,43 +230,13 @@ export default function LeaderDashboard({
               <PeriodPicker current={period} pathname={pathname} />
             </div>
 
-            <div className="mb-4 rounded-md border border-slate-200 bg-white px-3 pb-3 pt-4">
-              <div className="mb-3 flex flex-wrap gap-1.5 pl-2">
-                {CATEGORIES.map(cat => (
-                  <button
-                    key={cat.key}
-                    onClick={() => toggleCat(cat.key)}
-                    aria-pressed={activeCats.has(cat.key)}
-                    className="cursor-pointer rounded border-[1.5px] px-2.5 py-1 text-[11px] font-semibold transition-colors"
-                    style={{
-                      borderColor: activeCats.has(cat.key) ? CAT_COLORS[cat.key] : '#E2E8F0',
-                      background: activeCats.has(cat.key) ? CAT_COLORS[cat.key] + '20' : 'white',
-                      color: activeCats.has(cat.key) ? CAT_COLORS[cat.key] : '#64748B',
-                    }}
-                  >
-                    {cat.label.split(' ')[0]}
-                  </button>
-                ))}
-              </div>
-
-              <ResponsiveContainer width="100%" height={240}>
-                <LineChart data={chartData} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
-                  <ReferenceArea y1={7} y2={10} fill="#059669" fillOpacity={0.05} />
-                  <ReferenceArea y1={4} y2={7} fill="#D97706" fillOpacity={0.05} />
-                  <ReferenceArea y1={1} y2={4} fill="#DC2626" fillOpacity={0.05} />
-                  <XAxis dataKey="label" tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} interval={period === 7 ? 0 : period === 14 ? 1 : 2} />
-                  <YAxis domain={[1, 10]} ticks={[1, 4, 7, 10]} tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <ReferenceLine y={7} stroke="#059669" strokeDasharray="3 3" strokeOpacity={0.35} />
-                  <ReferenceLine y={4} stroke="#DC2626" strokeDasharray="3 3" strokeOpacity={0.35} />
-                  <Tooltip
-                    contentStyle={{ background: '#0F172A', border: 'none', borderRadius: 6, color: 'white', fontSize: 11, padding: '8px 12px' }}
-                    formatter={(v, name) => [typeof v === 'number' ? formatScore(v) : v, CATEGORIES.find(c => c.key === name)?.label ?? name]}
-                  />
-                  {CATEGORIES.filter(c => activeCats.has(c.key)).map(cat => (
-                    <Line key={cat.key} dataKey={cat.key} stroke={CAT_COLORS[cat.key]} strokeWidth={1.5} dot={false} activeDot={{ r: 3 }} connectNulls={false} />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="mb-6">
+              <CategoryTrendGrid
+                rows={series.map(p => ({ key: p.date, label: p.label, scores: p.scores }))}
+                ariaPrefix="Trend för enheten"
+                summary={cats.ok ? cats.data : null}
+                summaryLabel={`snitt ${period} d`}
+              />
             </div>
 
             <SL>Svarsunderlag per dag</SL>
@@ -358,58 +289,19 @@ export default function LeaderDashboard({
               />
             ) : (
               <>
-                <div className="mb-4 rounded-md border border-slate-200 bg-white px-3 pb-3 pt-5">
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={comparison.series} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
-                      <ReferenceArea y1={7} y2={10} fill="#059669" fillOpacity={0.05} />
-                      <ReferenceArea y1={4} y2={7} fill="#D97706" fillOpacity={0.05} />
-                      <ReferenceArea y1={1} y2={4} fill="#DC2626" fillOpacity={0.05} />
-                      <XAxis dataKey="label" tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} interval={period === 7 ? 0 : period === 14 ? 1 : 2} />
-                      <YAxis domain={[1, 10]} ticks={[1, 4, 7, 10]} tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} />
-                      <ReferenceLine y={7} stroke="#059669" strokeDasharray="3 3" strokeOpacity={0.35} />
-                      <ReferenceLine y={4} stroke="#DC2626" strokeDasharray="3 3" strokeOpacity={0.35} />
-                      <Tooltip contentStyle={{ background: '#0F172A', border: 'none', borderRadius: 6, color: 'white', fontSize: 11, padding: '8px 12px' }} />
-                      {comparison.children.map((child, i) => (
-                        <Line key={child.id} dataKey={child.name} stroke={CHILD_COLORS[i % CHILD_COLORS.length]} strokeWidth={2} dot={false} activeDot={{ r: 3 }} connectNulls={false} />
-                      ))}
-                      <Legend wrapperStyle={{ fontSize: 11, color: '#64748B' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <div className="mb-6">
+                  <ComparisonGrid items={comparison.children} childLabel={childLabel} />
                 </div>
 
-                <SL>Profilanalys</SL>
-                <div className="mb-4 rounded-md border border-slate-200 bg-white px-3 pb-3 pt-4">
-                  <div className="mb-3 flex flex-wrap gap-1.5 pl-2">
-                    {CATEGORIES.map(cat => (
-                      <button
-                        key={cat.key}
-                        onClick={() => toggleRadarCat(cat.key)}
-                        aria-pressed={activeRadarCats.has(cat.key)}
-                        className="cursor-pointer rounded border-[1.5px] px-2.5 py-1 text-[11px] font-semibold transition-colors"
-                        style={{
-                          borderColor: activeRadarCats.has(cat.key) ? CAT_COLORS[cat.key] : '#E2E8F0',
-                          background: activeRadarCats.has(cat.key) ? CAT_COLORS[cat.key] + '20' : 'white',
-                          color: activeRadarCats.has(cat.key) ? CAT_COLORS[cat.key] : '#64748B',
-                        }}
-                      >
-                        {cat.label.split(' ')[0]}
-                      </button>
-                    ))}
-                  </div>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <RadarChart data={radarData}>
-                      <PolarGrid stroke="#E2E8F0" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748B', fontSize: 10 }} />
-                      {visibleChildren.map((child, i) => (
-                        <Radar key={child.id} name={child.name} dataKey={child.name}
-                          stroke={CHILD_COLORS[i % CHILD_COLORS.length]}
-                          fill={CHILD_COLORS[i % CHILD_COLORS.length]}
-                          fillOpacity={0.1} strokeWidth={1.5} />
-                      ))}
-                      <Tooltip contentStyle={{ background: '#0F172A', border: 'none', borderRadius: 6, color: 'white', fontSize: 11 }} />
-                      <Legend wrapperStyle={{ fontSize: 11, color: '#64748B' }} />
-                    </RadarChart>
-                  </ResponsiveContainer>
+                <SL>Jämför en {childLabel.replace(/er$/, '')} med hela enheten</SL>
+                <div className="mb-6">
+                  <ChildFocus
+                    items={comparison.children}
+                    childLabel={childLabel}
+                    comparisonSeries={comparison.series}
+                    unitSeries={series}
+                    unitCategories={cats}
+                  />
                 </div>
 
                 <SL>Rangordning</SL>
@@ -429,12 +321,10 @@ export default function LeaderDashboard({
                       {[...comparison.children]
                         .sort((a, b) => (b.overall ?? -1) - (a.overall ?? -1))
                         .map(child => {
-                          const idx = comparison.children.findIndex(c => c.id === child.id);
                           return (
                             <tr key={child.id} className="border-t border-slate-100">
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-2">
-                                  <span className="h-5 w-[3px] shrink-0 rounded" style={{ background: CHILD_COLORS[idx % CHILD_COLORS.length] }} />
                                   <span className="text-[14px] text-slate-600">{child.name}</span>
                                   {child.isDirect && (
                                     <span

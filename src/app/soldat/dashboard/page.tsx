@@ -4,7 +4,7 @@ import AppHeader from '@/components/AppHeader';
 import { generateSoldierAdvice } from '@/lib/advice';
 import { requireRole } from '@/lib/auth/guard';
 import { avgScore, type Category } from '@/lib/data';
-import { weekdayLabel } from '@/lib/date';
+import { serviceDateRange, weekdayLabel } from '@/lib/date';
 import {
   getOwnHistory,
   getOwnResponseFrequency,
@@ -40,15 +40,25 @@ export default async function SoldatDashboardPage() {
   const scores = toScores(today);
 
   /*
-   * Verklig historik ur databasen. Dagar utan incheckning finns helt enkelt
-   * inte med — grafen visar en lucka i stället för ett påhittat värde, vilket
-   * demons trendfunktioner gjorde.
+   * Verklig historik, en rad för VARJE dag — även dagar utan incheckning.
+   *
+   * Tidigare fanns bara dagar med svar med, och kommentaren här påstod att
+   * grafen då visade en lucka. Det gjorde den inte: en dag som saknas helt i
+   * datan finns inte att rita en lucka i. Linjen drogs rakt över den, dagen
+   * försvann ur axeln, och tiden trycktes ihop utan att det syntes. Nu är en
+   * tom dag null, och null blir en lucka.
    */
-  const chartData = history.map((row) => ({
-    day: weekdayLabel(row.serviceDate),
-    score: avgScore(toScores(row)),
-    date: row.serviceDate,
-  }));
+  const perDag = new Map(history.map((row) => [row.serviceDate, row]));
+  const chartData = serviceDateRange(HISTORY_DAYS).map((date) => {
+    const row = perDag.get(date);
+    const dagensScores = row ? toScores(row) : null;
+    return {
+      date,
+      day: weekdayLabel(date),
+      scores: dagensScores,
+      score: dagensScores ? avgScore(dagensScores) : null,
+    };
+  });
 
   return (
     <div className="flex min-h-dvh flex-col">

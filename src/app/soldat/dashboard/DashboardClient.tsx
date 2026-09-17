@@ -3,11 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Activity, Brain, Users, Moon, Utensils, Zap, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from 'recharts';
+import CategoryTrendGrid from '@/components/charts/CategoryTrendGrid';
+import ScoreTrendChart from '@/components/charts/ScoreTrendChart';
+import StatusBandLegend from '@/components/charts/StatusBandLegend';
 import StatusBadge from '@/components/StatusBadge';
 import { CATEGORIES, type Category, getStatus, statusColor, avgScore } from '@/lib/data';
 import { getSoldierTips } from '@/lib/advice';
 import SupportBlock from './SupportBlock';
+import { shortLabel } from '@/lib/date';
 import { formatScore } from '@/lib/format';
 
 const ICONS: Record<string, React.ReactNode> = {
@@ -22,8 +25,8 @@ const ICONS: Record<string, React.ReactNode> = {
 export interface DashboardProps {
   scores: Record<Category, number>;
   advice: string;
-  /** Verklig historik ur databasen, äldst först. Dagar utan svar saknas. */
-  chartData: Array<{ day: string; score: number; date: string }>;
+  /** En rad per dag de senaste fjorton dagarna, äldst först. Tom dag = null. */
+  chartData: Array<{ date: string; day: string; score: number | null; scores: Record<Category, number> | null }>;
   freq: { checkedIn: number; total: number; pct: number };
 }
 
@@ -36,12 +39,14 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
   const tips = getSoldierTips(scores);
 
   // Jämför snittet av de tre senaste dagarna mot de tre dessförinnan.
+  // Räknas på incheckningar, inte kalenderdagar: tomma dagar hoppas över.
+  const svar = chartData.filter((d): d is typeof d & { score: number } => d.score !== null);
   const trend = (() => {
-    const recent = chartData.slice(-3);
-    const prev = chartData.slice(-6, -3);
+    const recent = svar.slice(-3);
+    const prev = svar.slice(-6, -3);
     if (recent.length < 2 || prev.length < 2) return 'neutral';
 
-    const mean = (xs: typeof chartData) => xs.reduce((a, b) => a + b.score, 0) / xs.length;
+    const mean = (xs: typeof svar) => xs.reduce((a, b) => a + b.score, 0) / xs.length;
     const diff = mean(recent) - mean(prev);
     if (diff > 0.3) return 'up';
     if (diff < -0.3) return 'down';
@@ -160,14 +165,14 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
             </Link>
 
             {/* 14-day trend */}
-            {chartData.length >= 3 && (
+            {svar.length >= 3 && (
               <>
                 <SectionHeader label="Trend — 14 dagar" />
                 <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, padding: '20px 16px 16px', marginBottom: 16 }}>
                   <div style={{ display: 'flex', gap: 20, marginBottom: 16 }}>
                     <div>
                       <p style={{ color: '#64748B', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0, marginBottom: 2 }}>Senaste värde</p>
-                      <span style={{ color: '#0F172A', fontSize: 20, fontWeight: 700 }}>{chartData.length > 0 ? formatScore(chartData[chartData.length - 1].score) : ''}</span>
+                      <span style={{ color: '#0F172A', fontSize: 20, fontWeight: 700 }}>{svar.length > 0 ? formatScore(svar[svar.length - 1].score) : ''}</span>
                     </div>
                     <div>
                       <p style={{ color: '#64748B', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0, marginBottom: 2 }}>Riktning</p>
@@ -179,7 +184,14 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                       </div>
                     </div>
                   </div>
-                  <ZoneChart data={chartData} />
+                  <ScoreTrendChart
+                    data={chartData.map(d => ({ key: d.date, label: d.day, value: d.score }))}
+                    height={150}
+                    ariaLabel="Ditt mående de senaste fjorton dagarna"
+                  />
+                  <div style={{ marginTop: 6 }}>
+                    <StatusBandLegend />
+                  </div>
                 </div>
               </>
             )}
@@ -205,18 +217,28 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
               </p>
             </div>
 
-            <SectionHeader label="Mående över tid" />
-            <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, padding: '20px 16px 16px', marginBottom: 16 }}>
-              {chartData.length >= 2 ? (
-                <>
-                  <ZoneChart data={chartData} />
-                </>
-              ) : (
-                <p style={{ color: '#64748B', fontSize: 13, margin: 0, textAlign: 'center', padding: '20px 0' }}>
-                  Fler incheckningar behövs för att visa trend.
+            {/*
+              Här låg tidigare exakt samma kurva som på översikten. Nu visas
+              varje kategori för sig — det är den bilden som saknades: att det
+              är sömnen som dragit ner, inte allt.
+            */}
+            <SectionHeader label="Per kategori — 14 dagar" />
+            {svar.length >= 2 ? (
+              <div style={{ marginBottom: 16 }}>
+                <CategoryTrendGrid
+                  /* Datum, inte veckodagar: i de små graferna hamnar etiketterna
+                     en vecka isär, och "tors … tors" säger ingenting. */
+                  rows={chartData.map(d => ({ key: d.date, label: shortLabel(d.date), scores: d.scores }))}
+                  ariaPrefix="Din utveckling"
+                />
+              </div>
+            ) : (
+              <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, padding: '20px 16px', marginBottom: 16 }}>
+                <p style={{ color: '#64748B', fontSize: 13, margin: 0, textAlign: 'center' }}>
+                  Fler incheckningar behövs för att visa utvecklingen.
                 </p>
-              )}
-            </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -246,36 +268,5 @@ function SectionHeader({ label }: { label: string }) {
     <p style={{ color: '#64748B', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 8px 0' }}>
       {label}
     </p>
-  );
-}
-
-function ZoneChart({ data }: { data: Array<{ day: string; score: number }> }) {
-  return (
-    <>
-      <ResponsiveContainer width="100%" height={140}>
-        <LineChart data={data} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
-          <ReferenceArea y1={7} y2={10} fill="#059669" fillOpacity={0.07} />
-          <ReferenceArea y1={4} y2={7}  fill="#D97706" fillOpacity={0.07} />
-          <ReferenceArea y1={1} y2={4}  fill="#DC2626" fillOpacity={0.07} />
-          <XAxis dataKey="day" tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} />
-          <YAxis domain={[1, 10]} tick={{ fill: '#64748B', fontSize: 10 }} axisLine={false} tickLine={false} ticks={[1, 4, 7, 10]} />
-          <ReferenceLine y={7} stroke="#059669" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: 'GRÖNT', position: 'insideTopRight', fontSize: 8, fill: '#059669', fontWeight: 700 }} />
-          <ReferenceLine y={4} stroke="#DC2626" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: 'RÖTT', position: 'insideBottomRight', fontSize: 8, fill: '#DC2626', fontWeight: 700 }} />
-          <Tooltip
-            contentStyle={{ background: '#0F172A', border: 'none', borderRadius: 6, color: 'white', fontSize: 12, padding: '8px 12px' }}
-            formatter={(val) => [typeof val === 'number' ? formatScore(val) : val, 'Mående']}
-          />
-          <Line dataKey="score" stroke="#0F172A" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#0F172A' }} />
-        </LineChart>
-      </ResponsiveContainer>
-      <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-        {[['#059669', 'Grön ≥ 7'], ['#D97706', 'Gul 4–6'], ['#DC2626', 'Röd ≤ 3']].map(([color, label]) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: 10, height: 10, borderRadius: 2, background: color, opacity: 0.5 }} />
-            <span style={{ color: '#64748B', fontSize: 10 }}>{label}</span>
-          </div>
-        ))}
-      </div>
-    </>
   );
 }
