@@ -4,7 +4,8 @@ import { useActionState } from 'react';
 import { Check, LifeBuoy, Phone } from 'lucide-react';
 
 import { requestTalkAction, type TalkState } from '@/app/actions/support';
-import { NATIONAL_CONTACTS, UNIT_CONTACTS } from '@/lib/support';
+import type { Category } from '@/lib/data';
+import { supportPlan, type SupportContact } from '@/lib/support';
 
 /**
  * Visas när soldaten har minst ett rött värde.
@@ -14,13 +15,18 @@ import { NATIONAL_CONTACTS, UNIT_CONTACTS } from '@/lib/support';
  * syns för någon som kan hjälpa. Den här knappen är den vägen, och det är
  * soldaten själv som öppnar den.
  */
-export default function SupportBlock() {
+export default function SupportBlock({ red }: { red: Category[] }) {
   const [state, formAction, pending] = useActionState<TalkState, FormData>(
     requestTalkAction,
     {},
   );
 
-  const contacts = [...UNIT_CONTACTS, ...NATIONAL_CONTACTS];
+  /*
+   * Vilka kontakter som hamnar överst beror på vad som är rött. Beslutet ligger
+   * i supportPlan() i lib/support.ts, där det testas för alla kombinationer.
+   */
+  const plan = supportPlan(red);
+  if (!plan) return null;
 
   return (
     <div className="mb-4 rounded-md border border-slate-300 bg-white p-5">
@@ -31,35 +37,21 @@ export default function SupportBlock() {
         </h2>
       </div>
 
-      <p className="mb-4 text-sm leading-relaxed text-slate-600">
-        Några av dina värden är låga. Det är vanligare än du tror, och det finns
-        folk vars uppgift det är att hjälpa till.
-      </p>
+      <p className="mb-4 text-sm leading-relaxed text-slate-600">{plan.intro}</p>
 
       {/* Kontaktvägar som fungerar utan att gå via appen alls. */}
-      <ul className="mb-5 divide-y divide-slate-100 rounded border border-slate-200">
-        {contacts.map((c) => (
-          <li key={c.name} className="flex items-center justify-between gap-3 px-3 py-2.5">
-            <div className="min-w-0">
-              <p
-                className={`text-sm ${c.urgent ? 'font-semibold text-slate-900' : 'text-slate-700'}`}
-              >
-                {c.name}
-              </p>
-              <p className="text-xs text-slate-500">{c.detail}</p>
-            </div>
-            {c.phone && (
-              <a
-                href={`tel:${c.phone.replace(/\s/g, '')}`}
-                className="flex shrink-0 items-center gap-1.5 rounded bg-slate-100 px-2.5 py-1.5 font-mono text-sm text-slate-900 transition-colors hover:bg-slate-200"
-              >
-                <Phone size={12} aria-hidden />
-                {c.phone}
-              </a>
-            )}
-          </li>
-        ))}
-      </ul>
+      <ContactList contacts={plan.primary} />
+
+      {plan.secondary.length > 0 && (
+        <>
+          <p className="mb-2 mt-4 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">
+            {plan.secondaryLabel}
+          </p>
+          <ContactList contacts={plan.secondary} />
+        </>
+      )}
+
+      <div className="mb-5" />
 
       {state.sent ? (
         <div className="flex items-start gap-2 rounded border border-emerald-200 bg-emerald-50 px-3 py-3">
@@ -108,5 +100,31 @@ export default function SupportBlock() {
         </form>
       )}
     </div>
+  );
+}
+
+function ContactList({ contacts }: { contacts: SupportContact[] }) {
+  return (
+    <ul className="divide-y divide-slate-100 rounded border border-slate-200">
+      {contacts.map((c) => (
+        <li key={c.name} className="flex items-center justify-between gap-3 px-3 py-2.5">
+          <div className="min-w-0">
+            <p className={`text-sm ${c.urgent ? 'font-semibold text-slate-900' : 'text-slate-700'}`}>
+              {c.name}
+            </p>
+            <p className="text-xs text-slate-500">{c.detail}</p>
+          </div>
+          {c.phone && (
+            <a
+              href={`tel:${c.phone.replace(/\s/g, '')}`}
+              className="flex shrink-0 items-center gap-1.5 rounded bg-slate-100 px-2.5 py-1.5 font-mono text-sm text-slate-900 transition-colors hover:bg-slate-200"
+            >
+              <Phone size={12} aria-hidden />
+              {c.phone}
+            </a>
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }

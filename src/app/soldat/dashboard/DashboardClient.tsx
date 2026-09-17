@@ -51,8 +51,9 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
   // Sort categories worst first
   const sortedCats = [...CATEGORIES].sort((a, b) => scores[a.key] - scores[b.key]);
 
-  // Minst ett rött värde → visa stödvägar högst upp, före allt annat.
-  const hasRedValue = CATEGORIES.some(cat => getStatus(scores[cat.key]) === 'red');
+  // Minst ett rött värde → visa stödvägar högst upp, före allt annat. Vilka
+  // värden som är röda styr vilka kontakter som står först.
+  const redCategories = CATEGORIES.filter(cat => getStatus(scores[cat.key]) === 'red').map(cat => cat.key);
 
   return (
     <div style={{ flex: 1, background: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
@@ -80,7 +81,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
 
         {tab === 'overview' && (
           <>
-            {hasRedValue && <SupportBlock />}
+            {redCategories.length > 0 && <SupportBlock red={redCategories} />}
 
             {/* Top metrics row */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
