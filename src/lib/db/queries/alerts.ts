@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { sql } from 'drizzle-orm';
+import { and, eq, isNull, lt, sql } from 'drizzle-orm';
 
 import { CATEGORIES, getStatus } from '../../data';
 import { serviceDate, serviceDateDaysAgo } from '../../date';
@@ -108,11 +108,34 @@ async function raise(params: {
   body: string;
   serviceDate: string;
 }): Promise<void> {
+  const now = new Date().toISOString();
+
+  /*
+   * Ett nytt larm ersätter äldre olästa om samma enhet och sak.
+   *
+   * Utan det staplades de: plutonchefen såg "Pluton 1 ligger på kritisk nivå"
+   * en gång per dag tills varje notis kvitterats. Det senaste larmet beskriver
+   * läget; de tidigare säger samma sak med äldre siffror. Samtalsbegäran rörs
+   * aldrig — de är egen sort och handlar om en person, inte ett läge.
+   */
+  await db
+    .update(notifications)
+    .set({ readAt: now })
+    .where(
+      and(
+        eq(notifications.recipientUserId, params.recipientUserId),
+        eq(notifications.subjectUnitId, params.subjectUnitId),
+        eq(notifications.kind, params.kind),
+        isNull(notifications.readAt),
+        lt(notifications.serviceDate, params.serviceDate),
+      ),
+    );
+
   await db
     .insert(notifications)
     .values({
       ...params,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
     })
     // Unikindexet (mottagare, enhet, typ, dag) gör utvärderingen idempotent —
     // regeln kan köras hur många gånger som helst per dag utan dubbletter.

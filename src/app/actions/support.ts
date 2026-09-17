@@ -43,6 +43,7 @@ export async function requestTalkAction(
   }
 
   await createTalkRequest({
+    soldierUserId: user.id,
     soldierLabel: user.label,
     soldierUnitName: user.unitName,
     recipientUserId: leader.id,

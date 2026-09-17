@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import {
   sqliteTable,
   text,
@@ -134,7 +135,21 @@ export const notifications = sqliteTable(
     subjectUnitId: integer('subject_unit_id')
       .notNull()
       .references((): AnySQLiteColumn => units.id, { onDelete: 'cascade' }),
-    kind: text('kind', { enum: ['red_values', 'low_response'] }).notNull(),
+    kind: text('kind', { enum: ['red_values', 'low_response', 'talk_request'] }).notNull(),
+    /**
+     * Vem som bad om samtal. Bara satt för `talk_request`, aldrig för larm —
+     * larm handlar om enheter, aldrig om individer.
+     *
+     * Behövs av två skäl. Unikhetsvillkoret för samtalsbegäran måste gälla per
+     * person: med bara enheten slängdes den andra begäran från samma grupp
+     * samma dag tyst, medan hon fick beskedet att befälet visste. Och när
+     * personens konto raderas ska begäran — som nämner henne vid namn —
+     * försvinna med kontot.
+     */
+    requestedByUserId: integer('requested_by_user_id').references(
+      (): AnySQLiteColumn => users.id,
+      { onDelete: 'cascade' },
+    ),
     title: text('title').notNull(),
     body: text('body').notNull(),
     serviceDate: text('service_date').notNull(),
@@ -143,13 +158,16 @@ export const notifications = sqliteTable(
   },
   (t) => [
     index('notifications_recipient').on(t.recipientUserId, t.readAt),
-    // En notis per mottagare, enhet, typ och dag — hindrar dubbletter.
-    uniqueIndex('notifications_unique_per_day').on(
-      t.recipientUserId,
-      t.subjectUnitId,
-      t.kind,
-      t.serviceDate,
-    ),
+    // Larm: ett per mottagare, enhet, typ och dag — hindrar dubbletter när
+    // reglerna körs flera gånger samma dag.
+    uniqueIndex('notifications_unique_per_day')
+      .on(t.recipientUserId, t.subjectUnitId, t.kind, t.serviceDate)
+      .where(sql`kind <> 'talk_request'`),
+    // Samtalsbegäran: en per mottagare, PERSON och dag. Trycker samma person
+    // flera gånger blir det en notis; två olika personer krockar aldrig.
+    uniqueIndex('notifications_talk_per_day')
+      .on(t.recipientUserId, t.requestedByUserId, t.serviceDate)
+      .where(sql`kind = 'talk_request'`),
   ],
 );
 

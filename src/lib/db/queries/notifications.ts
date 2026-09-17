@@ -47,6 +47,7 @@ export async function findLeaderAbove(
  * personen svarat.
  */
 export async function createTalkRequest(params: {
+  soldierUserId: number;
   soldierLabel: string;
   soldierUnitName: string;
   recipientUserId: number;
@@ -59,13 +60,17 @@ export async function createTalkRequest(params: {
     .values({
       recipientUserId: params.recipientUserId,
       subjectUnitId: params.subjectUnitId,
-      kind: 'red_values',
+      // Egen sort, inte 'red_values'. Som larm delade den unikhetsvillkor med
+      // alla andra i samma grupp samma dag, och den andra begäran slängdes tyst.
+      kind: 'talk_request',
+      requestedByUserId: params.soldierUserId,
       title: 'En värnpliktig vill prata med dig',
       body: `${params.soldierLabel} i ${params.soldierUnitName} har begärt ett samtal. Ta kontakt så snart du kan.`,
       serviceDate: serviceDate(),
       createdAt: now,
     })
-    // Unikindexet hindrar dubbletter om soldaten trycker flera gånger samma dag.
+    // Unikhetsvillkoret gäller per PERSON och dag: trycker samma värnpliktig
+    // flera gånger blir det en notis, men två olika personer krockar aldrig.
     .onConflictDoNothing();
 }
 
