@@ -9,6 +9,7 @@
     "lint": "eslint",
     "aterstall-admin": "node scripts/aterstall-admin.mjs",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "rundtur": "node scripts/rundtur.mjs",
     "db:setup": "node --experimental-strip-types scripts/db-setup.mjs",
     "demo:uppdatera": "node --experimental-strip-types scripts/demo-uppdatera.mjs",
     "typecheck": "tsc --noEmit"

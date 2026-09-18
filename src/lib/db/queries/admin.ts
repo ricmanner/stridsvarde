@@ -225,6 +225,17 @@ export async function createUsers(
   if (!Number.isInteger(count) || count < 1 || count > 50) {
     return { ok: false, error: 'Antal måste vara mellan 1 och 50.' };
   }
+  /*
+   * Längden kontrollerades bara av formulärets maxLength, alltså inte alls:
+   * fältet går att ändra i webbläsaren och en Server Action är en vanlig POST.
+   * En benämning på 500 tecken sparades rakt in och gjorde listan oläslig.
+   */
+  const prefix = labelPrefix.trim();
+  if (prefix.length > MAX_LABEL) {
+    return { ok: false, error: `Benämningen får vara högst ${MAX_LABEL} tecken.` };
+  }
+  // Bara mellanslag är ingen benämning — då blev namnet "    09".
+  const grund = prefix || 'Värnpliktig';
   if (role === 'soldat' && unit.kind !== 'grupp' && unit.kind !== 'pluton') {
     return { ok: false, error: 'Soldater placeras i en grupp eller pluton.' };
   }
@@ -243,8 +254,8 @@ export async function createUsers(
     const code = generateCode();
     const label =
       role === 'soldat'
-        ? `${labelPrefix} ${String(startAt + i + 1).padStart(2, '0')}`
-        : labelPrefix;
+        ? `${grund} ${String(startAt + i + 1).padStart(2, '0')}`
+        : grund;
 
     await db.insert(users).values({
       codeHash: hashCode(code),

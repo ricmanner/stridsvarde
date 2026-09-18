@@ -41,6 +41,16 @@ export async function resolve(specifier, context, next) {
     if (existsSync(empty)) return { url: pathToFileURL(empty).href, shortCircuit: true };
   }
 
+  /*
+   * next/headers finns bara inne i en förfrågan. Testerna kör koden utanför
+   * en, så modulen byts mot en attrapp — annars går ingen modul som läser
+   * rubriker eller kakor att importera alls.
+   */
+  if (specifier === 'next/headers') {
+    const stub = path.join(SRC, '..', 'tests', 'attrapper', 'next-headers.mjs');
+    if (existsSync(stub)) return { url: pathToFileURL(stub).href, shortCircuit: true };
+  }
+
   // '@/lib/x' → <projekt>/src/lib/x
   if (specifier.startsWith('@/')) {
     const file = resolveFile(path.join(SRC, specifier.slice(2)));
