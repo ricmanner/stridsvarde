@@ -43,7 +43,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
   const svar = chartData.filter((d): d is typeof d & { score: number; scores: Record<Category, number> } => d.scores !== null);
   const trend = ownTrend(svar.map(d => d.scores));
 
-  // Sort categories worst first
+  // Sämsta värdet först: det är det man ska titta på.
   const sortedCats = [...CATEGORIES].sort((a, b) => scores[a.key] - scores[b.key]);
 
   // Minst ett rött värde → visa stödvägar högst upp, före allt annat. Vilka
@@ -216,18 +216,25 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
 
         {tab === 'history' && (
           <Panel id="history">
-            <SectionHeader label={`Din närvaro — senaste 14 dagarna`} />
-            <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, padding: 20, marginBottom: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <span style={{ color: '#64748B', fontSize: 13 }}>Registrerade incheckningar</span>
-                <span style={{ color: '#0F172A', fontSize: 20, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
-                  {freq.checkedIn}<span style={{ color: '#64748B', fontSize: 13, fontWeight: 400 }}> / {freq.total}</span>
+            <SectionHeader label="Din närvaro — senaste 14 dagarna" />
+            <div className="mb-4 rounded-md border border-slate-200 bg-white p-5">
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-[13px] text-slate-500">Registrerade incheckningar</span>
+                <span className="text-xl font-extrabold tabular-nums text-slate-900">
+                  {freq.checkedIn}<span className="text-[13px] font-normal text-slate-500"> / {freq.total}</span>
                 </span>
               </div>
-              <div style={{ height: 6, background: '#F1F5F9', borderRadius: 3, marginTop: 10 }}>
-                <div style={{ height: '100%', width: `${freq.pct}%`, background: freq.pct >= 70 ? '#059669' : freq.pct >= 40 ? '#D97706' : '#DC2626', borderRadius: 3, transition: 'width 0.3s' }} />
+              <div className="mt-2.5 h-1.5 rounded-[3px] bg-slate-100">
+                {/* Bredden och färgen kommer ur närvaron, därför inline. */}
+                <div
+                  className="h-full rounded-[3px] transition-[width] duration-300"
+                  style={{
+                    width: `${freq.pct}%`,
+                    background: freq.pct >= 70 ? '#059669' : freq.pct >= 40 ? '#D97706' : '#DC2626',
+                  }}
+                />
               </div>
-              <p style={{ color: '#64748B', fontSize: 12, marginTop: 8, marginBottom: 0 }}>
+              <p className="mt-2 text-xs text-slate-500">
                 {freq.pct >= 70 ? 'Bra närvaro — fortsätt så.' : freq.pct >= 40 ? 'Försök checka in dagligen.' : 'Lägre närvaro — befälet ser inga data.'}
               </p>
             </div>
@@ -239,7 +246,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
             */}
             <SectionHeader label="Per kategori — 14 dagar" />
             {svar.length >= 2 ? (
-              <div style={{ marginBottom: 16 }}>
+              <div className="mb-4">
                 <CategoryTrendGrid
                   /* Datum, inte veckodagar: i de små graferna hamnar etiketterna
                      en vecka isär, och "tors … tors" säger ingenting. */
@@ -248,8 +255,8 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                 />
               </div>
             ) : (
-              <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, padding: '20px 16px', marginBottom: 16 }}>
-                <p style={{ color: '#64748B', fontSize: 13, margin: 0, textAlign: 'center' }}>
+              <div className="mb-4 rounded-md border border-slate-200 bg-white px-4 py-5">
+                <p className="text-center text-[13px] text-slate-500">
                   Fler incheckningar behövs för att visa utvecklingen.
                 </p>
               </div>
