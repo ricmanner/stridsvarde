@@ -2,7 +2,7 @@ import { after } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 import { requireRole } from '@/lib/auth/guard';
-import { safeFilename, toCsv } from '@/lib/csv';
+import { safeFilename, scoreCell, toCsv } from '@/lib/csv';
 import { CATEGORIES } from '@/lib/data';
 import { serviceDate } from '@/lib/date';
 import { db } from '@/lib/db';
@@ -36,8 +36,8 @@ export async function GET(request: NextRequest) {
         p.date,
         p.responders,
         p.eligible,
-        ...CATEGORIES.map((c) => p.scores?.[c.key] ?? null),
-        p.overall,
+        ...CATEGORIES.map((c) => scoreCell(p.scores?.[c.key])),
+        scoreCell(p.overall),
       ]);
     }
   } else {
@@ -50,8 +50,8 @@ export async function GET(request: NextRequest) {
     for (const c of children) {
       rows.push([
         c.name, c.eligible, c.responders,
-        ...CATEGORIES.map((cat) => c.scores?.[cat.key] ?? null),
-        c.overall,
+        ...CATEGORIES.map((cat) => scoreCell(c.scores?.[cat.key])),
+        scoreCell(c.overall),
         c.overall === null ? null : c.green,
         c.overall === null ? null : c.yellow,
         c.overall === null ? null : c.red,

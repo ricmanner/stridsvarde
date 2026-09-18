@@ -1,0 +1,30 @@
+# Kör samma kontroller som före en driftsättning, vid varje push.
+#
+# Poängen är att de inte ska bero på att någon kommer ihåg dem. Går något av
+# stegen fel syns det på committen i GitHub, innan Vercel hunnit publicera.
+#
+# Bara den här grenen. main och pilot rörs inte.
+name: Kontroll
+
+on:
+  push:
+    branches: [v2-produktion]
+  pull_request:
+    branches: [v2-produktion]
+
+jobs:
+  kontroll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Typer
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npx eslint src tests
+      - name: Tester
+        run: npm test

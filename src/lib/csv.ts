@@ -8,6 +8,8 @@
  *  - CRLF som radbrytning
  */
 
+import { formatScore } from './format';
+
 const BOM = '﻿';
 const SEP = ';';
 const EOL = '\r\n';
@@ -38,6 +40,18 @@ export function toCsv(
 ): string {
   const lines = [headers.map(cell).join(SEP), ...rows.map((r) => r.map(cell).join(SEP))];
   return BOM + lines.join(EOL) + EOL;
+}
+
+/**
+ * Ett poängvärde till en cell.
+ *
+ * Aggregaten räknas med full precision — rätt för beräkningen, men i filen
+ * blev ett snitt "6,043478260869565". Befälet som öppnar den i Excel ska se
+ * samma siffra som i vyn: 6,0. Undanhållna värden blir tomma fält, inte
+ * nollor, eftersom en nolla skulle läsas som ett uselt resultat.
+ */
+export function scoreCell(value: number | null | undefined): string | null {
+  return value === null || value === undefined ? null : formatScore(value);
 }
 
 /** Filnamn utan tecken som strular i Windows eller macOS. */
