@@ -377,7 +377,7 @@ test('demons publicerade konton går inte att förstöra — men bara i demoläg
 
   const { hashCode } = await import('../src/lib/auth/codes.ts');
   const { PUBLICERADE_DEMOKODER } = await import('../src/lib/demo.ts');
-  const { reissueCode, canDeleteUser, setUserActive } = await import(
+  const { reissueCode, canDeleteUser, canErasePersonalData, setUserActive } = await import(
     '../src/lib/db/queries/admin.ts'
   );
 
@@ -411,6 +411,11 @@ test('demons publicerade konton går inte att förstöra — men bara i demoläg
       (await setUserActive(admin, publicerat, false)).ok,
       false,
       'spärr ska vägras',
+    );
+    assert.equal(
+      (await canErasePersonalData(publicerat)).ok,
+      false,
+      'att nolla hälsodatan ska vägras — annars står demon utan historik',
     );
 
     // Skyddet gäller de fem, inte administrationen i stort. Ett konto som

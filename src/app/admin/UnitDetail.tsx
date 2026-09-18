@@ -20,6 +20,7 @@ import {
   type RenameState,
   type UnitState,
 } from '@/app/actions/admin';
+import { kodnyckel, visaKodlapp } from '@/lib/kodlapp';
 import type { AdminUser, MoveTarget } from '@/lib/db/queries/admin';
 import { ROLE_LABEL, type Role } from '@/lib/roles';
 import { suggestChildName, type ChildKind } from '@/lib/unit-names';
@@ -62,7 +63,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
   const [eraseState, eraseFormAction, erasing] = useActionState<EraseState, FormData>(erasePersonalDataAction, {});
   const [renameState, renameFormAction] = useActionState<RenameState, FormData>(renameUserAction, {});
   const [deleteState, deleteFormAction] = useActionState<DeleteState, FormData>(deleteUserAction, {});
-  const [dismissed, setDismissed] = useState(0);
+  const [dismissed, setDismissed] = useState('');
   /** Raden vars benämning redigeras just nu, om någon. */
   const [editing, setEditing] = useState<number | null>(null);
   /** Om formuläret för värnpliktiga direkt på plutonen är utfällt. */
@@ -85,8 +86,8 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
 
   // Nyutfärdade koder från endera formuläret, tills de stängs.
   const fresh = reissueState.codes ?? codeState.codes;
-  const freshKey = (fresh ?? []).map((c) => c.code).join('|');
-  const showCodes = fresh && fresh.length > 0 && dismissed !== freshKey.length;
+  const freshKey = kodnyckel(fresh);
+  const showCodes = visaKodlapp(fresh, dismissed);
 
   return (
     <div>
@@ -98,7 +99,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
         <CodeSheet
           codes={fresh}
           unitName={codeState.unitName ?? unit.name}
-          onClose={() => setDismissed(freshKey.length)}
+          onClose={() => setDismissed(freshKey)}
         />
       )}
 

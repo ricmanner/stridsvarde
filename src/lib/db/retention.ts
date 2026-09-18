@@ -113,19 +113,30 @@ export async function purgeExpiredCheckIns(): Promise<number> {
  * Kontot och enhetstillhörigheten behålls — det är inte hälsodata och behövs
  * för att svarsfrekvensen ska bli rätt — men svaren försvinner.
  */
+/**
+ * Databasen, eller en pågående transaktion.
+ *
+ * Raderingen av hälsodata måste kunna ske i SAMMA transaktion som raderingen
+ * av kontot eller enheten. Gjordes den i ett eget steg före kunde ett avbrott
+ * däremellan lämna ett konto utan sin historik — och felmeddelandet såg ut
+ * som att ingenting hänt.
+ */
+export type Exec = Pick<typeof db, 'select' | 'insert' | 'delete'>;
+
 export async function erasePersonalData(
   actorUserId: number,
   userId: number,
+  exec: Exec = db,
 ): Promise<number> {
-  const [row] = await db
+  const [row] = await exec
     .select({ n: sql<number>`count(*)` })
     .from(checkIns)
     .where(eq(checkIns.userId, userId));
 
   const count = Number(row?.n ?? 0);
-  await db.delete(checkIns).where(eq(checkIns.userId, userId));
+  await exec.delete(checkIns).where(eq(checkIns.userId, userId));
 
-  await db.insert(auditLog).values({
+  await exec.insert(auditLog).values({
     actorUserId,
     action: 'retention.erase_person',
     detail: `${count} incheckningar raderade för användare ${userId}`,
@@ -148,19 +159,20 @@ export async function eraseCheckInsForUsers(
   actorUserId: number,
   userIds: readonly number[],
   unitName: string,
+  exec: Exec = db,
 ): Promise<number> {
   if (userIds.length === 0) return 0;
 
   const ids = [...userIds];
-  const [row] = await db
+  const [row] = await exec
     .select({ n: sql<number>`count(*)` })
     .from(checkIns)
     .where(inArray(checkIns.userId, ids));
 
   const count = Number(row?.n ?? 0);
-  await db.delete(checkIns).where(inArray(checkIns.userId, ids));
+  await exec.delete(checkIns).where(inArray(checkIns.userId, ids));
 
-  await db.insert(auditLog).values({
+  await exec.insert(auditLog).values({
     actorUserId,
     action: 'retention.erase_unit',
     detail: `${count} incheckningar raderade för ${ids.length} personer i ${unitName}`,

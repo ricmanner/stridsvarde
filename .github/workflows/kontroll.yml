@@ -28,3 +28,8 @@ jobs:
         run: npx eslint src tests
       - name: Tester
         run: npm test
+      # Bygget sist: det tar längst tid, och de snabba kontrollerna ska hinna
+      # svara först. Utan det här steget upptäcktes ett trasigt bygge först när
+      # Vercel försökte driftsätta — alltså efter att ändringen redan var pushad.
+      - name: Bygge
+        run: npm run build

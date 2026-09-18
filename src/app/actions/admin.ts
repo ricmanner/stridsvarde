@@ -7,11 +7,11 @@ import { requireRole } from '@/lib/auth/guard';
 import {
   createUnit,
   canDeleteUser,
+  canErasePersonalData,
   createUsers,
   deleteUnit,
   deleteUser,
   getUnitDeletion,
-  getUnitDeletionUserIds,
   moveUser,
   reissueCode,
   renameUser,
@@ -19,7 +19,7 @@ import {
   type IssuedCode,
   type UnitDeletion,
 } from '@/lib/db/queries/admin';
-import { eraseCheckInsForUsers, erasePersonalData } from '@/lib/db/retention';
+import { erasePersonalData } from '@/lib/db/retention';
 import type { Role } from '@/lib/roles';
 
 /*
@@ -149,6 +149,11 @@ export async function erasePersonalDataAction(
   const userId = Number(formData.get('userId'));
   if (!Number.isInteger(userId)) return { error: 'Välj en person.' };
 
+  // Samma skydd som radering och kodbyte: personen måste finnas, och demons
+  // publicerade konton får inte nollas av någon som loggat in med koden.
+  const tillaten = await canErasePersonalData(userId);
+  if (!tillaten.ok) return { error: tillaten.error };
+
   const erased = await erasePersonalData(admin.id, userId);
 
   revalidatePath('/admin');
@@ -207,10 +212,9 @@ export interface DeleteState {
 /**
  * Tar bort ett konto och personens rapporter.
  *
- * Två steg med flit. Hälsodatan går via erasePersonalData() i retention.ts,
- * som räknar och loggar posterna; själva kontot via deleteUser() i
- * queries/admin.ts, som strukturellt inte får röra check_ins. Ordningen
- * spelar roll: räkningen måste ske innan raden försvinner, eftersom
+ * Villkoren kontrolleras här, före allt annat. Själva raderingen — hälsodata,
+ * konto och båda raderna i granskningsloggen — sker i EN transaktion inne i
+ * deleteUser(). Räkningen måste ske innan kontot försvinner, eftersom
  * incheckningarna annars städas bort av databasens ON DELETE CASCADE och
  * granskningsloggen skulle säga noll.
  */
@@ -231,13 +235,12 @@ export async function deleteUserAction(
   const tillaten = await canDeleteUser(admin.id, userId);
   if (!tillaten.ok) return { error: tillaten.error };
 
-  const erased = await erasePersonalData(admin.id, userId);
-
+  // Hälsodatan raderas inne i deleteUser(), i samma transaktion som kontot.
   const result = await deleteUser(admin.id, userId);
   if (!result.ok) return { error: result.error };
 
   revalidatePath('/admin');
-  return { deleted: { label: result.label, erased } };
+  return { deleted: { label: result.label, erased: result.erased } };
 }
 
 /**
@@ -261,11 +264,10 @@ export interface DeleteUnitState {
 /**
  * Raderar en enhet med underenheter, personer och rapporter.
  *
- * ALLA kontroller görs innan hälsodatan raderas. Görs de efteråt kan
- * rapporterna vara borta när raderingen sedan nekas — exakt det fel som
- * först smög sig in när personer fick kunna raderas. Namnbekräftelsen
- * kontrolleras därför här, och igen i deleteUnit(): den första kontrollen
- * skyddar ordningen, den andra skyddar varje annan väg dit.
+ * ALLA kontroller görs innan något raderas, och själva raderingen sker i en
+ * enda transaktion inne i deleteUnit(). Namnbekräftelsen kontrolleras både
+ * här och där: den första kontrollen ger ett begripligt fel i formuläret,
+ * den andra skyddar varje annan väg dit.
  */
 export async function deleteUnitAction(
   _prev: DeleteUnitState,
@@ -286,12 +288,7 @@ export async function deleteUnitAction(
     return { error: `Skriv enhetens namn, ${d.name}, exakt för att bekräfta.` };
   }
 
-  await eraseCheckInsForUsers(
-    admin.id,
-    await getUnitDeletionUserIds(admin.id, unitId),
-    d.name,
-  );
-
+  // Hälsodatan raderas inne i deleteUnit(), i samma transaktion som enheten.
   const result = await deleteUnit(admin.id, unitId, confirmName);
   if (!result.ok) return { error: result.error };
 

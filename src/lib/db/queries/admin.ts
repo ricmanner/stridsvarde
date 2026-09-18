@@ -8,6 +8,7 @@ import { DEMOKONTO_SKYDDAT, PUBLICERADE_DEMOKODER } from '../../demo';
 import { ROLE_LABEL, type Role } from '../../roles';
 import { db } from '..';
 import { environment } from '../client';
+import { eraseCheckInsForUsers, erasePersonalData } from '../retention';
 import { auditLog, sessions, units, users } from '../schema';
 
 /*
@@ -512,6 +513,32 @@ export async function setUserActive(
  * Databasen städar resten: sessioner och notiser hänger på användarraden med
  * ON DELETE CASCADE och försvinner med den.
  */
+/**
+ * Får den här personens hälsodata raderas?
+ *
+ * Samma skydd som byt kod, spärra och radera redan har. Saknades här: en
+ * administratör kunde nolla historiken för ett av demons publicerade konton,
+ * vilket är precis vad skyddet finns för — koden står på inloggningssidan och
+ * vem som helst kan logga in med den.
+ */
+export async function canErasePersonalData(
+  userId: number,
+): Promise<{ ok: true; label: string } | { ok: false; error: string }> {
+  const [target] = await db
+    .select({ label: users.label })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!target) return { ok: false, error: 'Personen saknas.' };
+
+  if (await arPublicerattDemokonto(userId)) {
+    return { ok: false, error: DEMOKONTO_SKYDDAT };
+  }
+
+  return { ok: true, label: target.label };
+}
+
 export async function canDeleteUser(
   actorUserId: number,
   userId: number,
@@ -544,16 +571,32 @@ export async function canDeleteUser(
 export async function deleteUser(
   actorUserId: number,
   userId: number,
-): Promise<{ ok: true; label: string } | { ok: false; error: string }> {
+): Promise<{ ok: true; label: string; erased: number } | { ok: false; error: string }> {
   // Kontrolleras igen även om anroparen redan frågat. En raderad rad går inte
   // att ångra, och villkoren får inte hänga på att varje anropsväg minns dem.
   const tillaten = await canDeleteUser(actorUserId, userId);
   if (!tillaten.ok) return tillaten;
 
-  await db.delete(users).where(eq(users.id, userId));
+  /*
+   * Allt i EN transaktion: räkna och radera hälsodatan, ta bort kontot, och
+   * skriv båda raderna i granskningsloggen. Tidigare raderades hälsodatan i
+   * ett eget steg före det här anropet, och ett avbrott däremellan lämnade
+   * ett konto utan sin historik — eller ett felmeddelande som såg ut som att
+   * ingenting hänt fast rapporterna redan var borta.
+   */
+  const erased = await db.transaction(async (tx) => {
+    const n = await erasePersonalData(actorUserId, userId, tx);
+    await tx.delete(users).where(eq(users.id, userId));
+    await tx.insert(auditLog).values({
+      actorUserId,
+      action: 'user.delete',
+      detail: `${tillaten.role} ${userId}`,
+      createdAt: new Date().toISOString(),
+    });
+    return n;
+  });
 
-  await audit(actorUserId, 'user.delete', `${tillaten.role} ${userId}`);
-  return { ok: true, label: tillaten.label };
+  return { ok: true, label: tillaten.label, erased };
 }
 
 /**
@@ -687,7 +730,14 @@ export async function deleteUnit(
   unitId: number,
   confirmName: string,
 ): Promise<
-  | { ok: true; name: string; parentId: number | null; subunits: number; people: number }
+  | {
+      ok: true;
+      name: string;
+      parentId: number | null;
+      subunits: number;
+      people: number;
+      erased: number;
+    }
   | { ok: false; error: string }
 > {
   const d = await inspectUnitDeletion(actorUserId, unitId);
@@ -699,24 +749,34 @@ export async function deleteUnit(
     return { ok: false, error: `Skriv enhetens namn, ${d.name}, exakt för att bekräfta.` };
   }
 
-  await db.transaction(async (tx) => {
-    // Personerna först — databasen vägrar radera en enhet som någon tillhör.
+  const erased = await db.transaction(async (tx) => {
+    // Hälsodatan först, i samma transaktion — se kommentaren i deleteUser().
+    const n = await eraseCheckInsForUsers(actorUserId, d.userIds, d.name, tx);
+    // Personerna sedan — databasen vägrar radera en enhet som någon tillhör.
     if (d.userIds.length > 0) {
       await tx.delete(users).where(inArray(users.id, d.userIds));
     }
-    // Sedan enheterna, djupast först: en enhet med underenheter går inte att radera.
+    // Sist enheterna, djupast först: en enhet med underenheter går inte att radera.
     for (const id of d.unitIdsDeepestFirst) {
       await tx.delete(units).where(eq(units.id, id));
     }
+    await tx.insert(auditLog).values({
+      actorUserId,
+      action: 'unit.delete',
+      detail: `${d.name} med ${d.subunits} underenheter och ${d.people} personer`,
+      createdAt: new Date().toISOString(),
+    });
+    return n;
   });
 
-  await audit(
-    actorUserId,
-    'unit.delete',
-    `${d.name} med ${d.subunits} underenheter och ${d.people} personer`,
-  );
-
-  return { ok: true, name: d.name, parentId: d.parentId, subunits: d.subunits, people: d.people };
+  return {
+    ok: true,
+    name: d.name,
+    parentId: d.parentId,
+    subunits: d.subunits,
+    people: d.people,
+    erased,
+  };
 }
 
 /** Längsta tillåtna benämning. Samma gräns som vid skapandet av befäl. */
