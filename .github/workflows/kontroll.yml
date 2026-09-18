@@ -33,3 +33,31 @@ jobs:
       # Vercel försökte driftsätta — alltså efter att ändringen redan var pushad.
       - name: Bygge
         run: npm run build
+
+  # Webbläsartesterna i ett eget jobb: de tar några minuter och behöver en
+  # webbläsare, medan typer, lint och enhetstester svarar på under en minut.
+  # Delade de jobb skulle det snabba beskedet fastna bakom det långsamma.
+  webblasare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Hämta webbläsaren
+        run: npx playwright install --with-deps chromium
+      - name: Tester i webbläsare
+        run: npm run e2e
+        env:
+          CI: 'true'
+      - name: Spara spår vid fel
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-rapport
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

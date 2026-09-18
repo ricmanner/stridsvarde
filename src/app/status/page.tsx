@@ -150,12 +150,14 @@ function Row({
   hint?: string;
 }) {
   return (
+    // En rad i en beskrivningslista ska vara term och värde, inte två span:ar
+    // i en div — annars är listan inte en lista för den som lyssnar på den.
     <div className="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-3.5 last:border-b-0">
-      <div>
+      <dt>
         <span className="text-sm text-slate-700">{label}</span>
         {hint && <p className="text-xs text-slate-500">{hint}</p>}
-      </div>
-      <span className="text-lg font-bold tabular-nums text-slate-900">{value}</span>
+      </dt>
+      <dd className="m-0 text-lg font-bold tabular-nums text-slate-900">{value}</dd>
     </div>
   );
 }

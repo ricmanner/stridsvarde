@@ -251,7 +251,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
             </p>
           )}
 
-          {codeState.error && <p role="alert" className="mt-3 text-sm text-red-600">{codeState.error}</p>}
+          {codeState.error && <p role="alert" className="mt-3 text-sm text-red-700">{codeState.error}</p>}
         </section>
 
         {/* ── Ny underenhet ── */}
@@ -262,11 +262,17 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
             </h3>
             <form action={unitFormAction} className="flex flex-wrap items-end gap-2">
               <input type="hidden" name="parentId" value={unit.id} />
-              <input
-                name="name" required minLength={2} maxLength={60}
-                placeholder={suggestChildName(childKind, childNames)}
-                className="w-56 max-w-full rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
-              />
+              {/* Fältet hade bara en platshållare. Den försvinner när man
+                  börjar skriva, och en skärmläsare läser den inte som namnet
+                  på fältet — det här var enda fältet i vyn utan etikett. */}
+              <label className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold text-slate-500">Namn</span>
+                <input
+                  name="name" required minLength={2} maxLength={60}
+                  placeholder={suggestChildName(childKind, childNames)}
+                  className="w-56 max-w-full rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                />
+              </label>
               <button
                 type="submit" disabled={creatingUnit}
                 className="cursor-pointer rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
@@ -274,7 +280,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                 {creatingUnit ? 'Skapar…' : 'Skapa'}
               </button>
             </form>
-            {unitState.error && <p role="alert" className="mt-2 text-sm text-red-600">{unitState.error}</p>}
+            {unitState.error && <p role="alert" className="mt-2 text-sm text-red-700">{unitState.error}</p>}
             {unitState.created && <p className="mt-2 text-sm text-emerald-700">{unitState.created} skapad.</p>}
           </section>
         )}
@@ -375,7 +381,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                       </button>
                       {dupeLabels.has(m.label) && (
                         <span
-                          className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500"
+                          className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600"
                           title="Referensnummer — flera personer i enheten har samma namn"
                         >
                           #{m.id}
@@ -389,7 +395,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                     </span>
                   )}
                   {m.role !== 'soldat' && (
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600">
                       {ROLE_LABEL[m.role]}
                     </span>
                   )}
@@ -494,10 +500,10 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
             </div>
           )}
 
-          {reissueState.error && <p role="alert" className="mt-2 text-sm text-red-600">{reissueState.error}</p>}
-          {activeState.error && <p role="alert" className="mt-2 text-sm text-red-600">{activeState.error}</p>}
-          {renameState.error && <p role="alert" className="mt-2 text-sm text-red-600">{renameState.error}</p>}
-          {deleteState.error && <p role="alert" className="mt-2 text-sm text-red-600">{deleteState.error}</p>}
+          {reissueState.error && <p role="alert" className="mt-2 text-sm text-red-700">{reissueState.error}</p>}
+          {activeState.error && <p role="alert" className="mt-2 text-sm text-red-700">{activeState.error}</p>}
+          {renameState.error && <p role="alert" className="mt-2 text-sm text-red-700">{renameState.error}</p>}
+          {deleteState.error && <p role="alert" className="mt-2 text-sm text-red-700">{deleteState.error}</p>}
           {deleteState.deleted && (
             <p className="mt-2 text-sm text-slate-600">
               {deleteState.deleted.label} borttagen
@@ -556,7 +562,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                 {moving ? 'Flyttar…' : 'Flytta'}
               </button>
             </form>
-            {moveState.error && <p role="alert" className="mt-2 text-sm text-red-600">{moveState.error}</p>}
+            {moveState.error && <p role="alert" className="mt-2 text-sm text-red-700">{moveState.error}</p>}
             {moveState.moved && (
               <p className="mt-2 text-sm text-emerald-700">Flyttad till {moveState.moved}.</p>
             )}
@@ -611,7 +617,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                 {erasing ? 'Raderar…' : 'Radera svaren'}
               </button>
             </form>
-            {eraseState.error && <p role="alert" className="mt-2 text-sm text-red-600">{eraseState.error}</p>}
+            {eraseState.error && <p role="alert" className="mt-2 text-sm text-red-700">{eraseState.error}</p>}
             {eraseState.erased !== undefined && (
               <p className="mt-2 text-sm text-red-900">
                 {eraseState.erased} {eraseState.erased === 1 ? 'incheckning' : 'incheckningar'} raderade.

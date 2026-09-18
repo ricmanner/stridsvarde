@@ -1,4 +1,4 @@
-import { type Status, statusColor, statusBg, statusLabel } from '@/lib/data';
+import { type Status, statusTextColor, statusBg, statusLabel } from '@/lib/data';
 
 interface Props {
   status: Status;
@@ -21,7 +21,7 @@ export default function StatusBadge({ status, size = 'md' }: Props) {
   return (
     <span style={{
       background: statusBg(status),
-      color: statusColor(status),
+      color: statusTextColor(status),
       fontSize,
       fontWeight: 700,
       letterSpacing: '0.06em',

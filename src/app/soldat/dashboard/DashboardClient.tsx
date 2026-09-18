@@ -174,7 +174,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                       <p style={{ color: '#64748B', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0, marginBottom: 2 }}>Riktning</p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         {trend === 'up' ? <TrendingUp size={18} color="#059669" /> : trend === 'down' ? <TrendingDown size={18} color="#DC2626" /> : <Minus size={18} color="#D97706" />}
-                        <span style={{ fontSize: 13, color: trend === 'up' ? '#059669' : trend === 'down' ? '#DC2626' : '#D97706', fontWeight: 600 }}>
+                        <span style={{ fontSize: 13, color: trend === 'up' ? '#047857' : trend === 'down' ? '#B91C1C' : '#B45309', fontWeight: 600 }}>
                           {trend === 'up' ? 'Stigande' : trend === 'down' ? 'Sjunkande' : 'Stabil'}
                         </span>
                       </div>

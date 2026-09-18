@@ -69,12 +69,18 @@ Utelåst som administratör? `npm run aterstall-admin` ger en ny adminkod.
 npm run dev                        # utvecklingsserver
 npm run build && npm start         # skarpt bygge
 npm test                           # 104 tester, Nodes egen testkörare
+npm run e2e                        # 20 tester i en riktig webbläsare
 npm run typecheck                  # tsc --noEmit
 npx eslint src tests scripts       # lint
 npm run rundtur                    # klickar igenom appen som alla fem demokonton
 npm run db:setup                   # migrationer och seed
 npm run demo:uppdatera -- --utfor  # flyttar demodatan så historiken slutar idag
 ```
+
+**`npm run e2e`** öppnar appen i en webbläsare och går igenom flödena som
+varje roll: incheckningen steg för steg, befälets tre flikar, administratörens
+kodhantering — och granskar varje vy med axe mot WCAG 2.1 AA. Servern och en
+egen databas startas av testkörningen; din `data/psvi.db` rörs inte.
 
 **`npm run rundtur`** startar en webbläsare, loggar in som varje demokonto,
 öppnar varje sida och flik, och larmar om något går sönder — en tom vy, ett fel

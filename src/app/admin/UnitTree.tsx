@@ -29,9 +29,9 @@ import type { TreeNode, UnitKind } from '@/lib/db/queries/admin';
 /** Dämpad färg per nivå, så grupper och plutoner inte flyter ihop. */
 const KIND_STYLE: Record<UnitKind, { bar: string; text: string; kort: string }> = {
   bataljon: { bar: 'bg-slate-400', text: 'text-slate-500', kort: 'BAT' },
-  kompani: { bar: 'bg-sky-400', text: 'text-sky-600', kort: 'KOMP' },
-  pluton: { bar: 'bg-teal-400', text: 'text-teal-600', kort: 'PLUT' },
-  grupp: { bar: 'bg-amber-400', text: 'text-amber-600', kort: 'GRP' },
+  kompani: { bar: 'bg-sky-400', text: 'text-sky-700', kort: 'KOMP' },
+  pluton: { bar: 'bg-teal-400', text: 'text-teal-700', kort: 'PLUT' },
+  grupp: { bar: 'bg-amber-400', text: 'text-amber-700', kort: 'GRP' },
 };
 
 export default function UnitTree({

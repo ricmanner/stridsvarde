@@ -52,3 +52,9 @@ deno.lock
 
 # Vercel-länken (projekt-id). Skapas av `vercel link`.
 .vercel
+
+# webbläsartester
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

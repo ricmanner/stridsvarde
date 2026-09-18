@@ -44,7 +44,7 @@ export default function LoginForm({ expired }: { expired: boolean }) {
           <div
             id="code-error"
             role="alert"
-            className="mt-2 flex items-center gap-1.5 text-sm text-red-600"
+            className="mt-2 flex items-center gap-1.5 text-sm text-red-700"
           >
             <AlertCircle size={14} aria-hidden />
             <span>{state.error}</span>

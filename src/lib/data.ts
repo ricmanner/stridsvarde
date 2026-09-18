@@ -61,8 +61,26 @@ export function getStatus(score: number): Status {
   return 'red';
 }
 
+/**
+ * Statusfärgen för ytor: prickar, staplar, band bakom en kurva.
+ *
+ * Grafiska element behöver 3:1 mot sin omgivning. Text behöver 4,5:1, och de
+ * här tonerna klarar inte det — se statusTextColor().
+ */
 export function statusColor(s: Status): string {
   return s === 'green' ? '#059669' : s === 'yellow' ? '#D97706' : '#DC2626';
+}
+
+/**
+ * Statusfärgen för TEXT, mörkare än ytfärgen.
+ *
+ * Uppmätt av axe: gul text i #D97706 på sitt eget tonade fält gav 3,07 mot
+ * kravet 4,5, och grön 3,58. De här tonerna ligger mellan 4,6 och 6,5 mot vitt
+ * och mot alla tre tonade bakgrunder. Färgen är ändå aldrig ensam bärare av
+ * budskapet — märket innehåller ordet GRÖN, GUL eller RÖD.
+ */
+export function statusTextColor(s: Status): string {
+  return s === 'green' ? '#047857' : s === 'yellow' ? '#B45309' : '#B91C1C';
 }
 
 export function statusBg(s: Status): string {

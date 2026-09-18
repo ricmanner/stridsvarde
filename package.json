@@ -10,6 +10,7 @@
     "aterstall-admin": "node scripts/aterstall-admin.mjs",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "rundtur": "node scripts/rundtur.mjs",
+    "e2e": "playwright test",
     "db:setup": "node --experimental-strip-types scripts/db-setup.mjs",
     "demo:uppdatera": "node --experimental-strip-types scripts/demo-uppdatera.mjs",
     "typecheck": "tsc --noEmit"
@@ -25,6 +26,8 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

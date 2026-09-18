@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react';
 import { Activity, Brain, Users, Moon, Utensils, Zap, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import ScoreSlider from '@/components/ScoreSlider';
-import { CATEGORIES, type Category, getStatus, statusColor } from '@/lib/data';
+import { CATEGORIES, type Category, getStatus, statusTextColor } from '@/lib/data';
 import { submitCheckIn, type CheckInState } from '@/app/actions/checkin';
 import { formatScore } from '@/lib/format';
 
@@ -100,7 +100,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
     const cat = CATEGORIES[step - 1];
     const score = scores[cat.key];
     const status = getStatus(score);
-    const color = statusColor(status);
+    const color = statusTextColor(status);
     const progress = step / CATEGORIES.length;
 
     return (
@@ -160,8 +160,8 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
               onChange={v => setScores(prev => ({ ...prev, [cat.key]: v }))}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
-              <span style={{ color: '#DC2626', fontSize: 11, fontWeight: 600 }}>1 — Kritiskt</span>
-              <span style={{ color: '#059669', fontSize: 11, fontWeight: 600 }}>10 — Utmärkt</span>
+              <span style={{ color: '#B91C1C', fontSize: 11, fontWeight: 600 }}>1 — Kritiskt</span>
+              <span style={{ color: '#047857', fontSize: 11, fontWeight: 600 }}>10 — Utmärkt</span>
             </div>
           </div>
 
@@ -223,7 +223,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             </div>
             <div style={{
               background: statusBg2(overallStatus),
-              color: statusColor(overallStatus),
+              color: statusTextColor(overallStatus),
               fontSize: 12, fontWeight: 700, letterSpacing: '0.06em',
               padding: '6px 14px', borderRadius: 4,
             }}>
@@ -263,7 +263,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
                 <span style={{ color: '#0F172A', fontSize: 18, fontWeight: 700, fontVariantNumeric: 'tabular-nums', minWidth: 28, textAlign: 'right' }}>{s}</span>
                 <div style={{
                   background: st === 'green' ? '#ECFDF5' : st === 'yellow' ? '#FFFBEB' : '#FEF2F2',
-                  color: statusColor(st),
+                  color: statusTextColor(st),
                   fontSize: 10, fontWeight: 700, letterSpacing: '0.06em',
                   padding: '2px 7px', borderRadius: 3, minWidth: 40, textAlign: 'center',
                 }}>
@@ -284,7 +284,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
           ))}
 
           {state.error && (
-            <p role="alert" style={{ color: '#DC2626', fontSize: 13, marginTop: 0, marginBottom: 12, textAlign: 'center' }}>
+            <p role="alert" style={{ color: '#B91C1C', fontSize: 13, marginTop: 0, marginBottom: 12, textAlign: 'center' }}>
               {state.error}
             </p>
           )}

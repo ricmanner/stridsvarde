@@ -93,7 +93,7 @@ export default function SupportBlock({ red }: { red: Category[] }) {
           </p>
 
           {state.error && (
-            <p role="alert" className="mt-2 text-sm text-red-600">
+            <p role="alert" className="mt-2 text-sm text-red-700">
               {state.error}
             </p>
           )}

@@ -109,8 +109,8 @@ export default function LeaderDashboard({
 
           {alerts.length > 0 && (
             <div className="flex items-center gap-1.5 rounded border border-red-200 bg-red-50 px-2.5 py-1 sm:ml-auto">
-              <AlertTriangle size={13} className="text-red-600" aria-hidden />
-              <span className="text-[11px] font-bold text-red-600">
+              <AlertTriangle size={13} className="text-red-700" aria-hidden />
+              <span className="text-[11px] font-bold text-red-700">
                 {alerts.length} kategori{alerts.length > 1 ? 'er' : ''} i rött
               </span>
             </div>
@@ -164,9 +164,9 @@ export default function LeaderDashboard({
                         <div style={{ width: `${(d.red / total) * 100}%`, background: '#DC2626' }} />
                       </div>
                       <div className="flex gap-3 text-[11px]">
-                        <span className="font-semibold text-emerald-600">{d.green} <span className="font-normal text-slate-500">gröna</span></span>
-                        <span className="font-semibold text-amber-600">{d.yellow} <span className="font-normal text-slate-500">gula</span></span>
-                        <span className="font-semibold text-red-600">{d.red} <span className="font-normal text-slate-500">röda</span></span>
+                        <span className="font-semibold text-emerald-700">{d.green} <span className="font-normal text-slate-500">gröna</span></span>
+                        <span className="font-semibold text-amber-700">{d.yellow} <span className="font-normal text-slate-500">gula</span></span>
+                        <span className="font-semibold text-red-700">{d.red} <span className="font-normal text-slate-500">röda</span></span>
                       </div>
                     </div>
                   );
@@ -190,7 +190,7 @@ export default function LeaderDashboard({
                   <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3.5 sm:px-5">
                     {alerts.map((cat, i) => (
                       <div key={cat.key} className={`flex items-center gap-2.5 ${i > 0 ? 'mt-2' : ''}`}>
-                        <AlertTriangle size={14} className="shrink-0 text-red-600" aria-hidden />
+                        <AlertTriangle size={14} className="shrink-0 text-red-700" aria-hidden />
                         <span className="text-[13px] text-red-900">
                           <strong>{cat.label}</strong> understiger kritisk nivå — snitt{' '}
                           {formatScore(cats.data[cat.key])}
@@ -352,9 +352,9 @@ export default function LeaderDashboard({
                                 </td>
                               ) : (
                                 <>
-                                  <td className="px-4 py-3 text-center text-[13px] font-semibold text-emerald-600">{child.green}</td>
-                                  <td className="px-4 py-3 text-center text-[13px] font-semibold text-amber-600">{child.yellow}</td>
-                                  <td className="px-4 py-3 text-center text-[13px] font-semibold text-red-600">{child.red}</td>
+                                  <td className="px-4 py-3 text-center text-[13px] font-semibold text-emerald-700">{child.green}</td>
+                                  <td className="px-4 py-3 text-center text-[13px] font-semibold text-amber-700">{child.yellow}</td>
+                                  <td className="px-4 py-3 text-center text-[13px] font-semibold text-red-700">{child.red}</td>
                                   <td className="px-4 py-3 text-right text-[14px] font-bold tabular-nums text-slate-900">
                                     {formatScore(child.overall)}
                                   </td>
