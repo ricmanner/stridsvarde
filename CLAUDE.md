@@ -36,6 +36,37 @@ först; den beskriver arkitektur, kommandon och miljövariabler.
   person felsökningstid.
 - Svenska i kod, kommentarer, gränssnitt och tester. Engelska i commit-texter.
 
+## Regler som kostat tid att lära sig
+
+- **Ett tal och dess färg får aldrig säga emot varandra.** Aggregaten räknas
+  med full precision; `roundScore()` i `lib/data.ts` avrundar en gång, och
+  `getStatus()` bedömer det avrundade talet. Avrundas det två gånger visas
+  6,25 som 6,3, och ett snitt strax under 4 kan få rött märke intill en fyra.
+- **Statusfärgerna finns i två uppsättningar.** `statusColor()` för ytor
+  (prickar, staplar, band) som behöver 3:1, `statusTextColor()` för text som
+  behöver 4,5:1. Använd fel och sidan underkänns av axe.
+- **Grönt, gult och rött betyder status — aldrig kategori.** Kategorier ritas
+  i neutralt bläck eller blå accent (`components/charts/chart-theme.ts`).
+- **Radering av hälsodata sker i samma transaktion som raderingen av kontot
+  eller enheten.** Kontrollerna körs före. Avbryts något däremellan ska inget
+  vara borta.
+- **Utfärdade koder visas exakt en gång.** Logiken för kodlappen ligger i
+  `lib/kodlapp.ts` och jämför koderna, inte deras längd. Ett fel här låser ute
+  en värnpliktig permanent.
+- **Mät innan du optimerar.** Två av tre farhågor i genomgången var fel, och
+  en "förbättring" av befälsöversikten var 2,4 gånger långsammare.
+
+## Fallgropar i webbläsartesterna (e2e/)
+
+- Enhetsnamn måste vara unika inom föräldern, och databasen lever kvar mellan
+  körningar — använd `Date.now().toString(36)` i namnet.
+- Klick i enhetsträdet ritar om högra spalten. Vänta på `unit=`-adressen och
+  på rubriken innan du skriver i ett fält, annars försvinner texten.
+- Formulären fungerar innan sidan blivit interaktiv, men då visas inget
+  bekräftelsemeddelande. Kontrollera resultatet, inte meddelandet.
+- Byt aldrig kod på demons värnpliktiga i ett test: deras inloggning slutar
+  fungera för alla andra tester. Skapa egna personer.
+
 ## Innan något driftsätts
 
 ```bash

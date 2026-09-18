@@ -167,9 +167,59 @@ claude plugin install security-guidance@claude-plugins-official
 npm install -g typescript-language-server typescript
 ```
 
+## Kända problem och beslut
+
+**Vaktpostens schema startar inte.** Se avsnittet Drift ovan. Kör kontrollen
+för hand, eller lägg till en extern tjänst som pingar `/api/halsa`.
+
+**Driftsättningen kan dröja.** Normalt bygger Vercel inom en minut efter en
+push. Den 18 september 2026 tog det mellan 30 och 55 minuter — Vercel hade en
+driftstörning ("Elevated Errors Triggering Deployments"), medan
+Git-integrationen fungerade. Dröjer en driftsättning: kontrollera
+[vercel-status.com](https://www.vercel-status.com/) innan du felsöker något i
+projektet.
+
+**Schemat i den delade databasen uppdateras av en människa.** Efter en ny
+migration saknar demon de nya tabellerna och indexen tills en administratör
+trycker på **Uppdatera schemat** på `/status`. Sidan visar vad som fattas.
+Just nu saknar demon indexet `check_ins_date_user` — det märks först vid
+verklig datamängd.
+
+**Gallringen är avstängd.** `RETENTION_DAYS` är tom, alltså sparas hälsodata
+tills vidare. Hur länge de får sparas är ett beslut för Försvarsmaktens
+dataskyddsombud, inte för utvecklaren.
+
+**Inga säkerhetskopior mot Turso.** `backup.ts` kopierar bara en lokal fil.
+Före skarp drift behövs en lösning för fjärrdatabasen.
+
+**Återkopplingsvyn är skriven i inline-stilar.** `DashboardClient.tsx` väntar
+på samma omskrivning som incheckningen fick. Det blockerar responsiva
+brytpunkter i just den filen.
+
+**Förrådet är publikt.** Inga nycklar ligger i det — `.env` är utesluten — men
+källkoden är synlig för alla.
+
+## Beslut som är lätta att råka riva
+
+- **Statusfärgerna finns i två uppsättningar**: ljusare för ytor (3:1),
+  mörkare för text (4,5:1). Se `statusColor()` och `statusTextColor()`.
+- **Ett tal och dess färg bedöms på samma avrundade värde** (`roundScore()`).
+- **Grönt, gult och rött betyder status, aldrig kategori.** Kategorier ritas
+  neutralt — annars läses en grön linje som "bra" oavsett vad den visar.
+- **Spindeldiagrammet finns kvar på önskemål från en fysioterapeut.**
+- **Tröskeln för belastning och verksamhetsplanering är medvetet inte byggd** —
+  befälen är oense om den, och det är en verksamhetsfråga, inte en teknisk.
+- **Ingenting skickas till en utomstående tjänst**: felloggen ligger i appens
+  egen databas, och därför är till exempel Sentry medvetet bortvalt.
+
 ## Vad som återstår
 
-De viktigaste kvarvarande punkterna: tillgänglighet (WCAG 2.1 AA är ett
-lagkrav för offentlig verksamhet), automatiska tester för gränssnittet,
-prestanda vid verklig storlek — demon har 216 värnpliktiga, ett förband har
-tusentals — och ett beslut om `RETENTION_DAYS`.
+Av genomgången från 18 september 2026 är åtta av tio punkter gjorda. Kvar:
+
+1. Skriva om `DashboardClient.tsx` i Tailwind (incheckningen är klar).
+2. Besluta om `RETENTION_DAYS`, säkerhetskopior av Turso och
+   säkerhetsrubriker (CSP) inför skarp drift.
+
+Tillgängligheten är åtgärdad i första omgången — axe godkänner alla sidor mot
+WCAG 2.1 AA — men ett verktyg fångar bara ungefär en tredjedel av kraven.
+Resten kräver en människa med skärmläsare.
