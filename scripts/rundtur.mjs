@@ -19,6 +19,7 @@
  * och GET.
  */
 import { spawn } from 'node:child_process';
+import { createServer } from 'node:net';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -94,7 +95,12 @@ const anmark = (vad) => { brister.push(vad); console.log(`  ✗ ${vad}`); };
  * skickar tillbaka dem, precis som webbläsaren gör.
  */
 async function loggaIn(kod) {
-  const html = await (await fetch(BAS + '/')).text();
+  let html;
+  try {
+    html = await (await fetch(BAS + '/')).text();
+  } catch (fel) {
+    throw new Error(`nådde inte ${BAS} (${fel.message})`);
+  }
 
   // Fälten står HTML-kodade i sidan. Skickas de vidare som de är svarar
   // servern 500 — vilket såg ut som fel kod, men var fel avkodning.
@@ -126,167 +132,212 @@ async function loggaIn(kod) {
 
 // ── Webbläsaren ─────────────────────────────────────────────────────────────
 
+/**
+ * En ledig port, inte en fast.
+ *
+ * Med en fast port kraschade rundturen när en tidigare körnings webbläsare
+ * ännu inte hunnit släppa den — och ett verktyg som ibland slutar fungera
+ * litar man inte på när det är skarpt läge.
+ */
+async function ledigPort() {
+  return new Promise((res, rej) => {
+    const s2 = createServer();
+    s2.on('error', rej);
+    s2.listen(0, '127.0.0.1', () => {
+      const { port } = s2.address();
+      s2.close(() => res(port));
+    });
+  });
+}
+
+const PORT = await ledigPort();
 const profil = mkdtempSync(path.join(tmpdir(), 'psvi-rundtur-'));
 const chrome = spawn(CHROME, [
   '--headless=new',
-  '--remote-debugging-port=9333',
+  `--remote-debugging-port=${PORT}`,
   `--user-data-dir=${profil}`,
   '--no-first-run',
   'about:blank',
 ], { stdio: 'ignore' });
 
+/*
+ * Går webbläsaren inte att starta kommer felet som en händelse, inte som ett
+ * undantag — utan det här avslutades rundturen med en stackspårning i stället
+ * för ett svar på frågan.
+ */
+chrome.on('error', (fel) => {
+  console.error(
+    `\nKunde inte starta webbläsaren: ${fel.message}` +
+      `\nSökväg: ${CHROME}\nAnge en annan med CHROME_PATH=... npm run rundtur`,
+  );
+  rmSync(profil, { recursive: true, force: true });
+  process.exit(1);
+});
+
 async function anslut() {
   for (let i = 0; i < 40; i++) {
     try {
-      const mal = (await (await fetch('http://localhost:9333/json/list')).json())
+      const mal = (await (await fetch(`http://localhost:${PORT}/json/list`)).json())
         .find((t) => t.type === 'page');
       if (mal) return mal.webSocketDebuggerUrl;
     } catch { /* webbläsaren är inte uppe än */ }
     await vanta(250);
   }
-  throw new Error('webbläsaren startade inte');
+  throw new Error(
+    `webbläsaren startade inte. Sökväg: ${CHROME}\n` +
+      'Ange en annan med CHROME_PATH=... npm run rundtur',
+  );
 }
 
-const ws = new WebSocket(await anslut());
-await new Promise((r) => { ws.onopen = r; });
+let ws;
+try {
+  ws = new WebSocket(await anslut());
+  await new Promise((r) => { ws.onopen = r; });
 
-let id = 0;
-const vantande = new Map();
-let laddad = false;
-const felILoggen = [];
+  let id = 0;
+  const vantande = new Map();
+  let laddad = false;
+  const felILoggen = [];
 
-ws.onmessage = (e) => {
-  const m = JSON.parse(e.data);
-  if (m.id) vantande.get(m.id)?.(m);
-  else if (m.method === 'Page.loadEventFired') laddad = true;
-  else if (m.method === 'Runtime.exceptionThrown') {
-    felILoggen.push(m.params.exceptionDetails?.exception?.description ?? 'okänt fel');
-  } else if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') {
-    felILoggen.push(m.params.args?.map((a) => a.description ?? a.value).join(' ') ?? 'fel i konsolen');
-  }
-};
+  ws.onmessage = (e) => {
+    const m = JSON.parse(e.data);
+    if (m.id) vantande.get(m.id)?.(m);
+    else if (m.method === 'Page.loadEventFired') laddad = true;
+    else if (m.method === 'Runtime.exceptionThrown') {
+      felILoggen.push(m.params.exceptionDetails?.exception?.description ?? 'okänt fel');
+    } else if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') {
+      felILoggen.push(m.params.args?.map((a) => a.description ?? a.value).join(' ') ?? 'fel i konsolen');
+    }
+  };
 
-const cdp = (metod, params = {}) => {
-  const nr = ++id;
-  return new Promise((res, rej) => {
-    vantande.set(nr, (m) => (m.error ? rej(new Error(`${metod}: ${m.error.message}`)) : res(m.result)));
-    ws.send(JSON.stringify({ id: nr, method: metod, params }));
-  });
-};
-const js = async (uttryck) =>
-  (await cdp('Runtime.evaluate', { expression: uttryck, returnByValue: true })).result.value;
-
-await cdp('Emulation.setDeviceMetricsOverride', {
-  width: 1280, height: 900, deviceScaleFactor: 1, mobile: false,
-});
-await cdp('Page.enable');
-await cdp('Runtime.enable');
-await cdp('Network.enable');
-
-// ── Rundturen ───────────────────────────────────────────────────────────────
-
-const domän = new URL(BAS).hostname;
-
-for (const konto of KONTON) {
-  console.log(`\n${konto.roll} (${konto.kod})`);
-  let kaka;
-  try {
-    kaka = await loggaIn(konto.kod);
-    console.log('  ✓ inloggning');
-  } catch (fel) {
-    anmark(`${konto.roll}: ${fel.message}`);
-    continue;
-  }
-
-  for (const sida of konto.sidor) {
-    await cdp('Network.clearBrowserCookies');
-    await cdp('Network.setCookie', {
-      name: 'psvi_session', value: kaka, domain: domän, path: '/', httpOnly: true,
-      secure: BAS.startsWith('https'),
+  const cdp = (metod, params = {}) => {
+    const nr = ++id;
+    return new Promise((res, rej) => {
+      vantande.set(nr, (m) => (m.error ? rej(new Error(`${metod}: ${m.error.message}`)) : res(m.result)));
+      ws.send(JSON.stringify({ id: nr, method: metod, params }));
     });
+  };
+  const js = async (uttryck) =>
+    (await cdp('Runtime.evaluate', { expression: uttryck, returnByValue: true })).result.value;
 
-    felILoggen.length = 0;
-    laddad = false;
-    await cdp('Page.navigate', { url: BAS + sida.url });
-    for (let i = 0; i < 150 && !laddad; i++) await vanta(100);
-    await vanta(2500);
+  await cdp('Emulation.setDeviceMetricsOverride', {
+    width: 1280, height: 900, deviceScaleFactor: 1, mobile: false,
+  });
+  await cdp('Page.enable');
+  await cdp('Runtime.enable');
+  await cdp('Network.enable');
 
-    const vagen = await js('location.pathname');
-    if (vagen !== sida.url) {
-      anmark(`${konto.roll}: ${sida.url} hamnade på ${vagen}`);
+  // ── Rundturen ───────────────────────────────────────────────────────────────
+
+  const domän = new URL(BAS).hostname;
+
+  for (const konto of KONTON) {
+    console.log(`\n${konto.roll} (${konto.kod})`);
+    let kaka;
+    try {
+      kaka = await loggaIn(konto.kod);
+      console.log('  ✓ inloggning');
+    } catch (fel) {
+      anmark(`${konto.roll}: ${fel.message}`);
       continue;
     }
 
-    const flikar = ['(översikt)', ...sida.flikar];
-    for (const flik of flikar) {
-      if (flik !== '(översikt)') {
-        const klickat = await js(
-          `(() => { const k = [...document.querySelectorAll('button')]
-              .find(b => b.textContent.trim().toLowerCase() === ${JSON.stringify(flik.toLowerCase())});
-            if (!k) return false; k.click(); return true; })()`,
-        );
-        if (!klickat) { anmark(`${konto.roll}: fliken ${flik} saknas på ${sida.url}`); continue; }
-        await vanta(2500);
+    for (const sida of konto.sidor) {
+      await cdp('Network.clearBrowserCookies');
+      await cdp('Network.setCookie', {
+        name: 'psvi_session', value: kaka, domain: domän, path: '/', httpOnly: true,
+        secure: BAS.startsWith('https'),
+      });
+
+      felILoggen.length = 0;
+      laddad = false;
+      await cdp('Page.navigate', { url: BAS + sida.url });
+      for (let i = 0; i < 150 && !laddad; i++) await vanta(100);
+      await vanta(2500);
+
+      const vagen = await js('location.pathname');
+      if (vagen !== sida.url) {
+        anmark(`${konto.roll}: ${sida.url} hamnade på ${vagen}`);
+        continue;
       }
 
-      const text = await js('document.body.innerText');
-      /*
-       * Jämförs gemener och versaler var för sig missar kontrollen allt som
-       * står i en rubrik: webbläsaren återger versalisering från formatmallen,
-       * så "Enheter" kommer tillbaka som "ENHETER".
-       */
-      const sokbar = (text ?? '').toLowerCase();
-      const var_ = `${konto.roll}, ${sida.url}${flik === '(översikt)' ? '' : ` → ${flik}`}`;
-
-      if (!text || text.length < 80) { anmark(`${var_}: sidan är tom`); continue; }
-      for (const larm of LARMORD) {
-        if (larm.test(text)) anmark(`${var_}: innehåller ${larm.source}`);
-      }
-      if (flik === '(översikt)') {
-        for (const krav of sida.kraver) {
-          if (!sokbar.includes(krav.toLowerCase())) anmark(`${var_}: saknar "${krav}"`);
+      const flikar = ['(översikt)', ...sida.flikar];
+      for (const flik of flikar) {
+        if (flik !== '(översikt)') {
+          const klickat = await js(
+            `(() => { const k = [...document.querySelectorAll('button')]
+                .find(b => b.textContent.trim().toLowerCase() === ${JSON.stringify(flik.toLowerCase())});
+              if (!k) return false; k.click(); return true; })()`,
+          );
+          if (!klickat) { anmark(`${konto.roll}: fliken ${flik} saknas på ${sida.url}`); continue; }
+          await vanta(2500);
         }
+
+        const text = await js('document.body.innerText');
+        /*
+         * Jämförs gemener och versaler var för sig missar kontrollen allt som
+         * står i en rubrik: webbläsaren återger versalisering från formatmallen,
+         * så "Enheter" kommer tillbaka som "ENHETER".
+         */
+        const sokbar = (text ?? '').toLowerCase();
+        const var_ = `${konto.roll}, ${sida.url}${flik === '(översikt)' ? '' : ` → ${flik}`}`;
+
+        if (!text || text.length < 80) { anmark(`${var_}: sidan är tom`); continue; }
+        for (const larm of LARMORD) {
+          if (larm.test(text)) anmark(`${var_}: innehåller ${larm.source}`);
+        }
+        if (flik === '(översikt)') {
+          for (const krav of sida.kraver) {
+            if (!sokbar.includes(krav.toLowerCase())) anmark(`${var_}: saknar "${krav}"`);
+          }
+        }
+        // Befäl ska aldrig se en enskild persons benämning.
+        const befalsvy = ['/pluton', '/kompani', '/bataljon', '/rapport'].includes(sida.url);
+        if (befalsvy && /\b(värnpliktig|soldat)\s+\d{2}\b/.test(sokbar)) {
+          anmark(`${var_}: en enskild persons benämning syns i en befälsvy`);
+        }
+        if (felILoggen.length) {
+          anmark(`${var_}: fel i webbläsaren — ${felILoggen[0].split('\n')[0]}`);
+          felILoggen.length = 0;
+        }
+        console.log(`  ✓ ${sida.url}${flik === '(översikt)' ? '' : ` → ${flik}`}`);
       }
-      // Befäl ska aldrig se en enskild persons benämning.
-      const befalsvy = ['/pluton', '/kompani', '/bataljon', '/rapport'].includes(sida.url);
-      if (befalsvy && /\b(värnpliktig|soldat)\s+\d{2}\b/.test(sokbar)) {
-        anmark(`${var_}: en enskild persons benämning syns i en befälsvy`);
-      }
-      if (felILoggen.length) {
-        anmark(`${var_}: fel i webbläsaren — ${felILoggen[0].split('\n')[0]}`);
-        felILoggen.length = 0;
-      }
-      console.log(`  ✓ ${sida.url}${flik === '(översikt)' ? '' : ` → ${flik}`}`);
     }
   }
-}
 
-// Exporten: den enda vägen ut ur systemet, och lätt att glömma.
-try {
-  const kaka = await loggaIn('BEF-P1');
-  const csv = await (await fetch(`${BAS}/api/export?typ=dagar&period=7`, {
-    headers: { Cookie: `psvi_session=${kaka}` },
-  })).text();
-  const rader = csv.trim().split('\r\n');
-  if (rader.length < 2) anmark('exporten: filen innehåller inga rader');
-  else if (/\d+\.\d{3,}/.test(csv)) anmark('exporten: tal med full flyttalsprecision');
-  else console.log('\n  ✓ export (CSV)');
+  // Exporten: den enda vägen ut ur systemet, och lätt att glömma.
+  try {
+    const kaka = await loggaIn('BEF-P1');
+    const csv = await (await fetch(`${BAS}/api/export?typ=dagar&period=7`, {
+      headers: { Cookie: `psvi_session=${kaka}` },
+    })).text();
+    const rader = csv.trim().split('\r\n');
+    if (rader.length < 2) anmark('exporten: filen innehåller inga rader');
+    else if (/\d+\.\d{3,}/.test(csv)) anmark('exporten: tal med full flyttalsprecision');
+    else console.log('\n  ✓ export (CSV)');
+  } catch (fel) {
+    anmark(`exporten: ${fel.message}`);
+  }
+
+  // ── Utfall ──────────────────────────────────────────────────────────────────
+
+  if (brister.length) {
+    const { data } = await cdp('Page.captureScreenshot', { format: 'png' });
+    const bild = path.join(tmpdir(), `rundtur-fel-${Date.now()}.png`);
+    writeFileSync(bild, Buffer.from(data, 'base64'));
+    console.log(`\n${brister.length} brister. Sista sidan sparad: ${bild}`);
+  } else {
+    console.log(`\nAllt fungerade. ${BAS}`);
+  }
 } catch (fel) {
-  anmark(`exporten: ${fel.message}`);
+  // Ett verktyg som ska köras före en uppvisning ska säga vad som gick fel,
+  // inte skriva ut en stackspårning.
+  console.error(`\nRundturen kunde inte slutföras: ${fel.message}`);
+  brister.push(fel.message);
+} finally {
+  ws?.close();
+  chrome.kill();
+  rmSync(profil, { recursive: true, force: true });
 }
 
-// ── Utfall ──────────────────────────────────────────────────────────────────
-
-if (brister.length) {
-  const { data } = await cdp('Page.captureScreenshot', { format: 'png' });
-  const bild = path.join(tmpdir(), `rundtur-fel-${Date.now()}.png`);
-  writeFileSync(bild, Buffer.from(data, 'base64'));
-  console.log(`\n${brister.length} brister. Sista sidan sparad: ${bild}`);
-} else {
-  console.log(`\nAllt fungerade. ${BAS}`);
-}
-
-ws.close();
-chrome.kill();
-rmSync(profil, { recursive: true, force: true });
 process.exit(brister.length ? 1 : 0);
