@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Activity, Brain, Users, Moon, Utensils, Zap, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import CategoryIcon from '@/components/CategoryIcon';
 import CategoryTrendGrid from '@/components/charts/CategoryTrendGrid';
 import ScoreTrendChart from '@/components/charts/ScoreTrendChart';
 import StatusBandLegend from '@/components/charts/StatusBandLegend';
@@ -14,15 +15,6 @@ import { getSoldierTips } from '@/lib/advice';
 import SupportBlock from './SupportBlock';
 import { shortLabel } from '@/lib/date';
 import { formatScore } from '@/lib/format';
-
-const ICONS: Record<string, React.ReactNode> = {
-  Activity: <Activity size={16} strokeWidth={1.5} />,
-  Brain: <Brain size={16} strokeWidth={1.5} />,
-  Users: <Users size={16} strokeWidth={1.5} />,
-  Moon: <Moon size={16} strokeWidth={1.5} />,
-  Utensils: <Utensils size={16} strokeWidth={1.5} />,
-  Zap: <Zap size={16} strokeWidth={1.5} />,
-};
 
 export interface DashboardProps {
   scores: Record<Category, number>;
@@ -93,9 +85,9 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
               />
             </div>
 
-            {/* Category breakdown */}
+            {/* Dagens sex kategorier, sämst först */}
             <SectionHeader label="Kategorier — dagens rapport" />
-            <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, overflow: 'hidden', marginBottom: 16 }}>
+            <div className="mb-4 overflow-hidden rounded-md border border-slate-200 bg-white">
               {sortedCats.map((cat, i) => {
                 const s = scores[cat.key];
                 const st = getStatus(s);
@@ -108,18 +100,21 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                  */
                 const pct = (s / 10) * 100;
                 return (
-                  <div key={cat.key} style={{
-                    padding: '14px 20px',
-                    borderBottom: i < CATEGORIES.length - 1 ? '1px solid #F1F5F9' : 'none',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                      <div style={{ color: '#64748B' }}>{ICONS[cat.icon]}</div>
-                      <span style={{ color: '#475569', fontSize: 13, flex: 1 }}>{cat.label}</span>
-                      <span style={{ color: '#0F172A', fontSize: 16, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginRight: 8 }}>{s}</span>
+                  <div
+                    key={cat.key}
+                    className={`px-5 py-3.5 ${i < CATEGORIES.length - 1 ? 'border-b border-slate-100' : ''}`}
+                  >
+                    <div className="mb-2 flex items-center gap-2.5">
+                      <span className="text-slate-500">
+                        <CategoryIcon namn={cat.icon} size={16} />
+                      </span>
+                      <span className="flex-1 text-[13px] text-slate-600">{cat.label}</span>
+                      <span className="mr-2 text-base font-bold tabular-nums text-slate-900">{s}</span>
                       <StatusBadge status={st} size="sm" />
                     </div>
-                    <div style={{ height: 3, background: '#F1F5F9', borderRadius: 2 }}>
-                      <div style={{ height: '100%', width: `${pct}%`, background: col, borderRadius: 2 }} />
+                    <div className="h-[3px] rounded-xs bg-slate-100">
+                      {/* Bredden och färgen kommer ur värdet, därför inline. */}
+                      <div className="h-full rounded-xs" style={{ width: `${pct}%`, background: col }} />
                     </div>
                   </div>
                 );
