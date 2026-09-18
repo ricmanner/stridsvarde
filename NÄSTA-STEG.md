@@ -11,18 +11,14 @@ Demon på <https://fm-psvi-v2.vercel.app> kör senaste koden. 104 enhetstester
 och 20 webbläsartester är gröna, och GitHub kör dem vid varje push tillsammans
 med typkontroll, lint och bygge.
 
-Av genomgången den 18 september är åtta av tio punkter gjorda. De två som är
-kvar står nedan.
+Av genomgången den 18 september är nio av tio punkter gjorda. Hela appen är nu
+skriven i Tailwind: den värnpliktiges återkoppling var den sista vyn kvar, och
+av 47 inline-objekt återstår fyra som alla räknas fram ur ett värde. Den enda
+kvarvarande punkten står nedan.
 
 ## Att ta härnäst
 
-1. **Skriv om `src/app/soldat/dashboard/DashboardClient.tsx` i Tailwind.**
-   Incheckningen (`CheckinWizard.tsx`) är redan gjord och kan användas som
-   mall: layout och typografi i Tailwind, bara färger som räknas fram stannar
-   som inline-värden. Ta skärmbilder före och efter och jämför — det var så
-   incheckningen verifierades. Webbläsartesterna täcker vyn, så ett fel märks.
-
-2. **Besluten inför skarp drift**, som inte är tekniska utan verksamhetens:
+1. **Besluten inför skarp drift**, som inte är tekniska utan verksamhetens:
    lagringstid (`RETENTION_DAYS`), säkerhetskopior av Turso-databasen, och
    säkerhetsrubriker (CSP) i `next.config.ts`.
 
@@ -51,6 +47,13 @@ Sådant som såg ut som förbättringar och inte var det. Varje rad kostade tid.
   var femtonde minut eller varje timme, på ett halvt dygns försök, medan
   manuell start fungerar direkt. Allt annat är uteslutet: rätt standardgren,
   filen ligger på den, förrådet är varken kopia eller avstängt.
+- **`/soldat/dashboard` går inte att nå i demon utan att först checka in.**
+  Ingen av demons värnpliktiga har dagen besvarad i den driftsatta databasen,
+  så adressen svarar 307 mot `/soldat`. Ett skript som hämtar den och letar
+  efter något i återkopplingen får därför alltid incheckningens HTML, och
+  rapporterar att en driftsättning uteblivit fast den är ute. Vill man se att
+  rätt version ligger uppe: `vercel ls --meta githubCommitSha=$(git rev-parse HEAD)`
+  svarar på en sekund. Rundturen går av samma skäl aldrig in i återkopplingen.
 - **Dröjer en driftsättning — kolla <https://www.vercel-status.com/> först.**
   Den 18 september tog bygget 30–55 minuter under en störning hos Vercel,
   medan Git-integrationen fungerade. Inget var fel i projektet.
