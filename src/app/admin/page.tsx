@@ -1,5 +1,7 @@
 import { Building2, ShieldCheck, UserX, Users } from 'lucide-react';
 
+import Link from 'next/link';
+
 import AppHeader from '@/components/AppHeader';
 import { requireRole } from '@/lib/auth/guard';
 import {
@@ -124,6 +126,16 @@ export default async function AdminPage({
               uppgifterna får sparas ska beslutas av Försvarsmaktens dataskyddsombud.
             </p>
           )}
+          {/*
+            Statussidan gick bara att nå genom att kunna adressen utantill.
+            Den visar databasens läge, fel som servern fångat, och knappen som
+            lägger till tabeller och index som saknas.
+          */}
+          <p className="mt-2 text-xs">
+            <Link href="/status" className="font-semibold text-slate-700 underline underline-offset-2 hover:text-slate-900">
+              Systemstatus och databas
+            </Link>
+          </p>
         </div>
 
         {raderad && (

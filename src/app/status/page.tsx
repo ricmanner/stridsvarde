@@ -1,3 +1,6 @@
+import Link from 'next/link';
+
+import AppHeader from '@/components/AppHeader';
 import { requireRole } from '@/lib/auth/guard';
 import { dbStatus } from '@/lib/db';
 import { errorSummary, ERROR_RETENTION_DAYS, missingSchema } from '@/lib/db/queries/health';
@@ -9,7 +12,7 @@ export const dynamic = 'force-dynamic';
 export default async function StatusPage() {
   // Teknisk sida: avslöjar organisationens storlek och databasens sökväg på
   // disk. Inget hälsodata, men inget som ska vara läsbart för omvärlden heller.
-  await requireRole('admin');
+  const session = await requireRole('admin');
 
   let status: Awaited<ReturnType<typeof dbStatus>> | null = null;
   let error: string | null = null;
@@ -26,7 +29,19 @@ export default async function StatusPage() {
   }
 
   return (
-    <main id="innehall" className="mx-auto max-w-2xl px-5 py-10">
+    /*
+     * Sidhuvudet fanns inte här: den som hamnade på statussidan kunde varken
+     * gå tillbaka eller logga ut, och sidan gick bara att nå genom att kunna
+     * adressen utantill. Nu finns en länk hit från adminvyn.
+     */
+    <div className="flex min-h-dvh flex-col">
+      <AppHeader unit="Administration" label={session.label} role={session.role} />
+      <main id="innehall" className="mx-auto w-full max-w-2xl px-5 py-10">
+        <p className="mb-6 text-sm">
+          <Link href="/admin" className="text-slate-500 underline underline-offset-2 hover:text-slate-900">
+            ← Tillbaka till administrationen
+          </Link>
+        </p>
       <header className="mb-8">
         <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
           FM – PSVI
@@ -80,10 +95,15 @@ export default async function StatusPage() {
                 Databasen saknar {saknas.length === 1 ? 'en del' : 'delar'} av schemat
               </p>
               <p className="mt-1 text-xs text-amber-800">
-                Saknas: {saknas.join(', ')}. Utan felloggen sparas fel som servern fångar ingenstans;
-                utan indexen blir befälsvyerna långsammare när datamängden växer. Knappen lägger
-                till det som fattas. Ingenting befintligt ändras, och den går att trycka på flera
-                gånger utan att något händer en andra gång.
+                Saknas: {saknas.join(', ')}.{' '}
+                {saknas.includes('error_log')
+                  ? 'Utan felloggen sparas fel som servern fångar ingenstans. '
+                  : ''}
+                {saknas.some((x) => x.startsWith('check_ins'))
+                  ? 'Utan indexet blir befälsvyerna långsammare när datamängden växer. '
+                  : ''}
+                Knappen lägger till det som fattas. Ingenting befintligt ändras, och den går att
+                trycka på flera gånger utan att något händer en andra gång.
               </p>
               <form action={applySchemaAction} className="mt-3">
                 <button
@@ -136,7 +156,8 @@ export default async function StatusPage() {
           </p>
         </>
       ) : null}
-    </main>
+      </main>
+    </div>
   );
 }
 

@@ -115,10 +115,16 @@ test('en ny grupp dyker upp, och går att radera igen', async ({ page }) => {
   });
 });
 
-test('statussidan visar databasläge och fångade fel', async ({ page }) => {
-  await page.goto('/status');
+test('statussidan går att hitta, och visar databasläge och fångade fel', async ({ page }) => {
+  // Sidan gick bara att nå genom att kunna adressen utantill — administratören
+  // hittade den inte. Nu finns en länk från adminvyn, och en väg tillbaka.
+  await page.getByRole('link', { name: 'Systemstatus och databas' }).click();
+  await expect(page).toHaveURL(/\/status$/);
   const text = await synligText(page);
   expect(text).toContain('systemstatus');
   expect(text).toContain('fel som servern fångat');
   expect(text).not.toContain('kunde inte startas');
+
+  await page.getByRole('link', { name: /Tillbaka till administrationen/ }).click();
+  await expect(page).toHaveURL(/\/admin$/);
 });
