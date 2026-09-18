@@ -1,7 +1,7 @@
 import { requireRole } from '@/lib/auth/guard';
 import { dbStatus } from '@/lib/db';
-import { errorSummary, ERROR_RETENTION_DAYS } from '@/lib/db/queries/health';
-import { setupErrorLogAction } from '@/app/actions/admin';
+import { errorSummary, ERROR_RETENTION_DAYS, missingSchema } from '@/lib/db/queries/health';
+import { applySchemaAction } from '@/app/actions/admin';
 
 // Statussidan ska alltid visa verkligt läge, aldrig ett cachat.
 export const dynamic = 'force-dynamic';
@@ -15,10 +15,12 @@ export default async function StatusPage() {
   let error: string | null = null;
 
   let fel: Awaited<ReturnType<typeof errorSummary>> | null = null;
+  let saknas: string[] = [];
 
   try {
     status = await dbStatus();
     fel = await errorSummary(8);
+    saknas = await missingSchema();
   } catch (e) {
     error = e instanceof Error ? e.message : String(e);
   }
@@ -72,20 +74,23 @@ export default async function StatusPage() {
           <h2 className="mb-2 mt-8 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
             Fel som servern fångat
           </h2>
-          {fel && !fel.uppsatt ? (
+          {saknas.length > 0 ? (
             <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
-              <p className="text-sm font-semibold text-amber-900">Felloggen är inte uppsatt ännu</p>
+              <p className="text-sm font-semibold text-amber-900">
+                Databasen saknar {saknas.length === 1 ? 'en del' : 'delar'} av schemat
+              </p>
               <p className="mt-1 text-xs text-amber-800">
-                Tabellen saknas i den här databasen, så fel som servern fångar sparas ingenstans.
-                Knappen skapar den. Ingenting befintligt ändras, och den går att trycka på flera
+                Saknas: {saknas.join(', ')}. Utan felloggen sparas fel som servern fångar ingenstans;
+                utan indexen blir befälsvyerna långsammare när datamängden växer. Knappen lägger
+                till det som fattas. Ingenting befintligt ändras, och den går att trycka på flera
                 gånger utan att något händer en andra gång.
               </p>
-              <form action={setupErrorLogAction} className="mt-3">
+              <form action={applySchemaAction} className="mt-3">
                 <button
                   type="submit"
                   className="cursor-pointer rounded-md bg-slate-900 px-3.5 py-2 text-[13px] font-semibold text-white"
                 >
-                  Sätt upp felloggen
+                  Uppdatera schemat
                 </button>
               </form>
             </div>

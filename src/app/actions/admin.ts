@@ -305,16 +305,17 @@ export async function deleteUnitAction(
 }
 
 /**
- * Sätter upp felloggen i databasen.
+ * Lägger till tabeller och index som saknas i databasen.
  *
- * Syns bara på statussidan, och bara när tabellen saknas. Kan köras hur många
- * gånger som helst — satserna skapar bara det som inte redan finns.
+ * Syns på statussidan, och bara när något faktiskt saknas. Kan köras hur många
+ * gånger som helst — satserna skapar bara det som inte redan finns, och rör
+ * aldrig befintliga rader.
  */
-export async function setupErrorLogAction(): Promise<void> {
+export async function applySchemaAction(): Promise<void> {
   const admin = await requireRole('admin');
 
-  const { ensureErrorLogTable } = await import('@/lib/db/queries/health');
-  await ensureErrorLogTable(admin.id);
+  const { applySchema } = await import('@/lib/db/queries/health');
+  await applySchema(admin.id);
 
   revalidatePath('/status');
 }

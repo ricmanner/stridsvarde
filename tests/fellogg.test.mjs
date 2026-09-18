@@ -113,42 +113,54 @@ test('hälsokontrollen svarar utan att avslöja något om innehållet', async ()
   assert.deepEqual(Object.keys(svar).sort(), ['miljo', 'ok', 'tid']);
 });
 
-test('knappen på statussidan skapar samma tabell som migrationen', async () => {
+test('knappen på statussidan lägger till exakt det migrationerna gör', async () => {
   const { createClient } = await import('@libsql/client');
-  const { mkdtempSync } = await import('node:fs');
+  const { mkdtempSync, readFileSync, readdirSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
-  const { readFileSync } = await import('node:fs');
   const path = await import('node:path');
 
-  const { ERROR_LOG_DDL } = await import('../src/lib/db/queries/health.ts');
+  const { SCHEMA_DDL } = await import('../src/lib/db/queries/health.ts');
 
   /*
-   * Satserna i koden och i migrationen måste ge samma tabell. Annars får en
-   * databas som satts upp med knappen ett annat schema än en som migrerats,
-   * och skillnaden märks först när något går fel.
+   * Knappen är en andra väg in i schemat vid sidan av migrationerna. Glider de
+   * isär får en databas som satts upp med knappen ett annat schema än en som
+   * migrerats, och skillnaden märks först när något går fel.
    */
-  const migration = readFileSync(path.join(process.cwd(), 'drizzle', '0002_fellogg.sql'), 'utf8');
-
   const normalisera = (t) =>
-    t.replace(/IF NOT EXISTS /gi, '').replace(/\s+/g, ' ').replace(/;\s*$/, '').trim();
+    t
+      .replace(/IF NOT EXISTS /gi, '')
+      .replace(/\s+/g, ' ')
+      .replace(/;\s*$/, '')
+      .trim();
 
-  const franMigration = migration
-    .split('--> statement-breakpoint')
-    .map(normalisera)
-    .filter(Boolean);
-  const franKoden = ERROR_LOG_DDL.map(normalisera);
+  const migrationer = readdirSync(path.join(process.cwd(), 'drizzle'))
+    .filter((f) => f.endsWith('.sql'))
+    .sort()
+    .slice(2) // 0000 och 0001 är grundschemat, inte tillägg i efterhand
+    .flatMap((f) =>
+      readFileSync(path.join(process.cwd(), 'drizzle', f), 'utf8')
+        .split('--> statement-breakpoint')
+        .map(normalisera)
+        .filter(Boolean),
+    );
 
-  assert.deepEqual(franKoden, franMigration, 'knappens SQL har glidit isär från migrationen');
+  assert.deepEqual(
+    SCHEMA_DDL.map((d) => normalisera(d.ddl)),
+    migrationer,
+    'knappens SQL har glidit isär från migrationerna',
+  );
 
-  // Och den ska faktiskt gå att köra mot en tom databas, två gånger i rad.
+  // Och den ska gå att köra mot en tom databas, två gånger i rad.
   const dir = mkdtempSync(path.join(tmpdir(), 'psvi-ddl-'));
   const klient = createClient({ url: `file:${path.join(dir, 'tom.db')}` });
+  await klient.execute(
+    'CREATE TABLE check_ins (user_id integer, service_date text)',
+  ); // indexet behöver sin tabell
   for (const runda of [1, 2]) {
-    for (const sats of ERROR_LOG_DDL) {
-      await klient.execute(sats);
-    }
+    for (const d of SCHEMA_DDL) await klient.execute(d.ddl);
     assert.ok(runda, 'andra körningen får inte kasta');
   }
+
   await klient.execute({
     sql: 'INSERT INTO error_log (path, message, created_at) VALUES (?,?,?)',
     args: ['/x', 'fel', new Date().toISOString()],
@@ -159,7 +171,7 @@ test('knappen på statussidan skapar samma tabell som migrationen', async () => 
 
 test('utan tabellen kraschar ingenting — statussidan säger bara att loggen saknas', async () => {
   const { client } = await database();
-  const { errorSummary, purgeOldErrors, logError, ERROR_LOG_DDL } = await import(
+  const { errorSummary, purgeOldErrors, logError, SCHEMA_DDL } = await import(
     '../src/lib/db/queries/health.ts'
   );
 
@@ -178,6 +190,6 @@ test('utan tabellen kraschar ingenting — statussidan säger bara att loggen sa
     assert.equal(s.uppsatt, false, 'statussidan får veta att loggen inte är uppsatt');
     assert.deepEqual(s.rader, []);
   } finally {
-    for (const sats of ERROR_LOG_DDL) await client.execute(sats);
+    for (const d of SCHEMA_DDL) await client.execute(d.ddl);
   }
 });

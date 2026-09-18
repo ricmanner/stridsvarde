@@ -1,0 +1,1 @@
+CREATE INDEX `check_ins_date_user` ON `check_ins` (`service_date`,`user_id`);

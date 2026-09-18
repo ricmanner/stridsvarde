@@ -53,18 +53,22 @@ export async function retentionStatus(): Promise<RetentionStatus> {
   const days = retentionDays();
 
   /*
-   * Äldsta uppgiften och antalet som ska gallras hämtas i SAMMA fråga.
-   * Det var två anrop efter varandra över nätet för två tal ur samma tabell.
+   * Ett anrop, men två frågor inuti — och båda går via datumindexet.
+   *
+   * Formuleringen var tidigare `sum(CASE WHEN service_date < ...)`, vilket
+   * tvingar databasen att läsa varje rad. Rutan räknas om vid varje laddning
+   * av adminsidan, och mätt mot ett års historik för 5 000 värnpliktiga tog
+   * den 1,9 sekunder. Som två indexerade delfrågor blir det millisekunder,
+   * utan att det blir fler resor över nätet.
    */
   const cutoff = days === null ? null : serviceDateDaysAgo(days);
 
   const [row] = (await db.all(sql`
     SELECT
-      min(service_date) AS oldest,
+      (SELECT min(service_date) FROM check_ins) AS oldest,
       ${cutoff === null
         ? sql`0`
-        : sql`sum(CASE WHEN service_date < ${cutoff} THEN 1 ELSE 0 END)`} AS affected
-    FROM check_ins
+        : sql`(SELECT count(*) FROM check_ins WHERE service_date < ${cutoff})`} AS affected
   `)) as Record<string, string | number | null>[];
 
   const oldest = (row?.oldest as string | null) ?? null;

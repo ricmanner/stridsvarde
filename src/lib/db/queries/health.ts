@@ -142,18 +142,23 @@ async function purge(): Promise<number> {
 }
 
 /**
- * Skapar felloggens tabell om den saknas.
+ * Schemaändringar som går att lägga till i efterhand, utan risk.
  *
- * Mot en delad databas ändras schemat som ett eget beslut, inte som en
- * bieffekt av att en server startade. Därför sitter det här bakom en knapp
- * på statussidan som bara en administratör ser: en människa fattar beslutet,
- * men ingen behöver ett kommandoradsverktyg för att göra det.
+ * Mot en delad databas körs migrationer inte vid serverstart — schemat ska
+ * ändras som ett beslut, inte som en bieffekt av att en funktion kallstartade.
+ * Men den som bestämmer ska inte behöva ett kommandoradsverktyg. Därför den
+ * här listan, som statussidan kan lägga till bakom en knapp.
  *
- * Satserna är ordagrant desamma som i drizzle/0002_fellogg.sql. Ett test
- * jämför dem, så att en framtida ändring av migrationen inte glömmer den här.
+ * Bara sådant som är ofarligt att köra om och som inte rör befintliga rader:
+ * nya tabeller och nya index. Allt annat hör hemma i `npm run db:setup`.
+ *
+ * Satserna motsvarar migrationerna i drizzle/ ord för ord. Ett test jämför
+ * dem, så att en framtida migration inte glöms bort här.
  */
-export const ERROR_LOG_DDL = [
-  `CREATE TABLE IF NOT EXISTS \`error_log\` (
+export const SCHEMA_DDL: Array<{ objekt: string; ddl: string }> = [
+  {
+    objekt: 'error_log',
+    ddl: `CREATE TABLE IF NOT EXISTS \`error_log\` (
 	\`id\` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	\`path\` text NOT NULL,
 	\`route_type\` text,
@@ -161,19 +166,40 @@ export const ERROR_LOG_DDL = [
 	\`message\` text NOT NULL,
 	\`created_at\` text NOT NULL
 )`,
-  'CREATE INDEX IF NOT EXISTS `error_created` ON `error_log` (`created_at`)',
+  },
+  {
+    objekt: 'error_created',
+    ddl: 'CREATE INDEX IF NOT EXISTS `error_created` ON `error_log` (`created_at`)',
+  },
+  {
+    objekt: 'check_ins_date_user',
+    ddl: 'CREATE INDEX IF NOT EXISTS `check_ins_date_user` ON `check_ins` (`service_date`,`user_id`)',
+  },
 ];
 
-export async function ensureErrorLogTable(actorUserId: number): Promise<void> {
-  for (const sats of ERROR_LOG_DDL) await db.run(sql.raw(sats));
+/** Vad av ovanstående som ännu inte finns i databasen. */
+export async function missingSchema(): Promise<string[]> {
+  const rader = (await db.all(
+    sql`SELECT name FROM sqlite_master WHERE type IN ('table', 'index')`,
+  )) as Array<{ name: string }>;
+  const finns = new Set(rader.map((r) => r.name));
+  return SCHEMA_DDL.filter((d) => !finns.has(d.objekt)).map((d) => d.objekt);
+}
+
+/** Lägger till det som saknas. Går att köra hur många gånger som helst. */
+export async function applySchema(actorUserId: number): Promise<string[]> {
+  const saknas = await missingSchema();
+  for (const d of SCHEMA_DDL) await db.run(sql.raw(d.ddl));
 
   // Att ändra en delad databas är ett beslut, och beslut loggas.
   await db.insert(auditLog).values({
     actorUserId,
-    action: 'errorlog.setup',
-    detail: null,
+    action: 'schema.apply',
+    detail: saknas.length > 0 ? saknas.join(', ') : 'inget saknades',
     createdAt: new Date().toISOString(),
   });
+
+  return saknas;
 }
 
 export interface Health {
