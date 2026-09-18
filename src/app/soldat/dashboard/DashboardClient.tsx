@@ -78,8 +78,8 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
           <Panel id="overview">
             {redCategories.length > 0 && <SupportBlock red={redCategories} />}
 
-            {/* Top metrics row */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+            {/* Dagens två nyckeltal */}
+            <div className="mb-4 grid grid-cols-2 gap-2.5">
               <MetricCard
                 label="Hälsostatus idag"
                 value={formatScore(overall)}
@@ -89,7 +89,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
               <MetricCard
                 label="Svarsfrekvens (14 dagar)"
                 value={`${freq.pct}%`}
-                sub={<span style={{ color: '#64748B', fontSize: 12 }}>{freq.checkedIn} av {freq.total} dagar</span>}
+                sub={<span className="text-xs text-slate-500">{freq.checkedIn} av {freq.total} dagar</span>}
               />
             </div>
 
