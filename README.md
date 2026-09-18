@@ -68,7 +68,7 @@ Utelåst som administratör? `npm run aterstall-admin` ger en ny adminkod.
 ```bash
 npm run dev                        # utvecklingsserver
 npm run build && npm start         # skarpt bygge
-npm test                           # 98 tester, Nodes egen testkörare
+npm test                           # 104 tester, Nodes egen testkörare
 npm run typecheck                  # tsc --noEmit
 npx eslint src tests scripts       # lint
 npm run rundtur                    # klickar igenom appen som alla fem demokonton
@@ -94,7 +94,7 @@ src/lib/
   db/queries/       all SQL. admin.ts rör aldrig check_ins
   db/schema.ts      tabellerna. Migrationer i drizzle/
   privacy.ts        k-anonymitetens tröskel och de tillåtna perioderna
-tests/              98 tester mot en riktig databas byggd ur migrationerna
+tests/              104 tester mot en riktig databas byggd ur migrationerna
 scripts/            engångs- och driftskommandon
 ```
 
@@ -121,10 +121,35 @@ före driftsättning.
 
 Vercel bygger och driftsätter grenen `v2-produktion` automatiskt. Vid varje
 push kör GitHub typkontroll, lint, tester och bygge
-(`.github/workflows/kontroll.yml`), och var femtonde minut frågar en vaktpost
-om appen lever (`vakt.yml`). Fel som servern fångar hamnar i appens egen
+(`.github/workflows/kontroll.yml`), och varje timme frågar en vaktpost om
+appen lever (`vakt.yml`). Fel som servern fångar hamnar i appens egen
 databas och visas för administratören på `/status` — ingenting skickas till
 någon utomstående tjänst.
+
+## För den som utvecklar med Claude Code
+
+Projektet har egen konfiguration i `.claude/`:
+
+- `CLAUDE.md` — reglerna som styr arbetet, inklusive att `main` och `pilot`
+  aldrig får röras.
+- `.claude/commands/skarp.md` — `/skarp` kör alla kontroller före en
+  driftsättning.
+- `.claude/commands/rundtur.md` — `/rundtur` klickar igenom appen som alla fem
+  demokonton.
+- `.claude/settings.json` — hindrar läsning av `.env`, och pekar ut tre
+  plugins: `typescript-lsp`, `playwright` och `security-guidance`.
+
+Plugins från en utomstående källa laddas inte bara för att de står i filen;
+var och en installerar dem en gång:
+
+```bash
+claude plugin install typescript-lsp@claude-plugins-official
+claude plugin install playwright@claude-plugins-official
+claude plugin install security-guidance@claude-plugins-official
+
+# typescript-lsp behöver dessutom själva språkservern:
+npm install -g typescript-language-server typescript
+```
 
 ## Vad som återstår
 
