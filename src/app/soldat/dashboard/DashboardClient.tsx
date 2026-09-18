@@ -56,7 +56,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
   const redCategories = CATEGORIES.filter(cat => getStatus(scores[cat.key]) === 'red').map(cat => cat.key);
 
   return (
-    <div style={{ flex: 1, background: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
+    <div className="flex flex-1 flex-col bg-slate-50">
 
       {/* Flikar — beteendet ligger i Tabs, utseendet här. */}
       <Tabs
@@ -72,7 +72,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
         }
       />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 40px' }}>
+      <div className="flex-1 overflow-y-auto px-5 pb-10 pt-5">
 
         {tab === 'overview' && (
           <Panel id="overview">
@@ -242,15 +242,28 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
   );
 }
 
+/**
+ * Riktningspilen, på ett ställe.
+ *
+ * Samma trestegsval låg i två kopior med olika storlek som enda skillnad —
+ * samma sorts duplicering som kategoriikonen hade innan den blev en komponent.
+ * Färgen räknas fram ur riktningen, därav ett attribut och ingen klass.
+ */
+function TrendIkon({ trend, size }: { trend: string; size: number }) {
+  if (trend === 'up') return <TrendingUp size={size} color="#059669" aria-hidden />;
+  if (trend === 'down') return <TrendingDown size={size} color="#DC2626" aria-hidden />;
+  return <Minus size={size} color="#D97706" aria-hidden />;
+}
+
 function MetricCard({ label, value, sub, trend }: { label: string; value: string; sub: React.ReactNode; trend?: string }) {
   return (
-    <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, padding: '16px 20px' }}>
-      <p style={{ color: '#64748B', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0, marginBottom: 8 }}>{label}</p>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
-        <span style={{ color: '#0F172A', fontSize: 28, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{value}</span>
+    <div className="rounded-md border border-slate-200 bg-white px-5 py-4">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">{label}</p>
+      <div className="mb-1.5 flex items-baseline gap-1.5">
+        <span className="text-[28px] font-extrabold tabular-nums text-slate-900">{value}</span>
         {trend && (
-          <span style={{ marginLeft: 4 }}>
-            {trend === 'up' ? <TrendingUp size={14} color="#059669" /> : trend === 'down' ? <TrendingDown size={14} color="#DC2626" /> : <Minus size={14} color="#D97706" />}
+          <span className="ml-1">
+            <TrendIkon trend={trend} size={14} />
           </span>
         )}
       </div>
@@ -261,7 +274,7 @@ function MetricCard({ label, value, sub, trend }: { label: string; value: string
 
 function SectionHeader({ label }: { label: string }) {
   return (
-    <h2 style={{ color: '#64748B', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 8px 0' }}>
+    <h2 className="mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
       {label}
     </h2>
   );
