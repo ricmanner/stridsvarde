@@ -121,10 +121,20 @@ före driftsättning.
 
 Vercel bygger och driftsätter grenen `v2-produktion` automatiskt. Vid varje
 push kör GitHub typkontroll, lint, tester och bygge
-(`.github/workflows/kontroll.yml`), och varje timme frågar en vaktpost om
-appen lever (`vakt.yml`). Fel som servern fångar hamnar i appens egen
-databas och visas för administratören på `/status` — ingenting skickas till
-någon utomstående tjänst.
+(`.github/workflows/kontroll.yml`). Fel som servern fångar hamnar i appens
+egen databas och visas för administratören på `/status` — ingenting skickas
+till någon utomstående tjänst.
+
+**Vaktposten** (`vakt.yml`) frågar om appen och databasen lever. Den har ett
+schema, men **lita inte på det**: GitHub startade det aldrig under ett halvt
+dygns försök, varken var femtonde minut eller varje timme, medan samma
+arbetsflöde startat för hand fungerade direkt. Schemalagda körningar är i mån
+av tid hos GitHub och kan hoppas över. Starta den för hand när du vill veta
+läget — Actions → Vakt → Run workflow — eller kör `npm run rundtur`, som
+kontrollerar mer.
+
+Behövs riktig övervakning senare räcker en gratistjänst som pingar
+`/api/halsa` var femte minut; svaret innehåller bara `{ok, miljö, tid}`.
 
 ## För den som utvecklar med Claude Code
 

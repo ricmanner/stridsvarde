@@ -1,4 +1,4 @@
-# Vaktpost: frågar varje timme om demon lever.
+# Vaktpost: frågar om demon lever.
 #
 # Går något fel markeras körningen som misslyckad, och GitHub skickar ett
 # mejl till den som äger förrådet. Det är hela larmkedjan — ingen extern
@@ -8,11 +8,16 @@
 #   1. /api/halsa — appen svarar OCH databasen svarar
 #   2. startsidan — sidan som ett befäl faktiskt öppnar renderar
 #
-# Var femtonde minut stod först här. GitHub startade det schemat aldrig: efter
-# två och en halv timme hade inte en enda körning gått, medan samma arbetsflöde
-# startat för hand fungerade direkt. Täta scheman är det första de stryper när
-# deras delade maskiner är hårt belastade. En timme räcker för syftet — att
-# ingen ska få veta av ett befäl att sidan varit nere hela helgen.
+# SCHEMAT GÅR INTE ATT LITA PÅ. Var femtonde minut stod först här; GitHub
+# startade det aldrig. Efter omställning till varje timme passerade två
+# timslotter utan en enda körning, medan samma arbetsflöde startat för hand
+# fungerade på en gång. Allt annat kontrollerades bort: standardgrenen är rätt,
+# filen ligger på den, förrådet är varken en kopia eller avstängt, och GitHub
+# listar arbetsflödet som aktivt. Schemalagda körningar är i mån av tid hos
+# GitHub och kan hoppas över helt.
+#
+# Kör den därför för hand när du vill veta läget: Actions → Vakt → Run workflow.
+# Schemat ligger kvar ifall det börjar fungera — det kostar ingenting att ha.
 #
 # GitHub pausar schemalagda körningar i ett förråd som legat stilla i 60
 # dagar. Ligger projektet stilla över sommaren: starta den för hand här igen
