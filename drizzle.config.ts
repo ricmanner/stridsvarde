@@ -4,8 +4,9 @@ import type { Config } from 'drizzle-kit';
  * Används bara vid utveckling för att generera migrationer:
  *   npx drizzle-kit generate
  *
- * Migrationerna körs sedan automatiskt när servern startar (se
- * src/lib/db/migrate.ts) så att ingen behöver köra ett kommando manuellt.
+ * De körs sedan av `npm run db:setup` (src/lib/db/index.ts). Mot en lokal fil
+ * gör servern det själv vid start; mot en delad databas är det ett eget
+ * beslut, och kommandot ska köras före driftsättning.
  */
 export default {
   schema: './src/lib/db/schema.ts',
