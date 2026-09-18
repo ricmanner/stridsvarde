@@ -29,6 +29,9 @@ const FLIKAR = [
   { id: 'history', etikett: 'Historia' },
 ] as const;
 
+/** Den lilla versala etiketten över ett tal, som i incheckningen. */
+const NYCKELTALSETIKETT = 'mb-0.5 text-[11px] font-bold uppercase tracking-[0.06em] text-slate-500';
+
 /** Behörigheten kontrolleras på servern i page.tsx innan detta renderas. */
 export default function SoldatDashboard({ scores, advice, chartData, freq }: DashboardProps) {
   const [tab, setTab] = useState<'overview' | 'history'>('overview');
@@ -168,21 +171,29 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
               Blev något fel? Korrigera dagens rapport
             </Link>
 
-            {/* 14-day trend */}
+            {/* Kurvan över fjorton dagar */}
             {svar.length >= 3 && (
               <>
                 <SectionHeader label="Trend — 14 dagar" />
-                <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, padding: '20px 16px 16px', marginBottom: 16 }}>
-                  <div style={{ display: 'flex', gap: 20, marginBottom: 16 }}>
+                <div className="mb-4 rounded-md border border-slate-200 bg-white px-4 pb-4 pt-5">
+                  <div className="mb-4 flex gap-5">
                     <div>
-                      <p style={{ color: '#64748B', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0, marginBottom: 2 }}>Senaste värde</p>
-                      <span style={{ color: '#0F172A', fontSize: 20, fontWeight: 700 }}>{svar.length > 0 ? formatScore(svar[svar.length - 1].score) : ''}</span>
+                      <p className={NYCKELTALSETIKETT}>Senaste värde</p>
+                      <span className="text-xl font-bold text-slate-900">{svar.length > 0 ? formatScore(svar[svar.length - 1].score) : ''}</span>
                     </div>
                     <div>
-                      <p style={{ color: '#64748B', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0, marginBottom: 2 }}>Riktning</p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        {trend === 'up' ? <TrendingUp size={18} color="#059669" /> : trend === 'down' ? <TrendingDown size={18} color="#DC2626" /> : <Minus size={18} color="#D97706" />}
-                        <span style={{ fontSize: 13, color: trend === 'up' ? '#047857' : trend === 'down' ? '#B91C1C' : '#B45309', fontWeight: 600 }}>
+                      <p className={NYCKELTALSETIKETT}>Riktning</p>
+                      <div className="flex items-center gap-1">
+                        <TrendIkon trend={trend} size={18} />
+                        {/*
+                          Den mörkare tonen, inte pilens: texten behöver 4,5:1
+                          och ytfärgen klarar bara 3:1. Den räknas fram ur
+                          riktningen och stannar därför inline.
+                        */}
+                        <span
+                          className="text-[13px] font-semibold"
+                          style={{ color: trend === 'up' ? '#047857' : trend === 'down' ? '#B91C1C' : '#B45309' }}
+                        >
                           {trend === 'up' ? 'Stigande' : trend === 'down' ? 'Sjunkande' : 'Stabil'}
                         </span>
                       </div>
@@ -193,7 +204,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                     height={150}
                     ariaLabel="Ditt mående de senaste fjorton dagarna"
                   />
-                  <div style={{ marginTop: 6 }}>
+                  <div className="mt-1.5">
                     <StatusBandLegend />
                   </div>
                 </div>
