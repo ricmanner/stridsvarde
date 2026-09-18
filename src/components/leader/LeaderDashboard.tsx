@@ -7,6 +7,7 @@ import { Activity, AlertTriangle, Brain, Download, FileText, Moon, Users, Utensi
 
 import CategoryTrendGrid from '@/components/charts/CategoryTrendGrid';
 import StatusBadge from '@/components/StatusBadge';
+import Tabs, { Panel } from '@/components/Tabs';
 import ChildFocus from '@/components/leader/ChildFocus';
 import ComparisonGrid from '@/components/leader/ComparisonGrid';
 import Suppressed from '@/components/leader/Suppressed';
@@ -14,6 +15,12 @@ import { CATEGORIES, getStatus } from '@/lib/data';
 import type { ChildComparison, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
 import { ALLOWED_PERIODS, type Period } from '@/lib/privacy';
 import { formatScore } from '@/lib/format';
+
+const FLIKAR = [
+  { id: 'overview', etikett: 'Översikt' },
+  { id: 'trends', etikett: 'Trender' },
+  { id: 'compare', etikett: 'Jämförelse' },
+] as const;
 
 const ICONS: Record<string, React.ReactNode> = {
   Activity: <Activity size={15} strokeWidth={1.5} />,
@@ -113,25 +120,24 @@ export default function LeaderDashboard({
 
       {/* ── Flikar ── */}
       <div className="no-print flex border-b border-slate-200 bg-white">
-        <div className="mx-auto flex w-full max-w-5xl">
-          {(['overview', 'trends', 'compare'] as const).map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`flex-1 cursor-pointer border-b-2 px-2 py-3.5 text-[11px] font-bold uppercase tracking-[0.08em] transition-colors ${
-                tab === t ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500'
-              }`}
-            >
-              {t === 'overview' ? 'Översikt' : t === 'trends' ? 'Trender' : 'Jämförelse'}
-            </button>
-          ))}
-        </div>
+        <Tabs
+          flikar={FLIKAR}
+          vald={tab}
+          onValj={setTab}
+          etikett="Vyer för enheten"
+          className="mx-auto flex w-full max-w-5xl"
+          knappklass={(aktiv) =>
+            `flex-1 cursor-pointer border-b-2 px-2 py-3.5 text-[11px] font-bold uppercase tracking-[0.08em] transition-colors ${
+              aktiv ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500'
+            }`
+          }
+        />
       </div>
 
       <div className="mx-auto w-full max-w-5xl flex-1 px-4 pb-12 pt-5 sm:px-6">
         {/* ── ÖVERSIKT ── */}
         {tab === 'overview' && (
-          <>
+          <Panel id="overview">
             <SL>Kategorier — snitt och fördelning över {period} dagar</SL>
             {cats.ok && dist.ok ? (
               <div className="mb-4 overflow-hidden rounded-md border border-slate-200 bg-white">
@@ -219,12 +225,12 @@ export default function LeaderDashboard({
 
             <PrivacyFooter />
             <ExportBar period={period} childLabel={childLabel} />
-          </>
+          </Panel>
         )}
 
         {/* ── TRENDER ── */}
         {tab === 'trends' && (
-          <>
+          <Panel id="trends">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <SL inline>Kategoritrender — {period} dagar</SL>
               <PeriodPicker current={period} pathname={pathname} />
@@ -272,12 +278,12 @@ export default function LeaderDashboard({
             </div>
             <PrivacyFooter />
             <ExportBar period={period} childLabel={childLabel} />
-          </>
+          </Panel>
         )}
 
         {/* ── JÄMFÖRELSE ── */}
         {tab === 'compare' && (
-          <>
+          <Panel id="compare">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <SL inline>Jämförelse mellan {childLabel} — {period} dagar</SL>
               <PeriodPicker current={period} pathname={pathname} />
@@ -364,7 +370,7 @@ export default function LeaderDashboard({
             )}
             <PrivacyFooter />
             <ExportBar period={period} childLabel={childLabel} />
-          </>
+          </Panel>
         )}
       </div>
     </div>
@@ -397,9 +403,9 @@ function Preliminary({ children }: { children: React.ReactNode }) {
 
 function SL({ children, inline = false }: { children: React.ReactNode; inline?: boolean }) {
   return (
-    <p className={`text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500 ${inline ? '' : 'mb-2'}`}>
+    <h2 className={`text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500 ${inline ? '' : 'mb-2'}`}>
       {children}
-    </p>
+    </h2>
   );
 }
 

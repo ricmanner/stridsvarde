@@ -40,7 +40,7 @@ export default async function LoginPage({
         <span className="text-sm font-bold tracking-[1.5px] text-white">FM – PSVI</span>
       </header>
 
-      <main className="flex flex-1 items-center justify-center px-5 py-10 sm:py-16">
+      <main id="innehall" className="flex flex-1 items-center justify-center px-5 py-10 sm:py-16">
         <div className="w-full max-w-sm">
           <div className="mb-9">
             <h1 className="text-2xl font-bold text-slate-900">Inloggning</h1>

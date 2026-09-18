@@ -52,15 +52,22 @@ export default async function LeaderPageShell({
     <div className="flex min-h-dvh flex-col">
       <AppHeader unit={session.unitName} label={session.label} role={session.role} />
       <NotificationBanner userId={session.id} />
-      <LeaderDashboard
-        levelLabel={levelLabel}
-        childLabel={childLabel}
-        period={period}
-        overview={overview}
-        series={series}
-        comparison={comparison}
-        advice={advice}
-      />
+      <main id="innehall" className="flex flex-1 flex-col">
+        {/* Sidans rubrik i strukturen. På skärmen står samma sak i
+            sammanfattningsraden och i sidhuvudet. */}
+        <h1 className="sr-only">
+          {levelLabel} — {session.unitName}
+        </h1>
+        <LeaderDashboard
+          levelLabel={levelLabel}
+          childLabel={childLabel}
+          period={period}
+          overview={overview}
+          series={series}
+          comparison={comparison}
+          advice={advice}
+        />
+      </main>
     </div>
   );
 }

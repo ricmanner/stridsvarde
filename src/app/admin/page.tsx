@@ -88,7 +88,9 @@ export default async function AdminPage({
     <div className="flex min-h-dvh flex-col">
       <AppHeader unit="Administration" label={session.label} role={session.role} />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
+      <main id="innehall" className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
+        {/* Sidan hade ingen rubrik alls i strukturen — den började på en h2. */}
+        <h1 className="sr-only">Administration</h1>
         <div className="no-print mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard icon={<Building2 size={15} />} label="Enheter" value={stats.units} />
           <StatCard icon={<Users size={15} />} label="Värnpliktiga" value={stats.soldiers} />

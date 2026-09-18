@@ -63,14 +63,15 @@ export default async function SoldatDashboardPage() {
   return (
     <div className="flex min-h-dvh flex-col">
       <AppHeader unit={session.unitName} label={session.label} role={session.role} />
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
+      <main id="innehall" className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
+        <h1 className="sr-only">Din återkoppling</h1>
         <SoldatDashboard
           scores={scores}
           advice={today.advice ?? generateSoldierAdvice(scores)}
           chartData={chartData}
           freq={freq}
         />
-      </div>
+      </main>
     </div>
   );
 }

@@ -46,7 +46,7 @@ export default async function RapportPage({
   const to = serviceDate();
 
   return (
-    <main className="mx-auto max-w-4xl px-5 py-8 print:px-0 print:py-0">
+    <main id="innehall" className="mx-auto max-w-4xl px-5 py-8 print:px-0 print:py-0">
       <div className="no-print mb-6 flex flex-wrap items-center gap-3">
         <Link
           href={homeFor(session.role)}

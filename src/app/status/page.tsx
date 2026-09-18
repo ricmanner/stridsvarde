@@ -24,7 +24,7 @@ export default async function StatusPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-5 py-10">
+    <main id="innehall" className="mx-auto max-w-2xl px-5 py-10">
       <header className="mb-8">
         <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
           FM – PSVI

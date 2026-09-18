@@ -10,7 +10,7 @@ export default async function IngenBehorighetPage() {
   const user = await getSessionUser();
 
   return (
-    <main className="flex min-h-dvh items-center justify-center px-5 py-10">
+    <main id="innehall" className="flex min-h-dvh items-center justify-center px-5 py-10">
       <div className="w-full max-w-sm text-center">
         <ShieldAlert size={36} className="mx-auto text-slate-300" strokeWidth={1.5} aria-hidden />
         <h1 className="mt-5 text-xl font-bold text-slate-900">Ingen behörighet</h1>

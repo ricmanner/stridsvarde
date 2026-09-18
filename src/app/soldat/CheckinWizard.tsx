@@ -72,10 +72,10 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
                 padding: '12px 16px', background: 'white',
                 border: '1px solid #E2E8F0', borderRadius: 6,
               }}>
-                <div style={{ color: '#94A3B8' }}>{ICONS[cat.icon]}</div>
+                <div style={{ color: '#64748B' }}>{ICONS[cat.icon]}</div>
                 <span style={{ color: '#475569', fontSize: 14 }}>{cat.label}</span>
                 <div style={{ marginLeft: 'auto', width: 20, height: 20, borderRadius: '50%', border: '1.5px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ color: '#CBD5E1', fontSize: 11 }}>{i + 1}</span>
+                  <span style={{ color: '#64748B', fontSize: 11 }}>{i + 1}</span>
                 </div>
               </div>
             ))}
@@ -169,7 +169,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'auto', paddingTop: 4 }}>
             {[1,2,3,4,5,6,7,8,9,10].map(n => (
               <span key={n} style={{
-                color: n === score ? '#0F172A' : '#94A3B8',
+                color: n === score ? '#0F172A' : '#64748B',
                 fontSize: 11, fontWeight: n === score ? 700 : 400,
                 transition: 'color 0.1s',
               }}>
@@ -238,17 +238,27 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             const s = scores[cat.key];
             const st = getStatus(s);
             return (
-              <div
+              /*
+               * En knapp, inte en div med onClick. Raden gick tidigare bara
+               * att nå med mus: den som rättar ett svar med tangentbordet
+               * kom inte åt den alls, och en skärmläsare berättade inte att
+               * den gick att trycka på.
+               */
+              <button
                 key={cat.key}
+                type="button"
+                onClick={() => setStep(i + 1)}
+                aria-label={`Ändra ${cat.label}, nu ${s} av 10`}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12,
+                  width: '100%', textAlign: 'left',
+                  background: 'none', border: 'none',
                   padding: '14px 20px',
                   borderBottom: i < CATEGORIES.length - 1 ? '1px solid #F1F5F9' : 'none',
                   cursor: 'pointer',
                 }}
-                onClick={() => setStep(i + 1)}
               >
-                <div style={{ color: '#94A3B8' }}>{ICONS[cat.icon]}</div>
+                <div style={{ color: '#64748B' }}>{ICONS[cat.icon]}</div>
                 <span style={{ color: '#475569', fontSize: 14, flex: 1 }}>{cat.label}</span>
                 <span style={{ color: '#0F172A', fontSize: 18, fontWeight: 700, fontVariantNumeric: 'tabular-nums', minWidth: 28, textAlign: 'right' }}>{s}</span>
                 <div style={{
@@ -259,7 +269,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
                 }}>
                   {st === 'green' ? 'GRÖN' : st === 'yellow' ? 'GUL' : 'RÖD'}
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

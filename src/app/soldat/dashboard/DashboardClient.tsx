@@ -7,6 +7,7 @@ import CategoryTrendGrid from '@/components/charts/CategoryTrendGrid';
 import ScoreTrendChart from '@/components/charts/ScoreTrendChart';
 import StatusBandLegend from '@/components/charts/StatusBandLegend';
 import StatusBadge from '@/components/StatusBadge';
+import Tabs, { Panel } from '@/components/Tabs';
 import { CATEGORIES, type Category, getStatus, statusColor, avgScore } from '@/lib/data';
 import { ownTrend } from '@/lib/own-trend';
 import { getSoldierTips } from '@/lib/advice';
@@ -31,6 +32,11 @@ export interface DashboardProps {
   freq: { checkedIn: number; total: number; pct: number };
 }
 
+const FLIKAR = [
+  { id: 'overview', etikett: 'Översikt' },
+  { id: 'history', etikett: 'Historia' },
+] as const;
+
 /** Behörigheten kontrolleras på servern i page.tsx innan detta renderas. */
 export default function SoldatDashboard({ scores, advice, chartData, freq }: DashboardProps) {
   const [tab, setTab] = useState<'overview' | 'history'>('overview');
@@ -52,29 +58,24 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
   return (
     <div style={{ flex: 1, background: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
 
-      {/* Tab bar */}
-      <div style={{ background: 'white', borderBottom: '1px solid #E2E8F0', display: 'flex' }}>
-        {(['overview', 'history'] as const).map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            style={{
-              flex: 1, padding: '14px 0', background: 'none', border: 'none',
-              borderBottom: tab === t ? '2px solid #0F172A' : '2px solid transparent',
-              color: tab === t ? '#0F172A' : '#64748B',
-              fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
-              cursor: 'pointer', transition: 'color 0.15s',
-            }}
-          >
-            {t === 'overview' ? 'Översikt' : 'Historia'}
-          </button>
-        ))}
-      </div>
+      {/* Flikar — beteendet ligger i Tabs, utseendet här. */}
+      <Tabs
+        flikar={FLIKAR}
+        vald={tab}
+        onValj={setTab}
+        etikett="Dina vyer"
+        className="flex border-b border-slate-200 bg-white"
+        knappklass={(aktiv) =>
+          `flex-1 cursor-pointer border-b-2 bg-transparent py-3.5 text-[12px] font-bold uppercase tracking-[0.08em] transition-colors ${
+            aktiv ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500'
+          }`
+        }
+      />
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 40px' }}>
 
         {tab === 'overview' && (
-          <>
+          <Panel id="overview">
             {redCategories.length > 0 && <SupportBlock red={redCategories} />}
 
             {/* Top metrics row */}
@@ -112,7 +113,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                     borderBottom: i < CATEGORIES.length - 1 ? '1px solid #F1F5F9' : 'none',
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                      <div style={{ color: '#94A3B8' }}>{ICONS[cat.icon]}</div>
+                      <div style={{ color: '#64748B' }}>{ICONS[cat.icon]}</div>
                       <span style={{ color: '#475569', fontSize: 13, flex: 1 }}>{cat.label}</span>
                       <span style={{ color: '#0F172A', fontSize: 16, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginRight: 8 }}>{s}</span>
                       <StatusBadge status={st} size="sm" />
@@ -191,11 +192,11 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
               </>
             )}
 
-          </>
+          </Panel>
         )}
 
         {tab === 'history' && (
-          <>
+          <Panel id="history">
             <SectionHeader label={`Din närvaro — senaste 14 dagarna`} />
             <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, padding: 20, marginBottom: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -234,7 +235,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                 </p>
               </div>
             )}
-          </>
+          </Panel>
         )}
       </div>
     </div>
@@ -260,8 +261,8 @@ function MetricCard({ label, value, sub, trend }: { label: string; value: string
 
 function SectionHeader({ label }: { label: string }) {
   return (
-    <p style={{ color: '#64748B', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 8px 0' }}>
+    <h2 style={{ color: '#64748B', fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 8px 0' }}>
       {label}
-    </p>
+    </h2>
   );
 }

@@ -42,13 +42,16 @@ export default async function SoldatPage({
   return (
     <div className="flex min-h-dvh flex-col">
       <AppHeader unit={session.unitName} label={session.label} role={session.role} />
-      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col">
+      <main id="innehall" className="mx-auto flex w-full max-w-xl flex-1 flex-col">
+        {/* Rubriken finns för skärmläsare och för sidans struktur; på skärmen
+            säger sidhuvudet och wizardens egen rubrik samma sak. */}
+        <h1 className="sr-only">Daglig rapportering</h1>
         <SoldatCheckin
           initial={initial}
           editing={editing}
           dateLabel={longDateLabel(serviceDate())}
         />
-      </div>
+      </main>
     </div>
   );
 }
