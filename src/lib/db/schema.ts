@@ -185,6 +185,31 @@ export const auditLog = sqliteTable(
   (t) => [index('audit_created').on(t.createdAt)],
 );
 
+/**
+ * Fel som servern fångat.
+ *
+ * Finns för att ett fel som ingen ser är ett fel som inte blir rättat. Loggen
+ * ligger i appens egen databas, inte hos en utomstående tjänst: en app som
+ * hanterar hälsouppgifter ska inte skicka sina felmeddelanden till ett annat
+ * land för att någon ska se dem.
+ *
+ * Här sparas VAR felet inträffade och vad det stod — aldrig ett svar, en
+ * enhet eller vem som var inloggad. Meddelandet kortas, och sökvägen sparas
+ * utan frågesträng.
+ */
+export const errorLog = sqliteTable(
+  'error_log',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    path: text('path').notNull(),
+    routeType: text('route_type'),
+    digest: text('digest'),
+    message: text('message').notNull(),
+    createdAt: text('created_at').notNull(),
+  },
+  (t) => [index('error_created').on(t.createdAt)],
+);
+
 /** Spärr mot att gissa inloggningskoder. Rensas periodiskt. */
 export const loginAttempts = sqliteTable(
   'login_attempts',

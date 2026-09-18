@@ -15,6 +15,13 @@
       "when": 1789654568989,
       "tag": "0001_samtalsbegaran",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789740000000,
+      "tag": "0002_fellogg",
+      "breakpoints": true
     }
   ]
 }

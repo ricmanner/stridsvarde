@@ -1,0 +1,60 @@
+# Vaktpost: frågar var femtonde minut om demon lever.
+#
+# Går något fel markeras körningen som misslyckad, och GitHub skickar ett
+# mejl till den som äger förrådet. Det är hela larmkedjan — ingen extern
+# tjänst, ingen prenumeration, och ingenting om appens innehåll lämnar den.
+#
+# Två kontroller, eftersom de kan gå sönder var för sig:
+#   1. /api/halsa — appen svarar OCH databasen svarar
+#   2. startsidan — sidan som ett befäl faktiskt öppnar renderar
+#
+# GitHub pausar schemalagda körningar i ett förråd som legat stilla i 60
+# dagar. Ligger projektet stilla över sommaren: starta den för hand här igen
+# (Actions → Vakt → Run workflow).
+name: Vakt
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      adress:
+        description: 'Adress att kontrollera'
+        required: false
+        default: 'https://fm-psvi-v2.vercel.app'
+
+jobs:
+  vakt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Svarar appen och databasen?
+        run: |
+          ADRESS="${{ github.event.inputs.adress || 'https://fm-psvi-v2.vercel.app' }}"
+          echo "Kontrollerar $ADRESS"
+
+          # Två försök: en enstaka kallstart ska inte larma mitt i natten.
+          for forsok in 1 2; do
+            SVAR=$(curl -sS --max-time 25 -w '\n%{http_code}' "$ADRESS/api/halsa" || echo "fel")
+            KOD=$(echo "$SVAR" | tail -1)
+            KROPP=$(echo "$SVAR" | sed '$d')
+            if [ "$KOD" = "200" ] && echo "$KROPP" | grep -q '"ok":true'; then
+              echo "Hälsokontroll ok: $KROPP"
+              break
+            fi
+            if [ "$forsok" = "2" ]; then
+              echo "::error::Hälsokontrollen misslyckades (HTTP $KOD): $KROPP"
+              exit 1
+            fi
+            echo "Försök $forsok gav HTTP $KOD — väntar och provar igen"
+            sleep 20
+          done
+
+      - name: Renderar inloggningssidan?
+        run: |
+          ADRESS="${{ github.event.inputs.adress || 'https://fm-psvi-v2.vercel.app' }}"
+          SIDA=$(curl -sS --max-time 25 "$ADRESS/")
+          echo "$SIDA" | grep -q 'FM' || {
+            echo "::error::Startsidan innehöll inte appens namn — något är fel med sidan"
+            exit 1
+          }
+          echo "Startsidan renderar"

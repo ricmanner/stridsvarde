@@ -6,6 +6,7 @@ import { migrate } from 'drizzle-orm/libsql/migrator';
 
 import { backupIfNeeded } from './backup';
 import { applyPragmas, db, dbPath, environment, isRemote, isSeedDemoData } from './client';
+import { purgeOldErrors } from './queries/health';
 import { purgeExpiredCheckIns } from './retention';
 import { seedIfNeeded } from './seed';
 import { checkIns, units, users } from './schema';
@@ -120,6 +121,8 @@ async function init(): Promise<void> {
   // utvecklarbekvämlighet.
   await backupIfNeeded();
   await purgeExpiredCheckIns();
+  // Fellogg äldre än en månad har inget kvar att berätta.
+  await purgeOldErrors();
 }
 
 export interface DbStatus {

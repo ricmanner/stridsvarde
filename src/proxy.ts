@@ -17,7 +17,13 @@ import { SESSION_COOKIE } from '@/lib/auth/constants';
  * inklusive förladdningar, och skulle serialisera hela appen mot vår enda
  * databasanslutning.
  */
-const PUBLIC_PATHS = new Set(['/', '/ingen-behorighet']);
+/*
+ * '/api/halsa' är öppen med avsikt: vaktposten som frågar var femtonde minut
+ * om appen lever ska inte behöva en nyckel, och svaret innehåller ingenting
+ * värt att skydda. Utan undantaget svarade den med en omdirigering till
+ * inloggningen, vilket vaktposten läste som "allt är bra".
+ */
+const PUBLIC_PATHS = new Set(['/', '/ingen-behorighet', '/api/halsa']);
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

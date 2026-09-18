@@ -1,3 +1,5 @@
+import type { Instrumentation } from 'next';
+
 /**
  * Körs en gång när servern startar, innan den tar emot några anrop.
  *
@@ -19,3 +21,29 @@ export async function register(): Promise<void> {
     console.log('  Utelåst som admin?  npm run aterstall-admin\n');
   }
 }
+
+/**
+ * Fångar serverfel och skriver dem till appens egen databas.
+ *
+ * Utan det här märks ett fel bara av den som råkar stå framför skärmen. Med
+ * det kan en administratör se på statussidan att något gått sönder, och
+ * vaktposten i GitHub kan larma när appen slutar svara.
+ *
+ * Loggen får bara veta VAR felet inträffade och vad det stod. Inga rubriker,
+ * inga parametrar, ingenting om vem som var inloggad — se logError().
+ */
+export const onRequestError: Instrumentation.onRequestError = async (
+  err,
+  request,
+  context,
+) => {
+  if (process.env.NEXT_RUNTIME !== 'nodejs') return;
+
+  const { logError } = await import('./lib/db/queries/health');
+  await logError({
+    path: request.path,
+    routeType: context.routeType,
+    digest: typeof err === 'object' && err && 'digest' in err ? String(err.digest) : null,
+    message: err instanceof Error ? err.message : String(err),
+  });
+};

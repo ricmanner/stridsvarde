@@ -22,6 +22,14 @@ const UTAN_KRAV = new Set([
   'layout.tsx',
   path.join('ingen-behorighet', 'page.tsx'),
   path.join('actions', 'auth.ts'), // logga in och logga ut
+  // Felsidorna visar ingen data alls — bara ett besked och en väg vidare.
+  // Kräver de inloggning möter en utloggad användare en tom skärm.
+  'error.tsx',
+  'global-error.tsx',
+  'not-found.tsx',
+  // Hälsokontrollen är öppen med avsikt: en vaktpost ska kunna fråga om
+  // appen lever utan nyckel, och svaret innehåller inget att skydda.
+  path.join('api', 'halsa', 'route.ts'),
 ]);
 
 /** En kontroll räknas om filen kräver roll, kräver inloggning, eller ärver skalet. */

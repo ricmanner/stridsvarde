@@ -306,3 +306,18 @@ export async function deleteUnitAction(
   const raderad = encodeURIComponent(result.name);
   redirect(result.parentId ? `/admin?unit=${result.parentId}&raderad=${raderad}` : `/admin?raderad=${raderad}`);
 }
+
+/**
+ * Sätter upp felloggen i databasen.
+ *
+ * Syns bara på statussidan, och bara när tabellen saknas. Kan köras hur många
+ * gånger som helst — satserna skapar bara det som inte redan finns.
+ */
+export async function setupErrorLogAction(): Promise<void> {
+  const admin = await requireRole('admin');
+
+  const { ensureErrorLogTable } = await import('@/lib/db/queries/health');
+  await ensureErrorLogTable(admin.id);
+
+  revalidatePath('/status');
+}
