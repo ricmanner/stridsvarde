@@ -121,28 +121,41 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
               })}
             </div>
 
-            {/* Advice */}
+            {/* Vägledningen för helheten */}
             <SectionHeader label="Personlig vägledning" />
-            <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: 6, padding: 20, marginBottom: tips.length > 0 ? 10 : 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#2563EB' }} />
-                <span style={{ color: '#64748B', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Baserat på dagens rapport</span>
+            <div className={`rounded-md border border-slate-200 bg-white p-5 ${tips.length > 0 ? 'mb-2.5' : 'mb-4'}`}>
+              <div className="mb-2.5 flex items-center gap-2">
+                <div className="size-1.5 rounded-full bg-blue-600" />
+                <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">Baserat på dagens rapport</span>
               </div>
-              <p style={{ color: '#334155', fontSize: 14, lineHeight: 1.7, margin: 0 }}>{advice}</p>
+              <p className="text-sm leading-[1.7] text-slate-700">{advice}</p>
             </div>
 
-            {/* Tip cards — for weakest categories */}
+            {/* Ett kort per svagaste kategori, sämst först */}
             {tips.map((tip, ti) => (
-              <div key={tip.category} style={{
-                background: 'white', border: '1px solid #E2E8F0', borderLeft: `3px solid ${ti === 0 ? '#DC2626' : '#D97706'}`,
-                borderRadius: 6, padding: '14px 20px', marginBottom: ti < tips.length - 1 ? 8 : 16,
-              }}>
-                <p style={{ color: '#475569', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 6px' }}>{tip.title}</p>
+              <div
+                key={tip.category}
+                /*
+                 * Kantens färg säger hur allvarligt det är: det första kortet
+                 * är det sämsta värdet. Den räknas fram, alltså inline —
+                 * bredden och de tre andra sidorna gör den inte.
+                 */
+                className={`rounded-md border-y border-r border-l-[3px] border-slate-200 bg-white px-5 py-3.5 ${
+                  ti < tips.length - 1 ? 'mb-2' : 'mb-4'
+                }`}
+                style={{ borderLeftColor: ti === 0 ? '#DC2626' : '#D97706' }}
+              >
+                <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-slate-600">{tip.title}</p>
                 {/* Vad värdet betyder. Punkterna under säger vad man gör. */}
-                <p style={{ color: '#334155', fontSize: 13, lineHeight: 1.6, margin: '0 0 10px' }}>{tip.why}</p>
-                <ul style={{ margin: 0, paddingLeft: 16 }}>
+                <p className="mb-2.5 text-[13px] leading-[1.6] text-slate-700">{tip.why}</p>
+                <ul className="pl-4">
                   {tip.tips.map((t, i) => (
-                    <li key={i} style={{ color: '#334155', fontSize: 13, lineHeight: 1.6, marginBottom: i < tip.tips.length - 1 ? 4 : 0 }}>{t}</li>
+                    <li
+                      key={i}
+                      className={`text-[13px] leading-[1.6] text-slate-700 ${i < tip.tips.length - 1 ? 'mb-1' : ''}`}
+                    >
+                      {t}
+                    </li>
                   ))}
                 </ul>
               </div>
