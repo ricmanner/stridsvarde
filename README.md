@@ -214,6 +214,9 @@ källkoden är synlig för alla.
 
 ## Vad som återstår
 
+Se **`NÄSTA-STEG.md`** för var arbetet står just nu, vad som ligger närmast,
+och vilka återvändsgränder som redan är utforskade.
+
 Av genomgången från 18 september 2026 är åtta av tio punkter gjorda. Kvar:
 
 1. Skriva om `DashboardClient.tsx` i Tailwind (incheckningen är klar).

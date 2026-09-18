@@ -3,8 +3,11 @@
 # FM – PSVI
 
 Prototyp där värnpliktiga rapporterar sitt mående dagligen och befäl ser
-utvecklingen för sin enhet — aldrig för en enskild person. Läs `README.md`
-först; den beskriver arkitektur, kommandon och miljövariabler.
+utvecklingen för sin enhet — aldrig för en enskild person.
+
+Läs `README.md` för arkitektur, kommandon och miljövariabler, och
+`NÄSTA-STEG.md` för var arbetet står just nu och vad som redan visat sig vara
+en återvändsgränd.
 
 ## Gränser som inte får överskridas
 
