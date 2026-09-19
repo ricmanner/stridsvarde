@@ -14,7 +14,10 @@ export default async function NotificationBanner({ userId }: { userId: number })
   if (items.length === 0) return null;
 
   return (
-    <div className="no-print border-b border-amber-200 bg-amber-50 px-4 py-3 sm:px-6">
+    // data-notiser: rundturens integritetskontroll hoppar över den här rutan.
+    // En samtalsbegäran SKA nämna den som bett om samtalet — det är hela
+    // poängen — medan samma namn i en aggregerad vy vore ett läckage.
+    <div data-notiser className="no-print border-b border-amber-200 bg-amber-50 px-4 py-3 sm:px-6">
       <ul className="mx-auto flex max-w-5xl flex-col gap-2">
         {items.map((n) => (
           <li key={n.id} className="flex items-start gap-3">

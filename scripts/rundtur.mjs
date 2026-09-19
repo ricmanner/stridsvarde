@@ -291,9 +291,22 @@ try {
             if (!sokbar.includes(krav.toLowerCase())) anmark(`${var_}: saknar "${krav}"`);
           }
         }
-        // Befäl ska aldrig se en enskild persons benämning.
+        /*
+         * Befäl ska aldrig se en enskild persons benämning — utom i notisrutan.
+         *
+         * En samtalsbegäran nämner med flit den som bett om samtalet; utan
+         * namnet vet befälet inte vem hen ska söka upp. Rutan är märkt med
+         * data-notiser och läses därför bort innan kontrollen. Utan det här
+         * larmade rundturen så fort någon i demon hade en obesvarad begäran,
+         * och ett verktyg som ropar varg går man till slut förbi.
+         */
+        const utanNotiser = await js(
+          "(() => { const d = document.body.cloneNode(true);" +
+          " d.querySelectorAll('[data-notiser]').forEach((e) => e.remove());" +
+          " return d.innerText; })()",
+        );
         const befalsvy = ['/pluton', '/kompani', '/bataljon', '/rapport'].includes(sida.url);
-        if (befalsvy && /\b(värnpliktig|soldat)\s+\d{2}\b/.test(sokbar)) {
+        if (befalsvy && /\b(värnpliktig|soldat)\s+\d{2}\b/.test((utanNotiser ?? '').toLowerCase())) {
           anmark(`${var_}: en enskild persons benämning syns i en befälsvy`);
         }
         if (felILoggen.length) {
