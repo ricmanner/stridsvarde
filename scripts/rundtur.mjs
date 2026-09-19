@@ -85,6 +85,26 @@ const LARMORD = [
 const brister = [];
 const anmark = (vad) => { brister.push(vad); console.log(`  ✗ ${vad}`); };
 
+/**
+ * Städar bort webbläsarens profilkatalog, och struntar i om det inte går.
+ *
+ * `chrome.kill()` skickar SIGTERM men väntar inte, så Chrome skriver
+ * fortfarande i katalogen när rmSync körs — och `force: true` hjälper inte,
+ * den ignorerar bara "finns inte", inte ENOTEMPTY. Följden var att rundturen
+ * skrev "Allt fungerade" och därefter kastade en stackspårning.
+ *
+ * Katalogen ligger i operativsystemets temp-katalog och städas bort ändå. En
+ * misslyckad städning får aldrig fälla verktyget man kör precis före en
+ * visning.
+ */
+function stadaProfil(katalog) {
+  try {
+    rmSync(katalog, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  } catch {
+    /* Chrome höll kvar en fil. Temp-katalogen töms av systemet. */
+  }
+}
+
 // ── Inloggning över HTTP: samma väg som formuläret ──────────────────────────
 
 /**
@@ -170,7 +190,7 @@ chrome.on('error', (fel) => {
     `\nKunde inte starta webbläsaren: ${fel.message}` +
       `\nSökväg: ${CHROME}\nAnge en annan med CHROME_PATH=... npm run rundtur`,
   );
-  rmSync(profil, { recursive: true, force: true });
+  stadaProfil(profil);
   process.exit(1);
 });
 
@@ -369,7 +389,7 @@ try {
 } finally {
   ws?.close();
   chrome.kill();
-  rmSync(profil, { recursive: true, force: true });
+  stadaProfil(profil);
 }
 
 process.exit(brister.length ? 1 : 0);
