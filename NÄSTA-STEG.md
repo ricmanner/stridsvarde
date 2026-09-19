@@ -26,6 +26,16 @@ Utanför listan, när tillfälle ges: tillgängligheten är åtgärdad i första
 omgången men bör granskas av en människa med skärmläsare. Ett verktyg fångar
 bara ungefär en tredjedel av kraven.
 
+## Före en visning
+
+- **Tryck på "Flytta fram demodatan" på `/status`** om rutan där säger att
+  datan blivit gammal. Demodatan står still medan kalendern går: efter en
+  vecka är befälsvyns förvalda period tom, efter tre veckor visar varje vy
+  "Underlag saknas". Rutan räknar ut läget själv och knappen syns bara när det
+  finns något att göra. Lokalt går samma sak via `npm run demo:uppdatera`.
+- Kör därefter `npm run rundtur`. Den tar en minut och går igenom appen som
+  alla fem demokonton.
+
 ## Kräver dig, inte utvecklaren
 
 - **Tryck på "Uppdatera schemat" på `/status`** när du är inloggad som

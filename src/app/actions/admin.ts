@@ -319,3 +319,28 @@ export async function applySchemaAction(): Promise<void> {
 
   revalidatePath('/status');
 }
+
+/**
+ * Flyttar fram demodatans historik så att den slutar idag.
+ *
+ * Demodatan står still medan kalendern går: efter en vecka är befälsvyns
+ * förvalda period tom, efter tre veckor visar varje vy "Underlag saknas". En
+ * demo som ska visas om ett par månader måste därför flyttas fram först.
+ *
+ * Finns som knapp och inte bara som `npm run demo:uppdatera`, av samma skäl
+ * som schemaknappen ovan: nycklarna till den delade demons databas är märkta
+ * som känsliga och går inte att hämta ner till en terminal. Utan knappen går
+ * den viktigaste förberedelsen inför en visning inte att göra alls.
+ *
+ * Skyddet mot att köras mot ett pilottest ligger i applyDemoTimeline(), som
+ * kontrollerar både driftläget och att demons konton finns. Knappen visas
+ * dessutom bara i demoläge — men ett gränssnitt är inte ett skydd.
+ */
+export async function applyDemoTimelineAction(): Promise<void> {
+  await requireRole('admin');
+
+  const { applyDemoTimeline } = await import('@/lib/db/demo-timeline');
+  await applyDemoTimeline();
+
+  revalidatePath('/status');
+}

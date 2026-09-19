@@ -128,3 +128,23 @@ test('statussidan går att hitta, och visar databasläge och fångade fel', asyn
   await page.getByRole('link', { name: /Tillbaka till administrationen/ }).click();
   await expect(page).toHaveURL(/\/admin$/);
 });
+
+test('statussidan berättar hur gammal demodatan är', async ({ page }) => {
+  /*
+   * Demodatan åldras av sig själv, och den enda vägen att flytta fram den mot
+   * den delade demon går via den här sidan: databasnycklarna är märkta som
+   * känsliga och går inte att hämta ner till en terminal.
+   *
+   * Testdatabasen seedas om vid varje körning och slutar därför idag. Det som
+   * går att kontrollera här är att rutan finns, att den säger att datan är
+   * aktuell, och att ingen knapp erbjuds när det inte finns något att göra.
+   * Bedömningen av gammal data är täckt av tests/demo-tid-text.test.mjs.
+   */
+  await page.goto('/status');
+  await expect(page.getByRole('heading', { name: 'Demodata' })).toBeVisible();
+
+  const text = await synligText(page);
+  expect(text).toContain('demodatan är aktuell');
+
+  await expect(page.getByRole('button', { name: 'Flytta fram demodatan' })).toHaveCount(0);
+});

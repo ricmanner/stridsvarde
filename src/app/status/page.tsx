@@ -3,8 +3,10 @@ import Link from 'next/link';
 import AppHeader from '@/components/AppHeader';
 import { requireRole } from '@/lib/auth/guard';
 import { dbStatus } from '@/lib/db';
+import { environment } from '@/lib/db/client';
+import { beskrivDemoTidslinje, planDemoTimeline, type DemoTidslinjeBesked } from '@/lib/db/demo-timeline';
 import { errorSummary, ERROR_RETENTION_DAYS, missingSchema } from '@/lib/db/queries/health';
-import { applySchemaAction } from '@/app/actions/admin';
+import { applyDemoTimelineAction, applySchemaAction } from '@/app/actions/admin';
 
 // Statussidan ska alltid visa verkligt läge, aldrig ett cachat.
 export const dynamic = 'force-dynamic';
@@ -26,6 +28,23 @@ export default async function StatusPage() {
     saknas = await missingSchema();
   } catch (e) {
     error = e instanceof Error ? e.message : String(e);
+  }
+
+  /*
+   * Demodatans ålder. Bara i demoläge — i ett pilottest är incheckningarna
+   * verkliga och får aldrig flyttas.
+   *
+   * Egen try: planDemoTimeline() vägrar mot en databas som inte ser ut som
+   * demons, och det får inte fälla hela statussidan. Kan den inte svara
+   * visas ingen ruta alls.
+   */
+  let demotid: DemoTidslinjeBesked | null = null;
+  if (environment() === 'demo' && !error) {
+    try {
+      demotid = beskrivDemoTidslinje(await planDemoTimeline());
+    } catch {
+      demotid = null;
+    }
   }
 
   return (
@@ -81,6 +100,50 @@ export default async function StatusPage() {
           <p className="mt-4 break-all text-xs text-slate-500">
             Databasfil: {status.path}
           </p>
+
+          {/*
+            Demodatan åldras av sig själv. Utan den här rutan upptäcks det
+            först när någon står framför en publik med tomma befälsvyer.
+          */}
+          {demotid && (
+            <>
+              <h2 className="mb-2 mt-8 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+                Demodata
+              </h2>
+              <div
+                className={`rounded-md border px-4 py-3 ${
+                  demotid.aktuell
+                    ? 'border-slate-200 bg-white'
+                    : 'border-amber-200 bg-amber-50'
+                }`}
+              >
+                <p
+                  className={`text-sm font-semibold ${
+                    demotid.aktuell ? 'text-slate-800' : 'text-amber-900'
+                  }`}
+                >
+                  {demotid.rubrik}
+                </p>
+                <p
+                  className={`mt-1 text-xs ${
+                    demotid.aktuell ? 'text-slate-500' : 'text-amber-800'
+                  }`}
+                >
+                  {demotid.text}
+                </p>
+                {!demotid.aktuell && (
+                  <form action={applyDemoTimelineAction} className="mt-3">
+                    <button
+                      type="submit"
+                      className="cursor-pointer rounded-md bg-slate-900 px-3.5 py-2 text-[13px] font-semibold text-white"
+                    >
+                      Flytta fram demodatan
+                    </button>
+                  </form>
+                )}
+              </div>
+            </>
+          )}
 
           {/*
             Fel som servern fångat. Utan den här listan syns ett fel bara för

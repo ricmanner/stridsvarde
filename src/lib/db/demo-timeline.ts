@@ -4,6 +4,7 @@ import { sql } from 'drizzle-orm';
 
 import { hashCode } from '../auth/codes';
 import { daysBetween, serviceDate } from '../date';
+import { ALLOWED_PERIODS } from '../privacy';
 import { db, environment } from './client';
 import { DAGEN_OPPEN } from './seed';
 
@@ -73,6 +74,71 @@ async function assertDemoDatabase(): Promise<void> {
         'som en seedad demodatabas.',
     );
   }
+}
+
+export interface DemoTidslinjeBesked {
+  /** Sant när ingen åtgärd behövs — då visas ingen knapp. */
+  aktuell: boolean;
+  rubrik: string;
+  /** Vad administratören behöver veta innan hen trycker. */
+  text: string;
+}
+
+/**
+ * Ett glapp som inte syns i någon vy.
+ *
+ * Befälsvyns kortaste period är sju dagar, så en dags eftersläpning märks
+ * ingenstans. En varning som alltid lyser slutar man se, och då missas den
+ * dagen den betyder något.
+ */
+const GLAPP_UTAN_FOLJD = 1;
+
+/**
+ * Översätter en plan till det statussidan säger.
+ *
+ * Skilt från planDemoTimeline() för att bedömningen ska gå att testa utan en
+ * databas — och för att texten ska stämma med vad knappen faktiskt gör. Den
+ * som trycker ska veta att incheckningar gjorda efter historiken försvinner,
+ * innan hen trycker och inte efteråt.
+ */
+export function beskrivDemoTidslinje(plan: DemoTimelinePlan): DemoTidslinjeBesked {
+  if (plan.senasteHistorikdag === null) {
+    return {
+      aktuell: true,
+      rubrik: 'Ingen seedad historik',
+      text:
+        'Databasen har ingen seedad historik att flytta fram. Det här ser inte ut ' +
+        'som demons databas.',
+    };
+  }
+
+  if (plan.dagar <= GLAPP_UTAN_FOLJD) {
+    return {
+      aktuell: true,
+      rubrik: 'Demodatan är aktuell',
+      text:
+        `Historiken slutar ${plan.senasteHistorikdag}, alltså är demodatan aktuell ` +
+        'och alla befälsvyer visar data.',
+    };
+  }
+
+  const langsta = Math.max(...ALLOWED_PERIODS);
+  const delar = [`Historiken slutar ${plan.senasteHistorikdag}, ${plan.dagar} dagar bakåt.`];
+
+  delar.push(
+    plan.dagar > langsta
+      ? `Även den längsta befälsvyn — ${langsta} dagar — är tom, så demon är obrukbar tills datan flyttats fram.`
+      : 'Befälsvyernas förvalda sjudagarsperiod är därför helt eller delvis tom.',
+  );
+
+  if (plan.efterHistoriken > 0) {
+    delar.push(
+      `${plan.efterHistoriken} incheckningar gjorda efter historiken raderas av flytten — ` +
+        'annars skulle de hamna i framtiden.',
+    );
+  }
+
+  return { aktuell: false, rubrik: 'Demodatan har blivit gammal', text: delar.join(' ') };
 }
 
 /** Vad kommandot skulle göra, utan att ändra något. */
