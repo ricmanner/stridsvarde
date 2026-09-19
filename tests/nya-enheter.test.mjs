@@ -155,3 +155,30 @@ test('gränsen för att visa något: fyra svar, och minst fyra i enheten', async
   assert.equal(ov.categories.ok, true, 'fyra svar räcker');
   assert.equal((await getUnitCategorySeries(stor, 7)).at(-1).scores.fysisk, 6, 'dagen ritas ut');
 });
+
+test('bara ett verkligt unikhetsfel får bli "namnet är upptaget"', async () => {
+  /*
+   * catch-blocket i createUnit fångade allt som kunde gå fel i insert och
+   * svarade alltid att namnet var upptaget. Var databasen nere, eller något
+   * annat villkor brutet, fick administratören ett självsäkert och felaktigt
+   * besked — och letade efter en enhet som inte fanns.
+   *
+   * Felet kommer inlindat i flera lager: libSQL, drizzle och klienten lindar
+   * var sitt, och det ursprungliga ligger under `cause`. Därför prövas kedjan,
+   * precis som saknarTabell() i health.ts gör.
+   */
+  const { arUnikhetsfel } = await import('../src/lib/db/queries/admin.ts');
+
+  assert.equal(arUnikhetsfel(new Error('UNIQUE constraint failed: units.parent_id, units.name')), true);
+  assert.equal(
+    arUnikhetsfel(new Error('yttre', { cause: new Error('SQLITE_CONSTRAINT_UNIQUE: kollision') })),
+    true,
+    'felet under cause hittades inte',
+  );
+
+  // Det som INTE får bli "namnet är upptaget".
+  assert.equal(arUnikhetsfel(new Error('SQLITE_CANTOPEN: unable to open database file')), false);
+  assert.equal(arUnikhetsfel(new Error('connect ECONNREFUSED')), false);
+  assert.equal(arUnikhetsfel(new Error('FOREIGN KEY constraint failed')), false);
+  assert.equal(arUnikhetsfel('inte ens ett Error'), false);
+});

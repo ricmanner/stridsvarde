@@ -194,10 +194,39 @@ export async function createUnit(
 
     await audit(actorUserId, 'unit.create', `${kind}: ${trimmed}`);
     return { ok: true, id: row.id };
-  } catch {
+  } catch (fel) {
     // Unikindexet (parent_id, name) — två syskon får inte heta lika.
-    return { ok: false, error: `Det finns redan en enhet som heter "${trimmed}" här.` };
+    if (arUnikhetsfel(fel)) {
+      return { ok: false, error: `Det finns redan en enhet som heter "${trimmed}" här.` };
+    }
+
+    /*
+     * Allt annat kastas vidare. Blocket fångade tidigare varenda fel och
+     * svarade alltid att namnet var upptaget — var databasen nere fick
+     * administratören ett självsäkert och felaktigt besked och letade efter
+     * en enhet som inte fanns. Nu tar felgränsen hand om det, och
+     * onRequestError skriver det till loggen.
+     */
+    throw fel;
   }
+}
+
+const UNIKHET = /UNIQUE constraint failed|SQLITE_CONSTRAINT_UNIQUE/i;
+
+/**
+ * Är det här en krock med unikindexet, och inget annat?
+ *
+ * Felet kommer inlindat: libSQL, drizzle och klienten lindar var sitt, och
+ * det ursprungliga ligger under `cause`. Kedjan prövas därför nedåt, på
+ * samma sätt som saknarTabell() i health.ts gör.
+ */
+export function arUnikhetsfel(fel: unknown): boolean {
+  let nuvarande: unknown = fel;
+  for (let djup = 0; djup < 5 && nuvarande instanceof Error; djup++) {
+    if (UNIKHET.test(nuvarande.message)) return true;
+    nuvarande = nuvarande.cause;
+  }
+  return false;
 }
 
 export interface IssuedCode {

@@ -126,18 +126,3 @@ export async function markNotificationRead(userId: number, id: number): Promise<
     .where(and(eq(notifications.id, id), eq(notifications.recipientUserId, userId)));
 }
 
-/** Har soldaten redan begärt ett samtal idag? */
-export async function hasPendingTalkRequest(subjectUnitId: number, label: string): Promise<boolean> {
-  const [row] = await db
-    .select({ n: sql<number>`count(*)` })
-    .from(notifications)
-    .where(
-      and(
-        eq(notifications.subjectUnitId, subjectUnitId),
-        eq(notifications.serviceDate, serviceDate()),
-        sql`${notifications.body} LIKE ${label + '%'}`,
-      ),
-    );
-
-  return (row?.n ?? 0) > 0;
-}
