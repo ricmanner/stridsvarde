@@ -50,7 +50,7 @@ test('en enhet raderas med allt under sig, men aldrig förbi skydden', async (t)
       assert.match(d.refusal ?? '', /ditt eget konto/);
     });
 
-    await t.test('i demoläge: vägrar om ett publicerat demokonto ligger under — bara då', async () => {
+    await t.test('i demoläge: vägrar om ett publicerat demokonto ligger under', async () => {
       await skapa(hashCode('P1G1-01'), 'Ingång', 'soldat', org.grupper['Grupp B']);
 
       process.env.PSVI_ENVIRONMENT = 'demo';
@@ -58,6 +58,34 @@ test('en enhet raderas med allt under sig, men aldrig förbi skydden', async (t)
 
       process.env.PSVI_ENVIRONMENT = 'pilot';
       assert.equal((await getUnitDeletion(admin, org.pluton)).refusal, null);
+    });
+
+    await t.test('i demoläge: vägrar också enheter som bär demonstrationens historik', async () => {
+      /*
+       * Skyddet ovan räcker inte. Det gäller bara enheter som ligger på vägen
+       * ner till de fem publicerade kontona — fyra av fyrtio i den seedade
+       * demon. Resten gick att radera, och ett klick tog 72 värnpliktigas
+       * historik med sig. Koden står på inloggningssidan med flit, så "vem som
+       * helst" är också den som kan radera det alla andra ska titta på.
+       */
+      process.env.PSVI_ENVIRONMENT = 'demo';
+
+      // Den andra organisationen har inget publicerat konto och inga rapporter
+      // — som en enhet en besökare själv skapat. Den ska gå att radera, för
+      // det är så man provar funktionen.
+      assert.equal((await getUnitDeletion(admin, annan.grupper['Grupp B'])).refusal, null);
+
+      // Samma enhet när den väl bär rapporter.
+      await checkIn(client, annan.soldater['Grupp B'], '2026-09-12', 5);
+      assert.match(
+        (await getUnitDeletion(admin, annan.grupper['Grupp B'])).refusal ?? '',
+        /demonstrationens historik/,
+      );
+
+      // I pilotläge är rapporterna verkliga och raderingen en riktig
+      // administratörsåtgärd. Då gäller ingen sådan spärr.
+      process.env.PSVI_ENVIRONMENT = 'pilot';
+      assert.equal((await getUnitDeletion(admin, annan.grupper['Grupp B'])).refusal, null);
     });
 
     const personerFore = await n('SELECT count(*) n FROM users WHERE unit_id IN (?,?,?)', [org.pluton, org.grupper['Grupp A'], org.grupper['Grupp B']]);
