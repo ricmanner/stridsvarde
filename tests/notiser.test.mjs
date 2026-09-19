@@ -195,12 +195,15 @@ test('en ny begäran når fram efter att befälet kvitterat den förra samma dag
   );
 });
 
-test('den värnpliktige kan se att begäran ligger inne, och om befälet sett den', async () => {
+test('den värnpliktige ser att begäran gått fram, även efter omladdning', async () => {
   /*
-   * Bekräftelsen fanns bara i formulärets minne. Laddades sidan om var den
-   * borta, och den som bett om samtal möttes av knapparna igen som om
-   * ingenting hänt — utan svar på "gick det fram?". Det är illa för vem som
-   * helst och sämst för just den som tryckt på knappen.
+   * Bekräftelsen låg tidigare bara i formulärets minne. Laddades sidan om var
+   * den borta, och knapparna stod där igen som om ingenting hänt — utan svar
+   * på "gick det fram?". Det är illa för vem som helst och sämst för den som
+   * just tryckt på knappen.
+   *
+   * Kvittot säger inte vad befälet gjort. Den raden mätte om krysset tryckts,
+   * inte om någon läst något — se testet längre ner.
    */
   const { client } = await database();
   const org = await buildOrg(client);
@@ -211,11 +214,10 @@ test('den värnpliktige kan se att begäran ligger inne, och om befälet sett de
     args: [`hash-chef-status-${Date.now()}`, 'Plutonchef', 'pluton', org.pluton, new Date().toISOString()],
   })).rows[0].id);
 
-  const { createTalkRequest, markNotificationRead, samtalsbegaranIdag, getUnreadNotifications } =
+  const { createTalkRequest, markNotificationRead, aktivSamtalsbegaran, getUnreadNotifications } =
     await import('../src/lib/db/queries/notifications.ts');
 
-  // Innan något begärts finns ingenting att visa.
-  assert.equal(await samtalsbegaranIdag(soldat), null);
+  assert.equal(await aktivSamtalsbegaran(soldat), null, 'kvitto utan att något begärts');
 
   await createTalkRequest({
     soldierUserId: soldat,
@@ -225,15 +227,68 @@ test('den värnpliktige kan se att begäran ligger inne, och om befälet sett de
     subjectUnitId: org.grupper['Grupp A'],
   });
 
-  const inne = await samtalsbegaranIdag(soldat);
+  const inne = await aktivSamtalsbegaran(soldat);
   assert.ok(inne, 'begäran syns inte för den som skickade den');
-  assert.equal(inne.kvitterad, false, 'markerades som sedd innan befälet sett den');
+  assert.match(inne.skickad, /^\d{4}-\d{2}-\d{2}T/, 'tidpunkten saknas');
 
-  // Befälet kvitterar.
+  // Kvitterar befälet samma dag ska kvittot ändå stå kvar: personen ska inte
+  // se sitt eget kvitto försvinna för att någon annan tryckt på ett kryss.
   const [notis] = await getUnreadNotifications(befal);
   await markNotificationRead(befal, notis.id);
+  assert.ok(await aktivSamtalsbegaran(soldat), 'kvittot försvann när befälet kvitterade');
+});
 
-  const sedd = await samtalsbegaranIdag(soldat);
-  assert.ok(sedd, 'begäran försvann när den kvitterades');
-  assert.equal(sedd.kvitterad, true, 'kvitteringen syns inte för den värnpliktige');
+test('kvittot lever så länge ärendet gör, inte bara kalenderdagen ut', async () => {
+  /*
+   * De två vyerna gick isär. Befälets banner filtrerar inte på datum —
+   * notisen ligger kvar tills någon kvitterar den. Den värnpliktiges kvitto
+   * frågade på dagens datum, så en begäran skickad 23.50 försvann ur hens vy
+   * tio minuter senare, medan den låg obesvarad hos befälet. Fel håll: den
+   * som väntar på svar tappade sitt kvitto medan ärendet levde vidare.
+   */
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const [soldat] = org.soldater['Grupp A'];
+
+  const befal = Number((await client.execute({
+    sql: 'INSERT INTO users (code_hash, label, role, unit_id, active, created_at) VALUES (?,?,?,?,1,?) RETURNING id',
+    args: [`hash-chef-kvitto-${Date.now()}`, 'Plutonchef', 'pluton', org.pluton, new Date().toISOString()],
+  })).rows[0].id);
+
+  const { aktivSamtalsbegaran } = await import('../src/lib/db/queries/notifications.ts');
+
+  const lagg = async (serviceDate, readAt) =>
+    Number((await client.execute({
+      sql: `INSERT INTO notifications
+              (recipient_user_id, subject_unit_id, kind, requested_by_user_id, title, body, service_date, created_at, read_at)
+            VALUES (?,?,'talk_request',?,?,?,?,?,?) RETURNING id`,
+      args: [befal, org.grupper['Grupp A'], soldat, 'T', 'B', serviceDate, `${serviceDate}T23:50:00.000Z`, readAt],
+    })).rows[0].id);
+
+  const rensa = () => client.execute({ sql: 'DELETE FROM notifications WHERE requested_by_user_id = ?', args: [soldat] });
+
+  // Obesvarad från en tidigare dag: ärendet lever, kvittot ska leva.
+  await lagg('2020-01-01', null);
+  assert.ok(await aktivSamtalsbegaran(soldat), 'kvittot försvann medan begäran låg obesvarad');
+  await rensa();
+
+  // Kvitterad en tidigare dag: ärendet är avslutat, kvittot ska vara borta.
+  await lagg('2020-01-01', '2020-01-02T08:00:00.000Z');
+  assert.equal(await aktivSamtalsbegaran(soldat), null, 'kvittot låg kvar efter ett avslutat ärende');
+  await rensa();
+});
+
+test('kvittot säger när begäran skickades, inte vad befälet gjort', async () => {
+  /*
+   * Raden sa tidigare "Befälet har inte öppnat den ännu". Den mätte i själva
+   * verket om befälet tryckt på krysset — inte om hen läst något. Ett befäl
+   * som loggat in och sett bannern fick ändå "har inte öppnat", och till
+   * någon som just sagt att hen mår dåligt läses det som att ingen bryr sig.
+   */
+  const { klockslagLabel } = await import('../src/lib/date.ts');
+
+  // 14:32 svensk sommartid är 12:32 UTC.
+  assert.equal(klockslagLabel('2026-09-19T12:32:00.000Z'), '14:32');
+  // Vintertid: en timmes skillnad, inte två.
+  assert.equal(klockslagLabel('2026-01-15T12:32:00.000Z'), '13:32');
 });

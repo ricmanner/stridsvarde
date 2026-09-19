@@ -5,7 +5,6 @@ import { Check, LifeBuoy, Phone } from 'lucide-react';
 
 import { requestTalkAction, type TalkState } from '@/app/actions/support';
 import type { Category } from '@/lib/data';
-import type { SamtalsbegaranStatus } from '@/lib/db/queries/notifications';
 import { supportPlan, type SupportContact } from '@/lib/support';
 
 /**
@@ -18,11 +17,11 @@ import { supportPlan, type SupportContact } from '@/lib/support';
  */
 export default function SupportBlock({
   red,
-  begaran,
+  begaranSkickad,
 }: {
   red: Category[];
-  /** Dagens begäran om samtal, om personen redan skickat en. */
-  begaran: SamtalsbegaranStatus | null;
+  /** När en öppen begäran skickades, t.ex. "14:32 idag". Null om ingen finns. */
+  begaranSkickad: string | null;
 }) {
   const [state, formAction, pending] = useActionState<TalkState, FormData>(
     requestTalkAction,
@@ -61,7 +60,7 @@ export default function SupportBlock({
 
       <div className="mb-5" />
 
-      {state.sent || begaran ? (
+      {state.sent || begaranSkickad ? (
         /*
          * Kvittot låg tidigare bara i `state`, alltså i formulärets minne.
          * Laddades sidan om var det borta och knapparna stod där igen som om
@@ -74,12 +73,21 @@ export default function SupportBlock({
               Ditt befäl har fått veta att du vill prata. Dina svar i appen har{' '}
               <strong>inte</strong> delats — bara att du sökt kontakt.
             </p>
-            {begaran && (
+            {begaranSkickad && (
+              /*
+               * Tidpunkten, inte befälets tillstånd.
+               *
+               * Här stod tidigare "Befälet har inte öppnat den ännu". Den
+               * mätte om befälet tryckt på krysset — inte om hen läst något.
+               * Ett befäl som loggat in och sett bannern gav ändå det
+               * beskedet, och till någon som just sagt att hen mår dåligt
+               * läses det som att ingen bryr sig. Klockslaget är det appen
+               * faktiskt vet, och det besvarar frågan som ställdes: gick det
+               * fram?
+               */
               <p className="mt-1.5 text-xs">
-                {begaran.kvitterad
-                  ? 'Befälet har öppnat din begäran.'
-                  : 'Befälet har inte öppnat den ännu.'}{' '}
-                Hör ingen av sig, använd numren ovan — de svarar dygnet runt.
+                Skickad {begaranSkickad}. Hör ingen av sig, använd numren ovan — de
+                svarar dygnet runt.
               </p>
             )}
           </div>

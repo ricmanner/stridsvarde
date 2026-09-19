@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, or, sql } from 'drizzle-orm';
 
 import { serviceDate } from '../../date';
 import type { Role } from '../../roles';
@@ -130,36 +130,43 @@ export async function markNotificationRead(userId: number, id: number): Promise<
 export interface SamtalsbegaranStatus {
   /** När begäran skickades, som ISO-tid. */
   skickad: string;
-  /** Sant när befälet kvitterat att hen sett den. */
-  kvitterad: boolean;
+  /** Tjänstedatumet begäran hör till. */
+  serviceDate: string;
 }
 
 /**
- * Den värnpliktiges egen begäran om samtal idag, om det finns någon.
+ * Den värnpliktiges egen begäran om samtal, så länge den är aktuell.
  *
  * Bekräftelsen låg tidigare bara i formulärets minne. Laddades sidan om var
  * den borta, och den som bett om samtal möttes av knapparna igen som om
- * ingenting hänt — utan svar på "gick det fram?". Den frågan ska inte behöva
- * hänga i luften för någon som just räckt upp handen.
+ * ingenting hänt — utan svar på "gick det fram?".
+ *
+ * "Aktuell" betyder obesvarad, ELLER skickad idag. Frågan gällde tidigare
+ * bara dagens datum, och då gick de två vyerna isär: befälets banner
+ * filtrerar inte på datum, så en begäran skickad 23.50 försvann ur den
+ * värnpliktiges vy tio minuter senare medan den låg kvar obesvarad hos
+ * befälet. Fel håll — den som väntar på svar ska inte tappa sitt kvitto
+ * medan ärendet lever vidare.
  *
  * Frågar på requested_by_user_id, alltså personens eget id. Det här är den
  * enda vägen där en soldat läser en notisrad, och den läser bara sin egen.
  */
-export async function samtalsbegaranIdag(
+export async function aktivSamtalsbegaran(
   soldierUserId: number,
 ): Promise<SamtalsbegaranStatus | null> {
   const [rad] = await db
-    .select({ createdAt: notifications.createdAt, readAt: notifications.readAt })
+    .select({ createdAt: notifications.createdAt, serviceDate: notifications.serviceDate })
     .from(notifications)
     .where(
       and(
         eq(notifications.kind, 'talk_request'),
         eq(notifications.requestedByUserId, soldierUserId),
-        eq(notifications.serviceDate, serviceDate()),
+        or(isNull(notifications.readAt), eq(notifications.serviceDate, serviceDate())),
       ),
     )
+    .orderBy(desc(notifications.createdAt))
     .limit(1);
 
   if (!rad) return null;
-  return { skickad: rad.createdAt, kvitterad: rad.readAt !== null };
+  return { skickad: rad.createdAt, serviceDate: rad.serviceDate };
 }

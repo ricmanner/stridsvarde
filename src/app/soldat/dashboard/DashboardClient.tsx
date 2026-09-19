@@ -12,7 +12,6 @@ import Tabs, { Panel } from '@/components/Tabs';
 import { CATEGORIES, type Category, getStatus, statusColor, avgScore } from '@/lib/data';
 import { ownTrend } from '@/lib/own-trend';
 import { getSoldierTips } from '@/lib/advice';
-import type { SamtalsbegaranStatus } from '@/lib/db/queries/notifications';
 import SupportBlock from './SupportBlock';
 import { shortLabel } from '@/lib/date';
 import { formatScore } from '@/lib/format';
@@ -23,8 +22,8 @@ export interface DashboardProps {
   /** En rad per dag de senaste fjorton dagarna, äldst först. Tom dag = null. */
   chartData: Array<{ date: string; day: string; score: number | null; scores: Record<Category, number> | null }>;
   freq: { checkedIn: number; total: number; pct: number };
-  /** Dagens begäran om samtal, om personen redan skickat en. */
-  begaran: SamtalsbegaranStatus | null;
+  /** När en öppen samtalsbegäran skickades, färdigformaterat av servern. */
+  begaranSkickad: string | null;
 }
 
 const FLIKAR = [
@@ -36,7 +35,7 @@ const FLIKAR = [
 const NYCKELTALSETIKETT = 'mb-0.5 text-etikett font-bold uppercase tracking-[0.06em] text-slate-500';
 
 /** Behörigheten kontrolleras på servern i page.tsx innan detta renderas. */
-export default function SoldatDashboard({ scores, advice, chartData, freq, begaran }: DashboardProps) {
+export default function SoldatDashboard({ scores, advice, chartData, freq, begaranSkickad }: DashboardProps) {
   const [tab, setTab] = useState<'overview' | 'history'>('overview');
 
   const overall = avgScore(scores);
@@ -87,7 +86,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
 
         {tab === 'overview' && (
           <Panel id="overview">
-            {redCategories.length > 0 && <SupportBlock red={redCategories} begaran={begaran} />}
+            {redCategories.length > 0 && <SupportBlock red={redCategories} begaranSkickad={begaranSkickad} />}
 
             {/* Dagens två nyckeltal */}
             <div className="mb-4 grid grid-cols-2 gap-2.5">

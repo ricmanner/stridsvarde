@@ -78,3 +78,18 @@ export function longDateLabel(isoDate: string): string {
     timeZone: 'UTC',
   });
 }
+
+/**
+ * Klockslaget ur en tidsstämpel, i Stockholm.
+ *
+ * Formateras på SERVERN, aldrig i webbläsaren. En klientkomponent formaterar
+ * i besökarens tidszon, och då stod det fel tid för den som satt någon
+ * annanstans — samma fel som incheckningens datum en gång hade.
+ */
+export function klockslagLabel(iso: string): string {
+  return new Date(iso).toLocaleTimeString('sv-SE', {
+    timeZone: TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}

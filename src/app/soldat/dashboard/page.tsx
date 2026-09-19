@@ -4,13 +4,13 @@ import AppHeader from '@/components/AppHeader';
 import { generateSoldierAdvice } from '@/lib/advice';
 import { requireRole } from '@/lib/auth/guard';
 import { avgScore, type Category } from '@/lib/data';
-import { serviceDateRange, weekdayLabel } from '@/lib/date';
+import { klockslagLabel, longDateLabel, serviceDate, serviceDateRange, weekdayLabel } from '@/lib/date';
 import {
   getOwnHistory,
   getOwnResponseFrequency,
   getTodayCheckIn,
 } from '@/lib/db/queries/checkins';
-import { samtalsbegaranIdag } from '@/lib/db/queries/notifications';
+import { aktivSamtalsbegaran } from '@/lib/db/queries/notifications';
 
 import SoldatDashboard from './DashboardClient';
 
@@ -27,9 +27,9 @@ export default async function SoldatDashboardPage() {
   const [history, freq, begaran] = await Promise.all([
     getOwnHistory(session.id, HISTORY_DAYS),
     getOwnResponseFrequency(session.id, HISTORY_DAYS),
-    // Har personen redan bett om samtal idag ska kvittot stå kvar, även
-    // efter en omladdning. Se samtalsbegaranIdag().
-    samtalsbegaranIdag(session.id),
+    // Har personen bett om samtal ska kvittot stå kvar, även efter en
+    // omladdning och så länge ärendet är öppet. Se aktivSamtalsbegaran().
+    aktivSamtalsbegaran(session.id),
   ]);
 
   const toScores = (r: typeof today): Record<Category, number> => ({
@@ -74,7 +74,21 @@ export default async function SoldatDashboardPage() {
           advice={today.advice ?? generateSoldierAdvice(scores)}
           chartData={chartData}
           freq={freq}
-          begaran={begaran}
+          begaranSkickad={
+            /*
+             * Formateras här, på servern. En klientkomponent formaterar i
+             * BESÖKARENS tidszon, och då stod fel klockslag för den som satt
+             * någon annanstans — samma fel som incheckningens datum en gång
+             * hade.
+             */
+            begaran
+              ? `${klockslagLabel(begaran.skickad)} ${
+                  begaran.serviceDate === serviceDate()
+                    ? 'idag'
+                    : longDateLabel(begaran.serviceDate)
+                }`
+              : null
+          }
         />
       </main>
     </div>
