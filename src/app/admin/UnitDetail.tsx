@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { ArrowRightLeft, Info, KeyRound, Pencil, Plus, Trash, Trash2, UserCheck, UserX } from 'lucide-react';
 
+import BekraftaKnapp from '@/components/BekraftaKnapp';
 import {
   createUnitAction,
   createUsersAction,
@@ -61,6 +62,16 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
   const [activeState, activeFormAction] = useActionState<ActiveState, FormData>(toggleUserActiveAction, {});
   const [moveState, moveFormAction, moving] = useActionState<MoveState, FormData>(moveUserAction, {});
   const [eraseState, eraseFormAction, erasing] = useActionState<EraseState, FormData>(erasePersonalDataAction, {});
+
+  /*
+   * Vem raderingsrutan ska namnge.
+   *
+   * Förvalt är första personen i listan — samma som webbläsaren väljer åt en
+   * okontrollerad select. Utan det står fältet tomt och knappen går inte att
+   * använda förrän man rört den.
+   */
+  const [raderaId, setRaderaId] = useState(() => String(members[0]?.id ?? ''));
+  const raderaNamn = members.find((m) => String(m.id) === raderaId)?.label ?? 'personen';
   const [renameState, renameFormAction] = useActionState<RenameState, FormData>(renameUserAction, {});
   const [deleteState, deleteFormAction] = useActionState<DeleteState, FormData>(deleteUserAction, {});
   const [dismissed, setDismissed] = useState('');
@@ -134,7 +145,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                 className="flex cursor-pointer items-center gap-1.5 rounded-md bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:bg-slate-300"
               >
                 <Plus size={14} aria-hidden />
-                Lägg till befäl
+                {creatingUsers ? 'Skapar…' : 'Lägg till befäl'}
               </button>
             </form>
           )}
@@ -467,29 +478,23 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                       rapporterna följer med och ingenting går att ångra.
                     */}
                     {!isSelf && (
-                      <form
-                        action={deleteFormAction}
-                        onSubmit={(e) => {
-                          if (
-                            !confirm(
-                              `Ta bort ${m.label} permanent?\n\n` +
-                                'Kontot och personens alla rapporter raderas. ' +
-                                'Det går inte att ångra.\n\n' +
-                                'Ska uppgifterna finnas kvar — välj Spärra i stället.',
-                            )
-                          ) {
-                            e.preventDefault();
-                          }
-                        }}
-                      >
+                      <form action={deleteFormAction}>
                         <input type="hidden" name="userId" value={m.id} />
-                        <button
-                          type="submit"
-                          title="Ta bort kontot och alla rapporter permanent"
+                        <BekraftaKnapp
+                          fraga={`Ta bort ${m.label} permanent?`}
+                          forklaring={
+                            <>
+                              <p>Kontot och personens alla rapporter raderas. Det går inte att ångra.</p>
+                              <p className="mt-1.5">
+                                Ska uppgifterna finnas kvar — välj <strong>Spärra</strong> i stället.
+                              </p>
+                            </>
+                          }
+                          bekraftaText="Ta bort permanent"
                           className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-[11px] font-semibold text-slate-500 hover:bg-red-50 hover:text-red-700 sm:py-1"
                         >
                           <Trash size={12} aria-hidden /> Ta bort
-                        </button>
+                        </BekraftaKnapp>
                       </form>
                     )}
                   </div>
@@ -578,26 +583,20 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
               tas bort permanent. Kontot och enhetstillhörigheten behålls, så att
               svarsfrekvensen fortfarande räknas rätt. Går inte att ångra.
             </p>
-            <form
-              action={eraseFormAction}
-              onSubmit={(e) => {
-                if (
-                  !confirm(
-                    'Radera den här personens samtliga incheckningar?\n\n' +
-                      'Det går inte att ångra. Uppgifterna finns därefter bara kvar i ' +
-                      'eventuella säkerhetskopior.',
-                  )
-                ) {
-                  e.preventDefault();
-                }
-              }}
-              className="flex flex-wrap items-end gap-2"
-            >
+            <form action={eraseFormAction} className="flex flex-wrap items-end gap-2">
               <label className="flex flex-col gap-1">
                 <span className="text-[11px] font-semibold text-red-700">Person</span>
+                {/*
+                  Valet följs i state enbart för att bekräftelserutan ska kunna
+                  säga vems svar som raderas. En ruta som säger "den här
+                  personen" framför en lista med tjugofyra namn bekräftar
+                  ingenting — man trycker ja på något man inte läst.
+                */}
                 <select
                   name="userId"
                   required
+                  value={raderaId}
+                  onChange={(e) => setRaderaId(e.target.value)}
                   className="w-48 max-w-full rounded border-[1.5px] border-red-200 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-red-600"
                 >
                   {members.map((m) => (
@@ -608,14 +607,23 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                   ))}
                 </select>
               </label>
-              <button
-                type="submit"
+              <BekraftaKnapp
+                fraga={`Radera samtliga incheckningar för ${raderaNamn}?`}
+                forklaring={
+                  <>
+                    <p>Det går inte att ångra.</p>
+                    <p className="mt-1.5">
+                      Uppgifterna finns därefter bara kvar i eventuella säkerhetskopior.
+                    </p>
+                  </>
+                }
+                bekraftaText="Radera svaren"
                 disabled={erasing}
                 className="flex cursor-pointer items-center gap-1.5 rounded-md border-[1.5px] border-red-300 px-3.5 py-2 text-sm font-semibold text-red-700 hover:border-red-600 hover:bg-red-100 disabled:opacity-50"
               >
                 <Trash2 size={14} aria-hidden />
                 {erasing ? 'Raderar…' : 'Radera svaren'}
-              </button>
+              </BekraftaKnapp>
             </form>
             {eraseState.error && <p role="alert" className="mt-2 text-sm text-red-700">{eraseState.error}</p>}
             {eraseState.erased !== undefined && (

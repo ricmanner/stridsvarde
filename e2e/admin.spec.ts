@@ -107,8 +107,14 @@ test('en ny grupp dyker upp, och går att radera igen', async ({ page }) => {
   const radera = page.getByRole('button', { name: new RegExp(`Radera ${namn}`) });
   await expect(radera).toBeVisible();
 
-  page.once('dialog', (d) => d.accept());
+  /*
+   * Bekräftelsen är appens egen ruta sedan window.confirm ersattes: en
+   * <dialog> med Avbryt och en knapp som säger vad den gör. Den gamla raden
+   * lyssnade efter webbläsarens ruta, som inte längre dyker upp.
+   */
   await radera.click();
+  await expect(page.getByRole('heading', { name: new RegExp(`Radera ${namn}\\?`) })).toBeVisible();
+  await page.getByRole('button', { name: 'Radera enheten' }).click();
 
   await expect(page.getByRole('link', { name: new RegExp(namn) })).toHaveCount(0, {
     timeout: 15_000,

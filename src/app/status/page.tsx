@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import AppHeader from '@/components/AppHeader';
+import SkickaKnapp from '@/components/SkickaKnapp';
 import { requireRole } from '@/lib/auth/guard';
 import { dbStatus } from '@/lib/db';
 import { dbAdressFörVisning, environment } from '@/lib/db/client';
@@ -140,12 +141,12 @@ export default async function StatusPage({
                 </p>
                 {!demotid.aktuell && (
                   <form action={applyDemoTimelineAction} className="mt-3">
-                    <button
-                      type="submit"
-                      className="cursor-pointer rounded-md bg-slate-900 px-3.5 py-2 text-[13px] font-semibold text-white"
+                    <SkickaKnapp
+                      vantetext="Flyttar…"
+                      className="cursor-pointer rounded-md bg-slate-900 px-3.5 py-2 text-[13px] font-semibold text-white disabled:bg-slate-300"
                     >
                       Flytta fram demodatan
-                    </button>
+                    </SkickaKnapp>
                   </form>
                 )}
               </div>
@@ -186,12 +187,12 @@ export default async function StatusPage({
                     placeholder={ATERSTALL_ORD}
                     className="w-40 rounded-md border border-slate-300 px-2.5 py-2 text-[13px] text-slate-900 placeholder:text-slate-400"
                   />
-                  <button
-                    type="submit"
-                    className="cursor-pointer rounded-md border border-red-300 bg-red-50 px-3.5 py-2 text-[13px] font-semibold text-red-800 hover:bg-red-100"
+                  <SkickaKnapp
+                    vantetext="Återställer…"
+                    className="cursor-pointer rounded-md border border-red-300 bg-red-50 px-3.5 py-2 text-[13px] font-semibold text-red-800 hover:bg-red-100 disabled:opacity-50"
                   >
                     Återställ demon
-                  </button>
+                  </SkickaKnapp>
                 </form>
               </div>
             </>
@@ -221,12 +222,12 @@ export default async function StatusPage({
                 trycka på flera gånger utan att något händer en andra gång.
               </p>
               <form action={applySchemaAction} className="mt-3">
-                <button
-                  type="submit"
-                  className="cursor-pointer rounded-md bg-slate-900 px-3.5 py-2 text-[13px] font-semibold text-white"
+                <SkickaKnapp
+                  vantetext="Uppdaterar…"
+                  className="cursor-pointer rounded-md bg-slate-900 px-3.5 py-2 text-[13px] font-semibold text-white disabled:bg-slate-300"
                 >
                   Uppdatera schemat
-                </button>
+                </SkickaKnapp>
               </form>
             </div>
           ) : fel && fel.senaste7d > 0 ? (

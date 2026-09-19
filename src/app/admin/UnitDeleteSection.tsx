@@ -1,6 +1,8 @@
 'use client';
 
 import { useActionState, useState, useTransition } from 'react';
+
+import BekraftaKnapp from '@/components/BekraftaKnapp';
 import { Trash2 } from 'lucide-react';
 
 import {
@@ -110,13 +112,7 @@ function DeleteForm({
   ].filter(Boolean);
 
   return (
-    <form
-      action={formAction}
-      onSubmit={(e) => {
-        // En tom enhet har ingen namnbekräftelse, så den får en vanlig fråga.
-        if (tom && !confirm(`Radera ${preview.name}? Det går inte att ångra.`)) e.preventDefault();
-      }}
-    >
+    <form action={formAction}>
       <input type="hidden" name="unitId" value={preview.unitId} />
 
       {tom ? (
@@ -149,14 +145,33 @@ function DeleteForm({
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="submit"
-          disabled={deleting || (!tom && !matchar)}
-          className="flex cursor-pointer items-center gap-1.5 rounded-md bg-red-700 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-red-300"
-        >
-          <Trash2 size={14} aria-hidden />
-          {deleting ? 'Raderar…' : `Radera ${preview.name}`}
-        </button>
+        {/*
+          En tom enhet har ingen namnbekräftelse att skriva, så den får rutan
+          i stället. En enhet med innehåll har redan bekräftats genom att
+          namnet skrivits — att fråga en gång till hade varit att fråga två
+          gånger om samma sak.
+        */}
+        {tom ? (
+          <BekraftaKnapp
+            fraga={`Radera ${preview.name}?`}
+            forklaring={<p>Enheten är tom och tas bort permanent. Det går inte att ångra.</p>}
+            bekraftaText="Radera enheten"
+            disabled={deleting}
+            className="flex cursor-pointer items-center gap-1.5 rounded-md bg-red-700 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-red-300"
+          >
+            <Trash2 size={14} aria-hidden />
+            {deleting ? 'Raderar…' : `Radera ${preview.name}`}
+          </BekraftaKnapp>
+        ) : (
+          <button
+            type="submit"
+            disabled={deleting || !matchar}
+            className="flex cursor-pointer items-center gap-1.5 rounded-md bg-red-700 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-red-300"
+          >
+            <Trash2 size={14} aria-hidden />
+            {deleting ? 'Raderar…' : `Radera ${preview.name}`}
+          </button>
+        )}
         <button
           type="button"
           onClick={onCancel}

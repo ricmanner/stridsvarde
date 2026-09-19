@@ -138,7 +138,15 @@ export default function LeaderDashboard({
         {/* ── ÖVERSIKT ── */}
         {tab === 'overview' && (
           <Panel id="overview">
-            <SL>Kategorier — snitt och fördelning över {period} dagar</SL>
+            {/*
+              Väljaren stod bara på de två andra flikarna, trots att rubriken
+              här är den första som nämner en period. Den som läste "över 7
+              dagar" hade ingenstans att ändra det.
+            */}
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <SL inline>Kategorier — snitt och fördelning över {period} dagar</SL>
+              <PeriodPicker current={period} pathname={pathname} />
+            </div>
             {cats.ok && dist.ok ? (
               <div className="mb-4 overflow-hidden rounded-md border border-slate-200 bg-white">
                 {CATEGORIES.map((cat, i) => {

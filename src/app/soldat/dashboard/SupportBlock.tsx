@@ -107,7 +107,7 @@ export default function SupportBlock({
               disabled={pending}
               className="flex-1 rounded-md border-[1.5px] border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-900 disabled:opacity-50"
             >
-              Kompanichefen
+              {pending ? 'Skickar…' : 'Kompanichefen'}
             </button>
           </div>
 
