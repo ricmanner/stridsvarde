@@ -49,15 +49,15 @@ export default function CategoryTrendGrid({
           return (
             <div key={cat.key} className="rounded-md border border-slate-200 bg-white px-3 pb-2 pt-3">
               <div className="mb-1 flex items-center justify-between gap-2 px-1">
-                <span className="truncate text-[13px] font-semibold text-slate-800">{cat.label}</span>
+                <span className="truncate text-xs font-semibold text-slate-800">{cat.label}</span>
                 {visat !== null && visat !== undefined ? (
                   <span className="flex shrink-0 items-center gap-1.5">
-                    <span className="text-[11px] text-slate-500">{summary ? summaryLabel ?? 'snitt' : 'senast'}</span>
-                    <span className="text-[15px] font-bold text-slate-900">{formatScore(visat)}</span>
+                    <span className="text-etikett text-slate-500">{summary ? summaryLabel ?? 'snitt' : 'senast'}</span>
+                    <span className="text-sm font-bold text-slate-900">{formatScore(visat)}</span>
                     <StatusBadge status={getStatus(visat)} size="sm" />
                   </span>
                 ) : (
-                  <span className="text-[11px] text-slate-500">Underlag saknas</span>
+                  <span className="text-etikett text-slate-500">Underlag saknas</span>
                 )}
               </div>
               <ScoreTrendChart data={data} height={130} compact ariaLabel={`${ariaPrefix}: ${cat.label}`} />

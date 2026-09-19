@@ -59,6 +59,16 @@ en återvändsgränd.
 - **Mät innan du optimerar.** Två av tre farhågor i genomgången var fel, och
   en "förbättring" av befälsöversikten var 2,4 gånger långsammare.
 
+## Typskalan
+
+Sex storlekar, definierade i `src/app/globals.css`. Fem är Tailwinds egna;
+`text-etikett` (11 px) är den enda egna, för de versala småetiketterna —
+Tailwind har ingenting under 12. Skriv aldrig `text-[Npx]`: det var så det
+blev femton storlekar, varav två skrevs på vardera två sätt.
+
+Två storlekar står utanför med flit och ska inte återanvändas: 36 px i
+utskriftsrapporten och 64 px på incheckningens siffra.
+
 ## Fallgropar i webbläsartesterna (e2e/)
 
 - Enhetsnamn måste vara unika inom föräldern, och databasen lever kvar mellan

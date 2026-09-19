@@ -68,14 +68,14 @@ export default function UnitTree({
           <span className={`h-5 w-[3px] shrink-0 rounded ${KIND_STYLE[current.kind].bar}`} aria-hidden />
         )}
         <span className="min-w-0 flex-1">
-          <span className="block text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">
+          <span className="block text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
             Vald enhet
           </span>
           <span className="block truncate text-sm font-semibold text-slate-900">
             {current ? current.name : 'Ingen'}
           </span>
         </span>
-        <span className="shrink-0 text-[11px] font-semibold text-slate-500">
+        <span className="shrink-0 text-etikett font-semibold text-slate-500">
           {open ? 'Stäng' : 'Byt'}
         </span>
         <ChevronDown
@@ -120,7 +120,7 @@ export default function UnitTree({
                 style={{ paddingLeft: 6 + node.depth * 14 }}
               >
                 <span
-                  className={`shrink-0 font-mono text-[9px] font-bold tracking-wide ${
+                  className={`shrink-0 font-mono text-etikett font-bold tracking-wide ${
                     isSelected ? 'text-slate-400' : style.text
                   }`}
                 >
@@ -130,7 +130,7 @@ export default function UnitTree({
                 <span className="truncate">{node.name}</span>
 
                 <span
-                  className={`ml-auto shrink-0 text-[11px] tabular-nums ${
+                  className={`ml-auto shrink-0 text-etikett tabular-nums ${
                     isSelected ? 'text-slate-300' : 'text-slate-500'
                   }`}
                 >

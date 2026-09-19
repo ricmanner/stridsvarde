@@ -18,7 +18,7 @@ export default function DemoBanner() {
   return (
     <div className="no-print flex items-center justify-center gap-2 bg-amber-200 px-4 py-1.5 text-center">
       <FlaskConical size={13} className="shrink-0 text-amber-900" aria-hidden />
-      <p className="text-[12px] font-semibold text-amber-900">
+      <p className="text-xs font-semibold text-amber-900">
         Demoversion — all data är påhittad. Inga verkliga personer och inga
         verkliga hälsouppgifter.
       </p>

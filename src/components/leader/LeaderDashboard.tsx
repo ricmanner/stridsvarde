@@ -75,7 +75,7 @@ export default function LeaderDashboard({
       <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-5 gap-y-3">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">
+            <p className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
               {levelLabel} · {period} dagar
             </p>
             <div className="flex items-baseline gap-2">
@@ -110,7 +110,7 @@ export default function LeaderDashboard({
           {alerts.length > 0 && (
             <div className="flex items-center gap-1.5 rounded border border-red-200 bg-red-50 px-2.5 py-1 sm:ml-auto">
               <AlertTriangle size={13} className="text-red-700" aria-hidden />
-              <span className="text-[11px] font-bold text-red-700">
+              <span className="text-etikett font-bold text-red-700">
                 {alerts.length} kategori{alerts.length > 1 ? 'er' : ''} i rött
               </span>
             </div>
@@ -127,7 +127,7 @@ export default function LeaderDashboard({
           etikett="Vyer för enheten"
           className="mx-auto flex w-full max-w-5xl"
           knappklass={(aktiv) =>
-            `flex-1 cursor-pointer border-b-2 px-2 py-3.5 text-[11px] font-bold uppercase tracking-[0.08em] transition-colors ${
+            `flex-1 cursor-pointer border-b-2 px-2 py-3.5 text-etikett font-bold uppercase tracking-[0.08em] transition-colors ${
               aktiv ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500'
             }`
           }
@@ -160,8 +160,8 @@ export default function LeaderDashboard({
                     >
                       <div className="mb-2 flex items-center gap-2.5">
                         <span className="text-slate-400">{ICONS[cat.icon]}</span>
-                        <span className="flex-1 text-[13px] text-slate-600">{cat.label}</span>
-                        <span className="mr-1.5 text-[15px] font-bold tabular-nums text-slate-900">
+                        <span className="flex-1 text-xs text-slate-600">{cat.label}</span>
+                        <span className="mr-1.5 text-sm font-bold tabular-nums text-slate-900">
                           {formatScore(score)}
                         </span>
                         <StatusBadge status={getStatus(score)} size="sm" />
@@ -171,7 +171,7 @@ export default function LeaderDashboard({
                         <div style={{ width: `${(d.yellow / total) * 100}%`, background: '#D97706' }} />
                         <div style={{ width: `${(d.red / total) * 100}%`, background: '#DC2626' }} />
                       </div>
-                      <div className="flex gap-3 text-[11px]">
+                      <div className="flex gap-3 text-etikett">
                         <span className="font-semibold text-emerald-700">{d.green} <span className="font-normal text-slate-500">gröna</span></span>
                         <span className="font-semibold text-amber-700">{d.yellow} <span className="font-normal text-slate-500">gula</span></span>
                         <span className="font-semibold text-red-700">{d.red} <span className="font-normal text-slate-500">röda</span></span>
@@ -199,7 +199,7 @@ export default function LeaderDashboard({
                     {alerts.map((cat, i) => (
                       <div key={cat.key} className={`flex items-center gap-2.5 ${i > 0 ? 'mt-2' : ''}`}>
                         <AlertTriangle size={14} className="shrink-0 text-red-700" aria-hidden />
-                        <span className="text-[13px] text-red-900">
+                        <span className="text-xs text-red-900">
                           <strong>{cat.label}</strong> understiger kritisk nivå — snitt{' '}
                           {formatScore(cats.data[cat.key])}
                         </span>
@@ -219,7 +219,7 @@ export default function LeaderDashboard({
                 <div className="rounded-md border border-slate-200 bg-white p-5">
                   <div className="mb-2.5 flex items-center gap-2">
                     <span className="size-1.5 rounded-full bg-amber-500" />
-                    <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">
+                    <span className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
                       Baserat på enhetens egna värden
                     </span>
                   </div>
@@ -257,7 +257,7 @@ export default function LeaderDashboard({
             <div className="mb-4 overflow-x-auto rounded-md border border-slate-200 bg-white">
               <table className="w-full min-w-[420px] text-left">
                 <thead className="bg-slate-50">
-                  <tr className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">
+                  <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
                     <th className="px-4 py-2.5 font-bold">Dag</th>
                     <th className="px-4 py-2.5 text-center font-bold">Svar</th>
                     <th className="px-4 py-2.5 text-center font-bold">Andel</th>
@@ -267,14 +267,14 @@ export default function LeaderDashboard({
                 <tbody>
                   {[...series].reverse().map(p => (
                     <tr key={p.date} className="border-t border-slate-100">
-                      <td className="px-4 py-2.5 text-[13px] text-slate-600">{p.label}</td>
-                      <td className="px-4 py-2.5 text-center text-[13px] tabular-nums text-slate-500">
+                      <td className="px-4 py-2.5 text-xs text-slate-600">{p.label}</td>
+                      <td className="px-4 py-2.5 text-center text-xs tabular-nums text-slate-500">
                         {p.responders}/{p.eligible}
                       </td>
-                      <td className="px-4 py-2.5 text-center text-[13px] tabular-nums text-slate-500">
+                      <td className="px-4 py-2.5 text-center text-xs tabular-nums text-slate-500">
                         {p.eligible ? Math.round((p.responders / p.eligible) * 100) : 0}%
                       </td>
-                      <td className="px-4 py-2.5 text-right text-[13px] font-bold tabular-nums text-slate-900">
+                      <td className="px-4 py-2.5 text-right text-xs font-bold tabular-nums text-slate-900">
                         {p.overall !== null ? formatScore(p.overall) : (
                           <span className="font-normal text-slate-400" title="För få svar för att visa">—</span>
                         )}
@@ -322,7 +322,7 @@ export default function LeaderDashboard({
                 <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
                   <table className="w-full min-w-[480px] text-left">
                     <thead className="bg-slate-50">
-                      <tr className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">
+                      <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
                         <th className="px-4 py-2.5 font-bold">Enhet</th>
                         <th className="px-4 py-2.5 text-center font-bold">Svar</th>
                         <th className="px-4 py-2.5 text-center font-bold">Gröna</th>
@@ -339,10 +339,10 @@ export default function LeaderDashboard({
                             <tr key={child.id} className="border-t border-slate-100">
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-[14px] text-slate-600">{child.name}</span>
+                                  <span className="text-sm text-slate-600">{child.name}</span>
                                   {child.isDirect && (
                                     <span
-                                      className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500"
+                                      className="rounded bg-slate-100 px-1.5 py-0.5 text-etikett text-slate-500"
                                       title={`Personer som tillhör enheten direkt, utan ${childLabel.replace(/er$/, '')}. Ingen egen enhet.`}
                                     >
                                       utan {childLabel.replace(/er$/, '')}
@@ -351,7 +351,7 @@ export default function LeaderDashboard({
                                   {child.status && <StatusBadge status={child.status} size="sm" />}
                                 </div>
                               </td>
-                              <td className="px-4 py-3 text-center text-[13px] tabular-nums text-slate-500">
+                              <td className="px-4 py-3 text-center text-xs tabular-nums text-slate-500">
                                 {child.responders}/{child.eligible}
                               </td>
                               {child.overall === null ? (
@@ -360,10 +360,10 @@ export default function LeaderDashboard({
                                 </td>
                               ) : (
                                 <>
-                                  <td className="px-4 py-3 text-center text-[13px] font-semibold text-emerald-700">{child.green}</td>
-                                  <td className="px-4 py-3 text-center text-[13px] font-semibold text-amber-700">{child.yellow}</td>
-                                  <td className="px-4 py-3 text-center text-[13px] font-semibold text-red-700">{child.red}</td>
-                                  <td className="px-4 py-3 text-right text-[14px] font-bold tabular-nums text-slate-900">
+                                  <td className="px-4 py-3 text-center text-xs font-semibold text-emerald-700">{child.green}</td>
+                                  <td className="px-4 py-3 text-center text-xs font-semibold text-amber-700">{child.yellow}</td>
+                                  <td className="px-4 py-3 text-center text-xs font-semibold text-red-700">{child.red}</td>
+                                  <td className="px-4 py-3 text-right text-sm font-bold tabular-nums text-slate-900">
                                     {formatScore(child.overall)}
                                   </td>
                                 </>
@@ -406,12 +406,12 @@ function Stat({ n, label, color }: { n: number; label: string; color: string }) 
  * Försvarshälsans och fysioterapeuternas att fastställa.
  */
 function Preliminary({ children }: { children: React.ReactNode }) {
-  return <p className="mt-1.5 text-[11px] leading-relaxed text-slate-500">{children}</p>;
+  return <p className="mt-1.5 text-etikett leading-relaxed text-slate-500">{children}</p>;
 }
 
 function SL({ children, inline = false }: { children: React.ReactNode; inline?: boolean }) {
   return (
-    <h2 className={`text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500 ${inline ? '' : 'mb-2'}`}>
+    <h2 className={`text-etikett font-bold uppercase tracking-[0.1em] text-slate-500 ${inline ? '' : 'mb-2'}`}>
       {children}
     </h2>
   );
@@ -430,7 +430,7 @@ function PeriodPicker({ current, pathname }: { current: Period; pathname: string
           key={d}
           href={`${pathname}?period=${d}`}
           scroll={false}
-          className={`rounded border-[1.5px] px-2.5 py-1 text-[11px] font-bold transition-colors ${
+          className={`rounded border-[1.5px] px-2.5 py-1 text-etikett font-bold transition-colors ${
             current === d
               ? 'border-slate-900 bg-slate-900 text-white'
               : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
@@ -458,24 +458,24 @@ function PrivacyFooter() {
 function ExportBar({ period, childLabel }: { period: Period; childLabel: string }) {
   return (
     <div className="no-print mt-5 flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-3">
-      <span className="mr-1 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">
+      <span className="mr-1 text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
         Exportera
       </span>
       <a
         href={`/api/export?period=${period}&typ=dagar`}
-        className="flex items-center gap-1.5 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-[12px] font-semibold text-slate-600 transition-colors hover:border-slate-900 hover:text-slate-900"
+        className="flex items-center gap-1.5 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-900 hover:text-slate-900"
       >
         <Download size={13} aria-hidden /> Dag för dag (CSV)
       </a>
       <a
         href={`/api/export?period=${period}&typ=enheter`}
-        className="flex items-center gap-1.5 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-[12px] font-semibold text-slate-600 transition-colors hover:border-slate-900 hover:text-slate-900"
+        className="flex items-center gap-1.5 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-900 hover:text-slate-900"
       >
         <Download size={13} aria-hidden /> Per {childLabel} (CSV)
       </a>
       <Link
         href={`/rapport?period=${period}`}
-        className="flex items-center gap-1.5 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-[12px] font-semibold text-slate-600 transition-colors hover:border-slate-900 hover:text-slate-900"
+        className="flex items-center gap-1.5 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-900 hover:text-slate-900"
       >
         <FileText size={13} aria-hidden /> Rapport för utskrift
       </Link>

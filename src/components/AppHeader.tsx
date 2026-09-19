@@ -39,17 +39,17 @@ export default function AppHeader({ unit, label, role }: Props) {
   return (
     <header className="no-print flex h-13 shrink-0 items-center gap-3 bg-slate-900 px-4 py-3 sm:px-6">
       <Shield size={16} className="shrink-0 text-slate-500" strokeWidth={1.5} aria-hidden />
-      <span className="shrink-0 text-[13px] font-bold tracking-[1.5px] text-white">
+      <span className="shrink-0 text-xs font-bold tracking-[1.5px] text-white">
         FM – PSVI
       </span>
-      <span className="hidden text-[13px] text-slate-700 sm:inline" aria-hidden>|</span>
-      <span className="truncate text-[13px] text-slate-400">{unit}</span>
+      <span className="hidden text-xs text-slate-700 sm:inline" aria-hidden>|</span>
+      <span className="truncate text-xs text-slate-400">{unit}</span>
 
       <div className="ml-auto flex shrink-0 items-center gap-3">
         {/* slate-300 mot slate-900, inte slate-500: på mörk botten ska grå text
             vara ljusare för att läsas. slate-500 gav ungefär 3,7:1 i 11 px —
             osynligt på en projektor. */}
-        <span className="hidden text-[11px] text-slate-300 sm:inline">
+        <span className="hidden text-etikett text-slate-300 sm:inline">
           {whoLabel(role, label)}
         </span>
         <form action={logoutAction}>

@@ -40,7 +40,7 @@ export default function UnitDeleteSection({ unitId, unitName }: { unitId: number
 
       {!preview && (
         <>
-          <p className="mb-3 text-[13px] leading-relaxed text-red-800">
+          <p className="mb-3 text-xs leading-relaxed text-red-800">
             Tar bort {unitName} med allt som ligger under den: underenheter, personer
             och deras rapporter.
           </p>
@@ -60,7 +60,7 @@ export default function UnitDeleteSection({ unitId, unitName }: { unitId: number
       )}
 
       {preview && !('error' in preview) && preview.refusal && (
-        <p className="text-[13px] leading-relaxed text-red-800">
+        <p className="text-xs leading-relaxed text-red-800">
           <strong>Kan inte raderas.</strong> {preview.refusal}
         </p>
       )}
@@ -116,18 +116,18 @@ function DeleteForm({
       <input type="hidden" name="unitId" value={preview.unitId} />
 
       {tom ? (
-        <p className="mb-3 text-[13px] leading-relaxed text-red-800">
+        <p className="mb-3 text-xs leading-relaxed text-red-800">
           {preview.name} är tom. Den tas bort permanent.
         </p>
       ) : (
         <>
-          <p className="mb-3 text-[13px] leading-relaxed text-red-900">
+          <p className="mb-3 text-xs leading-relaxed text-red-900">
             Raderar <strong>{preview.name}</strong> med {delar.join(' och ')}
             {preview.people > 0 && ', och alla deras rapporter'}.{' '}
             <strong>Det går inte att ångra.</strong>
           </p>
           <label className="mb-3 flex flex-col gap-1">
-            <span className="text-[12px] font-semibold text-red-900">
+            <span className="text-xs font-semibold text-red-900">
               {/* Inte i jämnbrett typsnitt: där ser "Pluton 2" ut att ha två
                   mellanslag, och den som skriver av det exakt får aldrig igång knappen. */}
               Skriv <strong className="font-bold">{preview.name}</strong> för att bekräfta
@@ -175,7 +175,7 @@ function DeleteForm({
         <button
           type="button"
           onClick={onCancel}
-          className="cursor-pointer px-2 py-2 text-[13px] font-semibold text-slate-500 hover:text-slate-900"
+          className="cursor-pointer px-2 py-2 text-xs font-semibold text-slate-500 hover:text-slate-900"
         >
           Avbryt
         </button>

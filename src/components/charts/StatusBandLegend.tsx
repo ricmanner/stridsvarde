@@ -16,7 +16,7 @@ export default function StatusBandLegend() {
     { band: rod, text: `Röd under ${rod.to}` },
   ];
   return (
-    <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+    <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-etikett text-slate-500">
       <span>Bakgrund:</span>
       {steg.map(({ band, text }) => (
         <span key={text} className="flex items-center gap-1.5">

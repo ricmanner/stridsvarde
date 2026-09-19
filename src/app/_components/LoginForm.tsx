@@ -29,7 +29,7 @@ export default function LoginForm({ expired, aterstalld }: { expired: boolean; a
       <div className="mb-6">
         <label
           htmlFor="code"
-          className="mb-2 block text-[11px] font-bold uppercase tracking-[0.08em] text-slate-600"
+          className="mb-2 block text-etikett font-bold uppercase tracking-[0.08em] text-slate-600"
         >
           Inloggningskod
         </label>

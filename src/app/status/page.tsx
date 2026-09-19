@@ -70,7 +70,7 @@ export default async function StatusPage({
           </Link>
         </p>
       <header className="mb-8">
-        <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+        <p className="text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
           FM – PSVI
         </p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">Systemstatus</h1>
@@ -115,7 +115,7 @@ export default async function StatusPage({
           */}
           {demotid && (
             <>
-              <h2 className="mb-2 mt-8 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+              <h2 className="mb-2 mt-8 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
                 Demodata
               </h2>
               <div
@@ -143,7 +143,7 @@ export default async function StatusPage({
                   <form action={applyDemoTimelineAction} className="mt-3">
                     <SkickaKnapp
                       vantetext="Flyttar…"
-                      className="cursor-pointer rounded-md bg-slate-900 px-3.5 py-2 text-[13px] font-semibold text-white disabled:bg-slate-300"
+                      className="cursor-pointer rounded-md bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white disabled:bg-slate-300"
                     >
                       Flytta fram demodatan
                     </SkickaKnapp>
@@ -185,11 +185,11 @@ export default async function StatusPage({
                     type="text"
                     autoComplete="off"
                     placeholder={ATERSTALL_ORD}
-                    className="w-40 rounded-md border border-slate-300 px-2.5 py-2 text-[13px] text-slate-900 placeholder:text-slate-400"
+                    className="w-40 rounded-md border border-slate-300 px-2.5 py-2 text-xs text-slate-900 placeholder:text-slate-400"
                   />
                   <SkickaKnapp
                     vantetext="Återställer…"
-                    className="cursor-pointer rounded-md border border-red-300 bg-red-50 px-3.5 py-2 text-[13px] font-semibold text-red-800 hover:bg-red-100 disabled:opacity-50"
+                    className="cursor-pointer rounded-md border border-red-300 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-800 hover:bg-red-100 disabled:opacity-50"
                   >
                     Återställ demon
                   </SkickaKnapp>
@@ -202,7 +202,7 @@ export default async function StatusPage({
             Fel som servern fångat. Utan den här listan syns ett fel bara för
             den som råkade stå framför skärmen när det hände.
           */}
-          <h2 className="mb-2 mt-8 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+          <h2 className="mb-2 mt-8 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
             Fel som servern fångat
           </h2>
           {saknas.length > 0 ? (
@@ -224,7 +224,7 @@ export default async function StatusPage({
               <form action={applySchemaAction} className="mt-3">
                 <SkickaKnapp
                   vantetext="Uppdaterar…"
-                  className="cursor-pointer rounded-md bg-slate-900 px-3.5 py-2 text-[13px] font-semibold text-white disabled:bg-slate-300"
+                  className="cursor-pointer rounded-md bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white disabled:bg-slate-300"
                 >
                   Uppdatera schemat
                 </SkickaKnapp>
@@ -294,7 +294,7 @@ function Row({
         <span className="text-sm text-slate-700">{label}</span>
         {hint && <p className="text-xs text-slate-500">{hint}</p>}
       </dt>
-      <dd className="m-0 text-lg font-bold tabular-nums text-slate-900">{value}</dd>
+      <dd className="m-0 text-xl font-bold tabular-nums text-slate-900">{value}</dd>
     </div>
   );
 }

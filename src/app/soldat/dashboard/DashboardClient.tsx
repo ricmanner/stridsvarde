@@ -33,7 +33,7 @@ const FLIKAR = [
 ] as const;
 
 /** Den lilla versala etiketten över ett tal, som i incheckningen. */
-const NYCKELTALSETIKETT = 'mb-0.5 text-[11px] font-bold uppercase tracking-[0.06em] text-slate-500';
+const NYCKELTALSETIKETT = 'mb-0.5 text-etikett font-bold uppercase tracking-[0.06em] text-slate-500';
 
 /** Behörigheten kontrolleras på servern i page.tsx innan detta renderas. */
 export default function SoldatDashboard({ scores, advice, chartData, freq, begaran }: DashboardProps) {
@@ -77,7 +77,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
         etikett="Dina vyer"
         className="flex border-b border-slate-200 bg-white"
         knappklass={(aktiv) =>
-          `flex-1 cursor-pointer border-b-2 bg-transparent py-3.5 text-[12px] font-bold uppercase tracking-[0.08em] transition-colors ${
+          `flex-1 cursor-pointer border-b-2 bg-transparent py-3.5 text-xs font-bold uppercase tracking-[0.08em] transition-colors ${
             aktiv ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500'
           }`
         }
@@ -127,7 +127,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
                       <span className="text-slate-500">
                         <CategoryIcon namn={cat.icon} size={16} />
                       </span>
-                      <span className="flex-1 text-[13px] text-slate-600">{cat.label}</span>
+                      <span className="flex-1 text-xs text-slate-600">{cat.label}</span>
                       <span className="mr-2 text-base font-bold tabular-nums text-slate-900">{s}</span>
                       <StatusBadge status={st} size="sm" />
                     </div>
@@ -145,7 +145,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
             <div className={`rounded-md border border-slate-200 bg-white p-5 ${tips.length > 0 ? 'mb-2.5' : 'mb-4'}`}>
               <div className="mb-2.5 flex items-center gap-2">
                 <div className="size-1.5 rounded-full bg-blue-600" />
-                <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">Baserat på dagens rapport</span>
+                <span className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">Baserat på dagens rapport</span>
               </div>
               <p className="text-sm leading-[1.7] text-slate-700">{advice}</p>
             </div>
@@ -156,7 +156,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
             */}
             <Link
               href="/soldat?redigera=1"
-              className="mb-4 block rounded-md border border-slate-200 bg-white px-4 py-3 text-center text-[13px] text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
+              className="mb-4 block rounded-md border border-slate-200 bg-white px-4 py-3 text-center text-xs text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
             >
               Blev något fel? Korrigera dagens rapport
             </Link>
@@ -175,14 +175,14 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
                 }`}
                 style={{ borderLeftColor: ti === 0 ? '#DC2626' : '#D97706' }}
               >
-                <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-slate-600">{tip.title}</p>
+                <p className="mb-1.5 text-etikett font-bold uppercase tracking-[0.06em] text-slate-600">{tip.title}</p>
                 {/* Vad värdet betyder. Punkterna under säger vad man gör. */}
-                <p className="mb-2.5 text-[13px] leading-[1.6] text-slate-700">{tip.why}</p>
+                <p className="mb-2.5 text-xs leading-[1.6] text-slate-700">{tip.why}</p>
                 <ul className="pl-4">
                   {tip.tips.map((t, i) => (
                     <li
                       key={i}
-                      className={`text-[13px] leading-[1.6] text-slate-700 ${i < tip.tips.length - 1 ? 'mb-1' : ''}`}
+                      className={`text-xs leading-[1.6] text-slate-700 ${i < tip.tips.length - 1 ? 'mb-1' : ''}`}
                     >
                       {t}
                     </li>
@@ -195,7 +195,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
               <button
                 type="button"
                 onClick={() => setVisaAllaTips(true)}
-                className="mb-4 block w-full cursor-pointer rounded-md border border-slate-200 bg-white px-4 py-3 text-center text-[13px] font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
+                className="mb-4 block w-full cursor-pointer rounded-md border border-slate-200 bg-white px-4 py-3 text-center text-xs font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
               >
                 Visa {doldaTips} råd till
               </button>
@@ -221,7 +221,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
                           riktningen och stannar därför inline.
                         */}
                         <span
-                          className="text-[13px] font-semibold"
+                          className="text-xs font-semibold"
                           style={{ color: trend === 'up' ? '#047857' : trend === 'down' ? '#B91C1C' : '#B45309' }}
                         >
                           {trend === 'up' ? 'Stigande' : trend === 'down' ? 'Sjunkande' : 'Stabil'}
@@ -249,9 +249,9 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
             <SectionHeader label="Din närvaro — senaste 14 dagarna" />
             <div className="mb-4 rounded-md border border-slate-200 bg-white p-5">
               <div className="mb-1 flex items-center justify-between">
-                <span className="text-[13px] text-slate-500">Registrerade incheckningar</span>
+                <span className="text-xs text-slate-500">Registrerade incheckningar</span>
                 <span className="text-xl font-extrabold tabular-nums text-slate-900">
-                  {freq.checkedIn}<span className="text-[13px] font-normal text-slate-500"> / {freq.total}</span>
+                  {freq.checkedIn}<span className="text-xs font-normal text-slate-500"> / {freq.total}</span>
                 </span>
               </div>
               <div className="mt-2.5 h-1.5 rounded-[3px] bg-slate-100">
@@ -286,7 +286,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
               </div>
             ) : (
               <div className="mb-4 rounded-md border border-slate-200 bg-white px-4 py-5">
-                <p className="text-center text-[13px] text-slate-500">
+                <p className="text-center text-xs text-slate-500">
                   Fler incheckningar behövs för att visa utvecklingen.
                 </p>
               </div>
@@ -314,9 +314,9 @@ function TrendIkon({ trend, size }: { trend: string; size: number }) {
 function MetricCard({ label, value, sub, trend }: { label: string; value: string; sub: React.ReactNode; trend?: string }) {
   return (
     <div className="rounded-md border border-slate-200 bg-white px-5 py-4">
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">{label}</p>
+      <p className="mb-2 text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">{label}</p>
       <div className="mb-1.5 flex items-baseline gap-1.5">
-        <span className="text-[28px] font-extrabold tabular-nums text-slate-900">{value}</span>
+        <span className="text-2xl font-extrabold tabular-nums text-slate-900">{value}</span>
         {trend && (
           <span className="ml-1">
             <TrendIkon trend={trend} size={14} />
@@ -330,7 +330,7 @@ function MetricCard({ label, value, sub, trend }: { label: string; value: string
 
 function SectionHeader({ label }: { label: string }) {
   return (
-    <h2 className="mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+    <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
       {label}
     </h2>
   );

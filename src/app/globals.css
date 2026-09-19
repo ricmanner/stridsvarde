@@ -1,5 +1,34 @@
 @import "tailwindcss";
 
+/*
+ * Typskalan.
+ *
+ * Gränssnittet hade femton textstorlekar, och två av dem skrevs på vardera
+ * två sätt: text-xs och text-[12px] är samma sak, likaså text-sm och
+ * text-[14px]. Det var inget system utan ett spektrum, omöjligt att hålla
+ * ihop när fler bygger vidare.
+ *
+ * Nu finns sex storlekar. Fem är Tailwinds egna, så det finns inget nytt att
+ * lära sig. Den sjätte är `etikett`: de versala småetiketterna som står över
+ * varje tal i appen låg på 10 och 11 px, och Tailwind har ingenting under 12.
+ *
+ *   etikett  11   versala småetiketter
+ *   xs       12   hjälptext, tabellceller, metadata
+ *   sm       14   all löpande text
+ *   base     16   kortrubriker och viktiga tal
+ *   xl       20   sidrubriker
+ *   2xl      24   nyckeltal
+ *
+ * Två storlekar står utanför skalan med flit: 36 px i utskriftsrapporten och
+ * 64 px på incheckningens siffra. De är effekter på var sitt ställe, inte steg
+ * i en skala, och ska inte återanvändas.
+ */
+@theme {
+  --text-etikett: 11px;
+  --text-etikett--line-height: 1.3;
+}
+
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;

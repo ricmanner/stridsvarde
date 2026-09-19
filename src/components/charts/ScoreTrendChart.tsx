@@ -83,7 +83,7 @@ export default function ScoreTrendChart({
               if (!active || !payload?.length) return null;
               const p = payload[0].payload as ScorePoint;
               return (
-                <div className="rounded-md bg-slate-900 px-3 py-2 text-[11px] text-white shadow-lg">
+                <div className="rounded-md bg-slate-900 px-3 py-2 text-etikett text-white shadow-lg">
                   <p className="text-slate-300">{p.label}</p>
                   <p className="mt-0.5 font-semibold">
                     {p.value === null ? 'Inget värde' : `${formatScore(p.value)} · ${statusLabel(getStatus(p.value))}`}

@@ -103,7 +103,7 @@ export default async function AdminPage({
         {/* Lagringstid — beslutet är Försvarsmaktens, inte appens. */}
         <div className="no-print mb-6 rounded-md border border-slate-200 bg-white px-4 py-3">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">
+            <span className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
               Gallring av hälsodata
             </span>
             {retention.enabled ? (
@@ -148,7 +148,7 @@ export default async function AdminPage({
           {/* ── Enhetsträd ── */}
           <section className="no-print">
             {/* Överflödig på mobil — där står vald enhet i väljarens huvud. */}
-            <h2 className="mb-2 hidden text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500 lg:block">
+            <h2 className="mb-2 hidden text-etikett font-bold uppercase tracking-[0.1em] text-slate-500 lg:block">
               Organisation
             </h2>
             <UnitTree tree={tree} selectedId={selectedId} />
@@ -195,7 +195,7 @@ function StatCard({
     <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
       <div className="mb-1 flex items-center gap-1.5 text-slate-500">
         {icon}
-        <span className="text-[10px] font-bold uppercase tracking-[0.08em]">{label}</span>
+        <span className="text-etikett font-bold uppercase tracking-[0.08em]">{label}</span>
       </div>
       <span className="text-xl font-bold tabular-nums text-slate-900">{value}</span>
     </div>

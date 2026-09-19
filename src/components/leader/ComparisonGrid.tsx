@@ -31,7 +31,7 @@ export default function ComparisonGrid({
       <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
         <table className="w-full min-w-[640px] border-separate border-spacing-0 text-left">
           <thead>
-            <tr className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">
+            <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
               <th className="px-4 py-2.5 font-bold">Enhet</th>
               <th className="px-2 py-2.5 text-center font-bold">Svar</th>
               <th className="px-1.5 py-2.5 text-center font-bold">Snitt</th>
@@ -46,21 +46,21 @@ export default function ComparisonGrid({
             {items.map((child) => (
               <tr key={child.id}>
                 <td className="border-t border-slate-100 px-4 py-2">
-                  <span className="text-[14px] font-medium text-slate-800">{child.name}</span>
+                  <span className="text-sm font-medium text-slate-800">{child.name}</span>
                   {child.isDirect && (
                     <span
-                      className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500"
+                      className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-etikett text-slate-500"
                       title={`Personer som tillhör enheten direkt, utan ${ental}. Ingen egen enhet.`}
                     >
                       utan {ental}
                     </span>
                   )}
                 </td>
-                <td className="border-t border-slate-100 px-2 py-2 text-center text-[13px] tabular-nums text-slate-500">
+                <td className="border-t border-slate-100 px-2 py-2 text-center text-xs tabular-nums text-slate-500">
                   {child.responders}/{child.eligible}
                 </td>
                 {child.scores === null || child.overall === null ? (
-                  <td colSpan={CATEGORIES.length + 1} className="border-t border-slate-100 px-4 py-2 text-center text-[12px] text-slate-500">
+                  <td colSpan={CATEGORIES.length + 1} className="border-t border-slate-100 px-4 py-2 text-center text-xs text-slate-500">
                     {/* En nyskapad enhet saknar inte underlag — den saknar folk. */}
                     {child.eligible === 0
                       ? 'Inga värnpliktiga placerade här ännu'
@@ -92,7 +92,7 @@ function Cell({ value, strong = false, label }: { value: number; strong?: boolea
     <td className="border-t border-slate-100 px-1 py-1.5">
       <div
         title={`${label ? `${label}: ` : ''}${formatScore(value)} · ${statusLabel(status)}`}
-        className={`flex h-9 items-center justify-center gap-1 rounded text-[13px] tabular-nums text-slate-900 ${strong ? 'font-bold' : 'font-semibold'}`}
+        className={`flex h-9 items-center justify-center gap-1 rounded text-xs tabular-nums text-slate-900 ${strong ? 'font-bold' : 'font-semibold'}`}
         style={{ background: CELL_TINT[status] }}
       >
         {status === 'red' && <AlertTriangle size={11} className="shrink-0 text-red-700" aria-label="Röd" />}

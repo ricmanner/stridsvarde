@@ -61,10 +61,10 @@ export default async function LoginPage({
             <div className="mt-8 rounded-md border border-slate-200 bg-slate-100 p-4">
               {/* Mörkare grå än annars: på den tonade plattan ger slate-500 bara
                   4,34 mot kravet 4,5 — uppmätt av axe. */}
-              <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-600">
+              <p className="mb-1 text-etikett font-bold uppercase tracking-[0.08em] text-slate-600">
                 Demokoder
               </p>
-              <p className="mb-3 text-[11px] leading-relaxed text-slate-600">
+              <p className="mb-3 text-etikett leading-relaxed text-slate-600">
                 Logga in med vilken som helst för att se appen ur den rollens
                 perspektiv.
               </p>
@@ -81,7 +81,7 @@ export default async function LoginPage({
                 det är ändras så fort någon provar demon, och en sida som lovar
                 fel sak är sämre än en som säger hur det fungerar.
               */}
-              <p className="mt-3 border-t border-slate-200 pt-3 text-[11px] leading-relaxed text-slate-600">
+              <p className="mt-3 border-t border-slate-200 pt-3 text-etikett leading-relaxed text-slate-600">
                 Vill du prova själva incheckningen, använd en kod i serien{' '}
                 <span className="font-mono text-slate-700">P1G1-01</span> till{' '}
                 <span className="font-mono text-slate-700">P1G1-08</span>. Har den

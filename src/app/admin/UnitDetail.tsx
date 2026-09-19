@@ -102,7 +102,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
 
   return (
     <div>
-      <h2 className="no-print mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+      <h2 className="no-print mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
         {unit.kindLabel} · {unit.name}
       </h2>
 
@@ -133,7 +133,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
               <input type="hidden" name="role" value={leaderRole} />
               <input type="hidden" name="count" value={1} />
               <label className="flex flex-col gap-1">
-                <span className="text-[11px] font-semibold text-slate-500">Befälets benämning</span>
+                <span className="text-etikett font-semibold text-slate-500">Befälets benämning</span>
                 <input
                   name="labelPrefix" defaultValue={`${ROLE_LABEL[leaderRole]} ${unit.name}`}
                   maxLength={60} required
@@ -156,14 +156,14 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
               <input type="hidden" name="unitName" value={unit.name} />
               <input type="hidden" name="role" value="soldat" />
               <label className="flex flex-col gap-1">
-                <span className="text-[11px] font-semibold text-slate-500">Antal värnpliktiga</span>
+                <span className="text-etikett font-semibold text-slate-500">Antal värnpliktiga</span>
                 <input
                   name="count" type="number" min={1} max={50} defaultValue={8} required
                   className="w-24 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
                 />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-[11px] font-semibold text-slate-500">Benämning</span>
+                <span className="text-etikett font-semibold text-slate-500">Benämning</span>
                 <input
                   name="labelPrefix" defaultValue="Värnpliktig" maxLength={30}
                   className="w-36 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
@@ -191,7 +191,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                 <button
                   type="button"
                   onClick={() => setVisaVpl(true)}
-                  className="cursor-pointer text-[13px] font-semibold text-slate-500 underline underline-offset-2 hover:text-slate-900"
+                  className="cursor-pointer text-xs font-semibold text-slate-500 underline underline-offset-2 hover:text-slate-900"
                 >
                   Lägg till värnpliktiga direkt i plutonen
                 </button>
@@ -208,7 +208,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                     className="mb-3 flex gap-2.5 rounded-md border border-amber-300 bg-amber-50 px-3.5 py-3"
                   >
                     <Info size={16} className="mt-0.5 shrink-0 text-amber-700" aria-hidden />
-                    <div className="text-[13px] leading-relaxed text-amber-950">
+                    <div className="text-xs leading-relaxed text-amber-950">
                       <p className="font-semibold">Värnpliktiga hör normalt hemma i en grupp.</p>
                       <p className="mt-0.5">
                         De du lägger till här hamnar utanför grupperna och visas som{' '}
@@ -222,14 +222,14 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                     <input type="hidden" name="unitName" value={unit.name} />
                     <input type="hidden" name="role" value="soldat" />
                     <label className="flex flex-col gap-1">
-                      <span className="text-[11px] font-semibold text-slate-500">Antal</span>
+                      <span className="text-etikett font-semibold text-slate-500">Antal</span>
                       <input
                         name="count" type="number" min={1} max={50} defaultValue={1} required
                         className="w-20 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
                       />
                     </label>
                     <label className="flex flex-col gap-1">
-                      <span className="text-[11px] font-semibold text-slate-500">Benämning</span>
+                      <span className="text-etikett font-semibold text-slate-500">Benämning</span>
                       <input
                         name="labelPrefix" defaultValue="Värnpliktig" maxLength={30}
                         className="w-36 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
@@ -245,7 +245,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                     <button
                       type="button"
                       onClick={() => setVisaVpl(false)}
-                      className="cursor-pointer px-2 py-2 text-[13px] font-semibold text-slate-500 hover:text-slate-700"
+                      className="cursor-pointer px-2 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
                     >
                       Avbryt
                     </button>
@@ -256,7 +256,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
           )}
 
           {!canHoldSoldiers && (
-            <p className="mt-4 border-t border-slate-100 pt-4 text-[13px] text-slate-500">
+            <p className="mt-4 border-t border-slate-100 pt-4 text-xs text-slate-500">
               Värnpliktiga placeras i en grupp, inte direkt på{' '}
               {unit.kindLabel.toLowerCase()}snivå.
             </p>
@@ -277,7 +277,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                   börjar skriva, och en skärmläsare läser den inte som namnet
                   på fältet — det här var enda fältet i vyn utan etikett. */}
               <label className="flex flex-col gap-1">
-                <span className="text-[11px] font-semibold text-slate-500">Namn</span>
+                <span className="text-etikett font-semibold text-slate-500">Namn</span>
                 <input
                   name="name" required minLength={2} maxLength={60}
                   placeholder={suggestChildName(childKind, childNames)}
@@ -298,10 +298,10 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
 
         {/* ── Personer i enheten ── */}
         <section>
-          <h3 className="mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+          <h3 className="mb-1 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
             Personer i enheten ({members.length})
           </h3>
-          <p className="mb-2 text-[11px] leading-relaxed text-slate-500">
+          <p className="mb-2 text-etikett leading-relaxed text-slate-500">
             Klicka på en benämning för att ändra den. En kod går inte att ta
             fram i efterhand, så benämningen är det enda som knyter en rad till
             en person — den behöver vara något enheten känner igen.
@@ -310,7 +310,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
           </p>
 
           {members.length === 0 ? (
-            <p className="rounded-md border border-slate-200 bg-white px-4 py-5 text-center text-[13px] text-slate-500">
+            <p className="rounded-md border border-slate-200 bg-white px-4 py-5 text-center text-xs text-slate-500">
               Inga personer här ännu.
             </p>
           ) : (
@@ -358,14 +358,14 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                       />
                       <button
                         type="submit"
-                        className="cursor-pointer rounded bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-slate-800"
+                        className="cursor-pointer rounded bg-slate-900 px-2.5 py-1 text-etikett font-semibold text-white hover:bg-slate-800"
                       >
                         Spara
                       </button>
                       <button
                         type="button"
                         onClick={() => setEditing(null)}
-                        className="cursor-pointer rounded px-2 py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-900"
+                        className="cursor-pointer rounded px-2 py-1 text-etikett font-semibold text-slate-500 hover:text-slate-900"
                       >
                         Avbryt
                       </button>
@@ -392,7 +392,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                       </button>
                       {dupeLabels.has(m.label) && (
                         <span
-                          className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600"
+                          className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-etikett text-slate-600"
                           title="Referensnummer — flera personer i enheten har samma namn"
                         >
                           #{m.id}
@@ -401,16 +401,16 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                     </div>
                   )}
                   {isSelf && (
-                    <span className="rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900">
+                    <span className="rounded bg-amber-200 px-1.5 py-0.5 text-etikett font-bold uppercase tracking-wide text-amber-900">
                       Du
                     </span>
                   )}
                   {m.role !== 'soldat' && (
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600">
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-etikett font-bold uppercase tracking-wide text-slate-600">
                       {ROLE_LABEL[m.role]}
                     </span>
                   )}
-                  <span className="text-[11px] text-slate-500">
+                  <span className="text-etikett text-slate-500">
                     {m.lastLoginAt ? `senast inloggad ${m.lastLoginAt.slice(0, 10)}` : 'aldrig inloggad'}
                   </span>
 
@@ -421,7 +421,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                     som alltid misslyckas är sämre än ingen knapp.
                   */}
                   {m.skyddad ? (
-                    <span className="text-[11px] text-slate-500 sm:ml-auto">
+                    <span className="text-etikett text-slate-500 sm:ml-auto">
                       Låst — demonstrationens ingång
                     </span>
                   ) : (
@@ -445,7 +445,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                         <button
                           type="submit"
                           title="Spärra nuvarande kod och utfärda en ny"
-                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 sm:py-1"
+                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-etikett font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 sm:py-1"
                         >
                           <KeyRound size={12} aria-hidden /> Ny kod
                         </button>
@@ -460,7 +460,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                         <button
                           type="submit"
                           title={m.active ? 'Spärra åtkomst' : 'Återaktivera'}
-                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 sm:py-1"
+                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-etikett font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 sm:py-1"
                         >
                           {m.active ? <UserX size={12} aria-hidden /> : <UserCheck size={12} aria-hidden />}
                           {m.active ? 'Spärra' : 'Aktivera'}
@@ -491,7 +491,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                             </>
                           }
                           bekraftaText="Ta bort permanent"
-                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-[11px] font-semibold text-slate-500 hover:bg-red-50 hover:text-red-700 sm:py-1"
+                          className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-etikett font-semibold text-slate-500 hover:bg-red-50 hover:text-red-700 sm:py-1"
                         >
                           <Trash size={12} aria-hidden /> Ta bort
                         </BekraftaKnapp>
@@ -523,14 +523,14 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
         {members.length > 0 && (
           <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
             <h3 className="mb-1 text-sm font-bold text-slate-900">Flytta person</h3>
-            <p className="mb-3 text-[13px] leading-relaxed text-slate-500">
+            <p className="mb-3 text-xs leading-relaxed text-slate-500">
               Personen behåller sin kod och hela sin historik. Tidigare svar räknas
               dock in i den nya enhetens statistik — systemet håller inte reda på var
               någon befann sig en viss dag.
             </p>
             <form action={moveFormAction} className="flex flex-wrap items-end gap-2">
               <label className="flex flex-col gap-1">
-                <span className="text-[11px] font-semibold text-slate-500">Person</span>
+                <span className="text-etikett font-semibold text-slate-500">Person</span>
                 <select
                   name="userId"
                   required
@@ -545,7 +545,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                 </select>
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-[11px] font-semibold text-slate-500">Till enhet</span>
+                <span className="text-etikett font-semibold text-slate-500">Till enhet</span>
                 <select
                   name="targetUnitId"
                   required
@@ -578,14 +578,14 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
         {members.length > 0 && (
           <section className="rounded-md border border-red-200 bg-red-50/40 p-4 sm:p-5">
             <h3 className="mb-1 text-sm font-bold text-red-900">Radera hälsodata</h3>
-            <p className="mb-3 text-[13px] leading-relaxed text-red-800">
+            <p className="mb-3 text-xs leading-relaxed text-red-800">
               Rätten att bli raderad enligt GDPR artikel 17. Personens incheckningar
               tas bort permanent. Kontot och enhetstillhörigheten behålls, så att
               svarsfrekvensen fortfarande räknas rätt. Går inte att ångra.
             </p>
             <form action={eraseFormAction} className="flex flex-wrap items-end gap-2">
               <label className="flex flex-col gap-1">
-                <span className="text-[11px] font-semibold text-red-700">Person</span>
+                <span className="text-etikett font-semibold text-red-700">Person</span>
                 {/*
                   Valet följs i state enbart för att bekräftelserutan ska kunna
                   säga vems svar som raderas. En ruta som säger "den här

@@ -40,7 +40,7 @@ export default function SupportBlock({
     <div className="mb-4 rounded-md border border-slate-300 bg-white p-5">
       <div className="mb-3 flex items-center gap-2">
         <LifeBuoy size={16} className="text-slate-700" aria-hidden />
-        <h2 className="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-700">
+        <h2 className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-700">
           Du behöver inte lösa det här själv
         </h2>
       </div>
@@ -52,7 +52,7 @@ export default function SupportBlock({
 
       {plan.secondary.length > 0 && (
         <>
-          <p className="mb-2 mt-4 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">
+          <p className="mb-2 mt-4 text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
             {plan.secondaryLabel}
           </p>
           <ContactList contacts={plan.secondary} />
@@ -75,7 +75,7 @@ export default function SupportBlock({
               <strong>inte</strong> delats — bara att du sökt kontakt.
             </p>
             {begaran && (
-              <p className="mt-1.5 text-[13px]">
+              <p className="mt-1.5 text-xs">
                 {begaran.kvitterad
                   ? 'Befälet har öppnat din begäran.'
                   : 'Befälet har inte öppnat den ännu.'}{' '}

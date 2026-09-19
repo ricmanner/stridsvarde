@@ -59,7 +59,7 @@ export default async function RapportPage({
             <Link
               key={d}
               href={`/rapport?period=${d}`}
-              className={`rounded border-[1.5px] px-2.5 py-1 text-[11px] font-bold ${
+              className={`rounded border-[1.5px] px-2.5 py-1 text-etikett font-bold ${
                 period === d
                   ? 'border-slate-900 bg-slate-900 text-white'
                   : 'border-slate-200 text-slate-500'
@@ -74,7 +74,7 @@ export default async function RapportPage({
 
       {/* ── Rubrik ── */}
       <header className="mb-6 border-b-2 border-slate-900 pb-4">
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+        <p className="text-etikett font-bold uppercase tracking-[0.12em] text-slate-500">
           FM – PSVI · Försvarsmaktens Personliga Stridsvärdesindikator
         </p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{session.unitName}</h1>
@@ -85,7 +85,7 @@ export default async function RapportPage({
 
       {/* ── Sammanfattning ── */}
       <section className="mb-7">
-        <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500">
+        <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
           Sammanfattning
         </h2>
         {cats.ok && overall !== null ? (
@@ -109,12 +109,12 @@ export default async function RapportPage({
       {/* ── Kategorier ── */}
       {cats.ok && (
         <section className="mb-7" style={{ breakInside: 'avoid' }}>
-          <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500">
+          <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
             Kategorier
           </h2>
           <table className="w-full border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-300 text-[11px] uppercase tracking-wide text-slate-500">
+              <tr className="border-b border-slate-300 text-etikett uppercase tracking-wide text-slate-500">
                 <th className="py-1.5 font-bold">Kategori</th>
                 <th className="py-1.5 text-right font-bold">Snitt</th>
                 <th className="py-1.5 text-right font-bold">Status</th>
@@ -139,12 +139,12 @@ export default async function RapportPage({
       {/* ── Underenheter ── */}
       {comparison.children.length > 0 && (
         <section className="mb-7" style={{ breakInside: 'avoid' }}>
-          <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500">
+          <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
             Underenheter
           </h2>
           <table className="w-full border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-300 text-[11px] uppercase tracking-wide text-slate-500">
+              <tr className="border-b border-slate-300 text-etikett uppercase tracking-wide text-slate-500">
                 <th className="py-1.5 font-bold">Enhet</th>
                 <th className="py-1.5 text-right font-bold">Svarande</th>
                 <th className="py-1.5 text-right font-bold">Snitt</th>
@@ -173,12 +173,12 @@ export default async function RapportPage({
 
       {/* ── Dag för dag ── */}
       <section className="mb-7" style={{ breakInside: 'avoid' }}>
-        <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500">
+        <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
           Dag för dag
         </h2>
         <table className="w-full border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-300 text-[11px] uppercase tracking-wide text-slate-500">
+            <tr className="border-b border-slate-300 text-etikett uppercase tracking-wide text-slate-500">
               <th className="py-1.5 font-bold">Datum</th>
               <th className="py-1.5 text-right font-bold">Svarande</th>
               <th className="py-1.5 text-right font-bold">Snitt</th>
@@ -225,9 +225,9 @@ export default async function RapportPage({
 function Box({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="rounded border border-slate-300 px-3 py-2.5">
-      <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">{label}</p>
+      <p className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">{label}</p>
       <p className="text-xl font-bold tabular-nums text-slate-900">{value}</p>
-      {sub && <p className="text-[11px] text-slate-500">{sub}</p>}
+      {sub && <p className="text-etikett text-slate-500">{sub}</p>}
     </div>
   );
 }

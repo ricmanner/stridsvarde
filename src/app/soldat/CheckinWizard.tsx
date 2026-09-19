@@ -17,7 +17,7 @@ function Marke({ score, size = 'sm' }: { score: number; size?: 'sm' | 'md' }) {
   return (
     <span
       className={`shrink-0 rounded-[3px] text-center font-bold tracking-[0.06em] ${
-        size === 'md' ? 'px-3.5 py-1.5 text-xs' : 'min-w-10 px-[7px] py-0.5 text-[10px]'
+        size === 'md' ? 'px-3.5 py-1.5 text-xs' : 'min-w-10 px-[7px] py-0.5 text-etikett'
       }`}
       style={{ background: statusBg(status), color: statusTextColor(status) }}
     >
@@ -55,7 +55,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
   const [scores, setScores] = useState<Record<Category, number>>(initial ?? EMPTY);
   const [state, formAction, pending] = useActionState<CheckInState, FormData>(submitCheckIn, {});
 
-  const etikett = 'text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500';
+  const etikett = 'text-etikett font-bold uppercase tracking-[0.08em] text-slate-500';
 
   // ── Steg 0: vad som väntar ────────────────────────────────────────────────
   if (step === 0) {
@@ -66,7 +66,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             <p className={`mb-2 ${etikett}`}>
               {editing ? 'Korrigera dagens rapport' : 'Daglig rapportering'}
             </p>
-            <h2 className="mb-3 text-[22px] font-bold text-slate-900">{dateLabel}</h2>
+            <h2 className="mb-3 text-xl font-bold text-slate-900">{dateLabel}</h2>
             <p className="text-sm leading-relaxed text-slate-500">
               {editing
                 ? 'Dina tidigare svar är förifyllda. Ändra det som blivit fel — den gamla rapporten skrivs över.'
@@ -84,7 +84,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
                   <CategoryIcon namn={cat.icon} size={20} />
                 </span>
                 <span className="text-sm text-slate-600">{cat.label}</span>
-                <span className="ml-auto flex size-5 items-center justify-center rounded-full border-[1.5px] border-slate-200 text-[11px] text-slate-500">
+                <span className="ml-auto flex size-5 items-center justify-center rounded-full border-[1.5px] border-slate-200 text-etikett text-slate-500">
                   {i + 1}
                 </span>
               </li>
@@ -161,7 +161,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
               label={cat.question}
               onChange={(v) => setScores((prev) => ({ ...prev, [cat.key]: v }))}
             />
-            <div className="mt-2.5 flex justify-between text-[11px] font-semibold">
+            <div className="mt-2.5 flex justify-between text-etikett font-semibold">
               <span className="text-red-700">1 — Kritiskt</span>
               <span className="text-emerald-700">10 — Utmärkt</span>
             </div>
@@ -171,7 +171,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
               <span
                 key={n}
-                className={`text-[11px] ${n === score ? 'font-bold text-slate-900' : 'text-slate-500'}`}
+                className={`text-etikett ${n === score ? 'font-bold text-slate-900' : 'text-slate-500'}`}
               >
                 {n}
               </span>
@@ -247,7 +247,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
                 <CategoryIcon namn={cat.icon} size={20} />
               </span>
               <span className="flex-1 text-sm text-slate-600">{cat.label}</span>
-              <span className="min-w-7 text-right text-lg font-bold tabular-nums text-slate-900">
+              <span className="min-w-7 text-right text-xl font-bold tabular-nums text-slate-900">
                 {scores[cat.key]}
               </span>
               <Marke score={scores[cat.key]} />
@@ -265,7 +265,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
           ))}
 
           {state.error && (
-            <p role="alert" className="mb-3 text-center text-[13px] text-red-700">
+            <p role="alert" className="mb-3 text-center text-xs text-red-700">
               {state.error}
             </p>
           )}

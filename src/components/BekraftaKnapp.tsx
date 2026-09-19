@@ -76,7 +76,7 @@ export default function BekraftaKnapp({
             </h2>
           </div>
 
-          <div className="text-[13px] leading-relaxed text-slate-600">{forklaring}</div>
+          <div className="text-xs leading-relaxed text-slate-600">{forklaring}</div>
 
           <div className="mt-1 flex flex-wrap justify-end gap-2">
             <button
