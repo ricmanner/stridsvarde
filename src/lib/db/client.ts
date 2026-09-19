@@ -155,3 +155,23 @@ export function minResponders(): number {
   const raw = Number(process.env.MIN_RESPONDERS);
   return Number.isFinite(raw) ? Math.max(3, Math.floor(raw)) : 4;
 }
+
+/**
+ * Databasens adress, så som statussidan får visa den.
+ *
+ * I demoläge står administratörskoden på inloggningssidan — med flit, vem som
+ * helst ska kunna prova appen som administratör. Följden är att statussidan i
+ * praktiken är offentlig, och där stod hela adressen till fjärrdatabasen:
+ * värdnamn, region och kontonamn. Det är färdig spaning åt den som vill
+ * angripa databasen; bara nyckeln återstår. En lokal sökväg är inte bättre —
+ * den bär användarnamnet på maskinen.
+ *
+ * Sorten syns fortfarande, för det är den som betyder något vid felsökning:
+ * kör appen mot den delade databasen eller mot en fil? I pilotläge finns
+ * ingen publicerad kod och administratören är en betrodd person — då visas
+ * adressen som den är.
+ */
+export function dbAdressFörVisning(path: string, demo: boolean): string {
+  if (!demo) return path;
+  return path.startsWith('libsql://') ? 'Fjärrdatabas (adressen dold i demoläge)' : 'Lokal fil';
+}

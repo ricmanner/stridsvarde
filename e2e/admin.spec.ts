@@ -125,6 +125,12 @@ test('statussidan går att hitta, och visar databasläge och fångade fel', asyn
   expect(text).toContain('fel som servern fångat');
   expect(text).not.toContain('kunde inte startas');
 
+  // Administratörskoden står på inloggningssidan i demoläge, så den här sidan
+  // är i praktiken offentlig. Databasens adress hör inte hemma på en offentlig
+  // sida — varken värdnamnet på fjärrdatabasen eller sökvägen till en lokal fil.
+  expect(text).not.toContain('libsql://');
+  expect(text).not.toMatch(/\/users\/|\.db\b/);
+
   await page.getByRole('link', { name: /Tillbaka till administrationen/ }).click();
   await expect(page).toHaveURL(/\/admin$/);
 });

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import AppHeader from '@/components/AppHeader';
 import { requireRole } from '@/lib/auth/guard';
 import { dbStatus } from '@/lib/db';
-import { environment } from '@/lib/db/client';
+import { dbAdressFörVisning, environment } from '@/lib/db/client';
 import { beskrivDemoTidslinje, planDemoTimeline, type DemoTidslinjeBesked } from '@/lib/db/demo-timeline';
 import { errorSummary, ERROR_RETENTION_DAYS, missingSchema } from '@/lib/db/queries/health';
 import { applyDemoTimelineAction, applySchemaAction } from '@/app/actions/admin';
@@ -98,7 +98,7 @@ export default async function StatusPage() {
           </dl>
 
           <p className="mt-4 break-all text-xs text-slate-500">
-            Databasfil: {status.path}
+            Databas: {dbAdressFörVisning(status.path, environment() === 'demo')}
           </p>
 
           {/*
