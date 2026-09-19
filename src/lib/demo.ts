@@ -21,3 +21,11 @@ export const PUBLICERADE_DEMOKODER = [
 export const DEMOKONTO_SKYDDAT =
   'Kontot står på inloggningssidan och är demonstrationens ingång. ' +
   'Skapa ett eget konto för att prova spärr, ny kod och radering.';
+
+/**
+ * Ordet som måste skrivas för att återställa demon.
+ *
+ * Ligger här och inte bland serveråtgärderna: en `'use server'`-fil får bara
+ * exportera async-funktioner, och både åtgärden och formuläret behöver ordet.
+ */
+export const ATERSTALL_ORD = 'ÅTERSTÄLL';

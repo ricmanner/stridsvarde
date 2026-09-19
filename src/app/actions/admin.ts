@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { requireRole } from '@/lib/auth/guard';
+import { destroySession } from '@/lib/auth/session';
 import {
   createUnit,
   canDeleteUser,
@@ -20,6 +21,7 @@ import {
   type UnitDeletion,
 } from '@/lib/db/queries/admin';
 import { erasePersonalData } from '@/lib/db/retention';
+import { ATERSTALL_ORD } from '@/lib/demo';
 import type { Role } from '@/lib/roles';
 
 /*
@@ -343,4 +345,38 @@ export async function applyDemoTimelineAction(): Promise<void> {
   await applyDemoTimeline();
 
   revalidatePath('/status');
+}
+
+/**
+ * Tömmer demon och bygger upp den igen.
+ *
+ * Besökare ska kunna radera enheter, spärra konton och byta koder — demon
+ * slits ner av att användas som den är tänkt. Den här knappen ställer den i
+ * ordning igen, inklusive det någon hunnit radera, vilket "Flytta fram
+ * demodatan" inte gör: den flyttar datum, den skapar inte tillbaka något.
+ *
+ * Kräver att ordet skrivs, som enhetsraderingen kräver enhetens namn. Det
+ * hindrar en felklickning mitt i en visning, inte en illvillig besökare —
+ * mot den senare finns inget skydd så länge koden står på inloggningssidan,
+ * och det är ett medvetet val.
+ */
+export async function aterstallDemoAction(formData: FormData): Promise<void> {
+  await requireRole('admin');
+
+  if (String(formData.get('bekraftelse') ?? '').trim().toUpperCase() !== ATERSTALL_ORD) {
+    redirect('/status?aterstallning=fel');
+  }
+
+  const { aterstallDemo } = await import('@/lib/db/seed');
+  await aterstallDemo();
+
+  /*
+   * Sessionen är borta med resten av databasen, så inloggningen gäller inte
+   * längre. Kakan städas här så att webbläsaren inte bär omkring en pekare
+   * till en session som inte finns — annars möts man av "utgången session"
+   * i stället för inloggningssidan.
+   */
+  await destroySession();
+
+  redirect('/?aterstalld=1');
 }

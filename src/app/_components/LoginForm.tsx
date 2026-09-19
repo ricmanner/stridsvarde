@@ -5,12 +5,20 @@ import { AlertCircle } from 'lucide-react';
 
 import { loginAction, type LoginState } from '@/app/actions/auth';
 
-export default function LoginForm({ expired }: { expired: boolean }) {
+export default function LoginForm({ expired, aterstalld }: { expired: boolean; aterstalld?: boolean }) {
   const [state, action, pending] = useActionState<LoginState, FormData>(loginAction, {});
 
   return (
     <form action={action}>
-      {expired && !state.error && (
+      {aterstalld && !state.error && (
+        <div className="mb-5 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <p className="text-sm text-emerald-800">
+            Demon är återställd. Logga in igen med en av koderna nedan.
+          </p>
+        </div>
+      )}
+
+      {expired && !aterstalld && !state.error && (
         <div className="mb-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
           <p className="text-sm text-amber-800">
             Din session har gått ut. Logga in igen.

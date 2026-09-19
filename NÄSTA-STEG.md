@@ -28,8 +28,13 @@ bara ungefär en tredjedel av kraven.
 
 ## Före en visning
 
-- **Tryck på "Flytta fram demodatan" på `/status`** om rutan där säger att
-  datan blivit gammal. Demodatan står still medan kalendern går: efter en
+- **Tryck på "Återställ demon" på `/status`** om någon hunnit radera eller
+  ändra något. Den bygger upp allt från grunden — raderade enheter kommer
+  tillbaka — och sätter historiken så att den slutar idag. Kräver att ordet
+  ÅTERSTÄLL skrivs, och loggar ut dig. Koderna är desamma efteråt.
+- **Tryck på "Flytta fram demodatan"** om inget är trasigt utan datan bara
+  hunnit bli gammal. Den flyttar datum och rör inget annat, alltså behålls
+  det någon lagt till i demon. Demodatan står still medan kalendern går: efter en
   vecka är befälsvyns förvalda period tom, efter tre veckor visar varje vy
   "Underlag saknas". Rutan räknar ut läget själv och knappen syns bara när det
   finns något att göra. Lokalt går samma sak via `npm run demo:uppdatera`.

@@ -6,15 +6,22 @@ import { dbStatus } from '@/lib/db';
 import { dbAdressFörVisning, environment } from '@/lib/db/client';
 import { beskrivDemoTidslinje, planDemoTimeline, type DemoTidslinjeBesked } from '@/lib/db/demo-timeline';
 import { errorSummary, ERROR_RETENTION_DAYS, missingSchema } from '@/lib/db/queries/health';
-import { applyDemoTimelineAction, applySchemaAction } from '@/app/actions/admin';
+import { aterstallDemoAction, applyDemoTimelineAction, applySchemaAction } from '@/app/actions/admin';
+import { ATERSTALL_ORD } from '@/lib/demo';
 
 // Statussidan ska alltid visa verkligt läge, aldrig ett cachat.
 export const dynamic = 'force-dynamic';
 
-export default async function StatusPage() {
-  // Teknisk sida: avslöjar organisationens storlek och databasens sökväg på
-  // disk. Inget hälsodata, men inget som ska vara läsbart för omvärlden heller.
+export default async function StatusPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ aterstallning?: string }>;
+}) {
+  // Teknisk sida: avslöjar organisationens storlek och databasens tillstånd.
+  // Inget hälsodata, men inget som ska vara läsbart för omvärlden heller.
   const session = await requireRole('admin');
+
+  const aterstallningFel = (await searchParams).aterstallning === 'fel';
 
   let status: Awaited<ReturnType<typeof dbStatus>> | null = null;
   let error: string | null = null;
@@ -141,6 +148,51 @@ export default async function StatusPage() {
                     </button>
                   </form>
                 )}
+              </div>
+
+              {/*
+                Återställningen står för sig, under tidslinjen: den flyttar
+                inte datum utan bygger om allt, och är den enda vägen tillbaka
+                när en besökare raderat något.
+              */}
+              <div className="mt-3 rounded-md border border-slate-200 bg-white px-4 py-3">
+                <p className="text-sm font-semibold text-slate-800">Återställ demon</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Bygger upp demon från grunden: enheter, personer och fjorton dagars
+                  historik som slutar idag. Allt någon ändrat försvinner — raderade
+                  enheter kommer tillbaka, tillagda försvinner. Demokoderna blir
+                  desamma och står kvar på inloggningssidan.{' '}
+                  <strong className="font-semibold text-slate-700">
+                    Du loggas ut och får logga in igen.
+                  </strong>
+                </p>
+
+                {aterstallningFel && (
+                  <p role="alert" className="mt-2 text-xs font-semibold text-red-700">
+                    Fel bekräftelseord — ingenting har ändrats. Skriv {ATERSTALL_ORD} för att
+                    fortsätta.
+                  </p>
+                )}
+
+                <form action={aterstallDemoAction} className="mt-3 flex flex-wrap items-center gap-2">
+                  <label htmlFor="bekraftelse" className="sr-only">
+                    Skriv {ATERSTALL_ORD} för att bekräfta
+                  </label>
+                  <input
+                    id="bekraftelse"
+                    name="bekraftelse"
+                    type="text"
+                    autoComplete="off"
+                    placeholder={ATERSTALL_ORD}
+                    className="w-40 rounded-md border border-slate-300 px-2.5 py-2 text-[13px] text-slate-900 placeholder:text-slate-400"
+                  />
+                  <button
+                    type="submit"
+                    className="cursor-pointer rounded-md border border-red-300 bg-red-50 px-3.5 py-2 text-[13px] font-semibold text-red-800 hover:bg-red-100"
+                  >
+                    Återställ demon
+                  </button>
+                </form>
               </div>
             </>
           )}

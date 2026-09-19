@@ -69,6 +69,8 @@ en återvändsgränd.
   bekräftelsemeddelande. Kontrollera resultatet, inte meddelandet.
 - Byt aldrig kod på demons värnpliktiga i ett test: deras inloggning slutar
   fungera för alla andra tester. Skapa egna personer.
+- `getByRole('alert')` träffar två element: ditt eget och Next egen tomma
+  ruta för sidbyten. Leta efter texten i stället.
 
 ## Innan något driftsätts
 

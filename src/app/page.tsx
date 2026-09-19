@@ -13,12 +13,12 @@ export default async function LoginPage({
   searchParams,
 }: {
   // I Next 16 är searchParams en Promise.
-  searchParams: Promise<{ utgangen?: string }>;
+  searchParams: Promise<{ utgangen?: string; aterstalld?: string }>;
 }) {
   const user = await getSessionUser();
   if (user) redirect(homeFor(user.role));
 
-  const { utgangen } = await searchParams;
+  const { utgangen, aterstalld } = await searchParams;
 
   /*
    * Demokoderna avgörs på SERVERN och följer bara med till webbläsaren i
@@ -49,7 +49,7 @@ export default async function LoginPage({
             </p>
           </div>
 
-          <LoginForm expired={utgangen === '1'} />
+          <LoginForm expired={utgangen === '1'} aterstalld={aterstalld === '1'} />
 
           <p className="mt-8 text-center text-xs leading-relaxed text-slate-500">
             Din kod tillhandahålls av ditt befäl.

@@ -154,3 +154,32 @@ test('statussidan berättar hur gammal demodatan är', async ({ page }) => {
 
   await expect(page.getByRole('button', { name: 'Flytta fram demodatan' })).toHaveCount(0);
 });
+
+test('återställningen kräver bekräftelseordet och rör inget utan det', async ({ page }) => {
+  /*
+   * Testet trycker med FEL ord med flit. Rätt ord tömmer databasen och bygger
+   * om den, vilket skulle dra undan mattan för de tester som körs efter — de
+   * delar databas. Att återställningen verkligen bygger upp demon igen är
+   * täckt av tests/aterstallning.test.mjs, som kör den på riktigt.
+   *
+   * Det som mäts här är spärren: att en felklickning mitt i en visning inte
+   * raderar demon.
+   */
+  await page.goto('/status');
+  await expect(page.getByRole('heading', { name: 'Demodata' })).toBeVisible();
+
+  const enheterFore = await page.goto('/admin').then(() => page.getByRole('link').count());
+
+  await page.goto('/status');
+  await page.getByLabel(/Skriv ÅTERSTÄLL/).fill('kanske');
+  await page.getByRole('button', { name: 'Återställ demon' }).click();
+
+  // Texten, inte rollen: Next har en egen tom role="alert" för sidbyten, och
+  // getByRole('alert') träffar båda.
+  await expect(page.getByText('Fel bekräftelseord')).toBeVisible();
+
+  // Fortfarande inloggad, och organisationen orörd.
+  await page.goto('/admin');
+  await expect(page).toHaveURL(/\/admin/);
+  expect(await page.getByRole('link').count()).toBe(enheterFore);
+});

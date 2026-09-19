@@ -6,7 +6,7 @@ import { generateSoldierAdvice } from '../advice';
 import { hashCode } from '../auth/codes';
 import { serviceDateDaysAgo } from '../date';
 import type { Category } from '../data';
-import { db, isSeedDemoData } from './client';
+import { db, environment, isSeedDemoData } from './client';
 import { auditLog, checkIns, units, users } from './schema';
 
 /** Deterministisk PRNG så att demodatan ser likadan ut vid varje omstart. */
@@ -117,16 +117,94 @@ export async function seedIfNeeded(): Promise<void> {
   });
 }
 
+/**
+ * Tömmer demon och bygger upp den igen från grunden.
+ *
+ * Besökare ska kunna radera enheter, spärra konton och byta koder — det är
+ * hälften av det appen ska visa, och demokoderna står på inloggningssidan
+ * just för att vem som helst ska kunna prova. Priset är att demon slits ner.
+ * Före en visning måste den gå att ställa i ordning igen, och mot den delade
+ * databasen finns ingen väg dit från en terminal: nycklarna är märkta som
+ * känsliga och kommer tillbaka som [SENSITIVE].
+ *
+ * Allt sker i en transaktion. Avbryts något mitt i står databasen kvar som
+ * den var — en halvt återställd demo vore värre än en sliten.
+ *
+ * Den som trycker loggas ut. Sessionerna pekar på personer som inte längre
+ * finns, så de måste bort; koderna är desamma efteråt och står kvar på
+ * inloggningssidan.
+ */
+export async function aterstallDemo(): Promise<void> {
+  /*
+   * Kontrollen ligger FÖRE tömningen, av två skäl. Det uppenbara: i ett
+   * pilottest är varje rapport en verklig människas och får aldrig raderas.
+   * Det mindre uppenbara: efteråt finns inga demokonton kvar att känna igen
+   * databasen på, så en kontroll efter tömningen hade varit blind.
+   */
+  if (environment() !== 'demo') {
+    throw new Error(
+      'Vägrar: PSVI_ENVIRONMENT är inte "demo". Återställningen raderar all ' +
+        'hälsodata och får aldrig köras mot ett pilottest.',
+    );
+  }
+
+  await db.transaction(async (tx) => {
+    // Beroende före beroendemål. check_ins, sessions och notifications städas
+    // av kaskaden när users går, men uttryckligt är lättare att läsa än en
+    // regel i schemat man måste slå upp.
+    await tx.run(sql`DELETE FROM notifications`);
+    await tx.run(sql`DELETE FROM sessions`);
+    await tx.run(sql`DELETE FROM check_ins`);
+    await tx.run(sql`DELETE FROM login_attempts`);
+    await tx.run(sql`DELETE FROM users`);
+
+    /*
+     * Enheterna djupast först. Främmande nyckel på parent_id är `restrict`,
+     * så en förälder kan inte raderas medan ett barn finns kvar — och i
+     * vilken ordning en enda DELETE behandlar raderna går inte att styra.
+     */
+    const djupast = (await tx.all(sql`
+      WITH RECURSIVE d(id, depth) AS (
+            SELECT id, 0 FROM units WHERE parent_id IS NULL
+        UNION ALL
+            SELECT u.id, d.depth + 1 FROM units u JOIN d ON u.parent_id = d.id
+      )
+      SELECT id FROM d ORDER BY depth DESC
+    `)) as { id: number }[];
+
+    for (const { id } of djupast) {
+      await tx.run(sql`DELETE FROM units WHERE id = ${id}`);
+    }
+
+    // Uttryckligen `true`: aldrig ur miljövariabeln. Se seedInTransaction().
+    await seedInTransaction(tx, true);
+
+    await tx.insert(auditLog).values({
+      actorUserId: null,
+      action: 'demo.reset',
+      detail: 'Demon återställd till utgångsläget',
+      createdAt: now(),
+    });
+  });
+}
+
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-async function seedInTransaction(tx: Tx): Promise<void> {
+/**
+ * @param demo Om demoorganisationen ska skapas. Standard är miljövariabeln,
+ *   men återställningen skickar in `true` uttryckligen. Skälet: mot den
+ *   delade demon seedas databasen från en terminal, inte av servern, så
+ *   `SEED_DEMO_DATA` behöver inte vara satt i den miljö servern kör i. Läste
+ *   återställningen variabeln skulle den kunna skapa ett ensamt adminkonto
+ *   med en slumpmässig kod — och låsa ute alla, för alltid.
+ */
+async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Promise<void> {
   const [{ count }] = await tx
     .select({ count: sql<number>`count(*)` })
     .from(units);
 
   if (count > 0) return; // redan seedad, eller seedad av en annan process
 
-  const demo = isSeedDemoData();
   const ts = now();
 
   // ── Enhetsträd ────────────────────────────────────────────────────────────
