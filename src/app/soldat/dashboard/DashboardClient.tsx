@@ -12,6 +12,7 @@ import Tabs, { Panel } from '@/components/Tabs';
 import { CATEGORIES, type Category, getStatus, statusColor, avgScore } from '@/lib/data';
 import { ownTrend } from '@/lib/own-trend';
 import { getSoldierTips } from '@/lib/advice';
+import type { SamtalsbegaranStatus } from '@/lib/db/queries/notifications';
 import SupportBlock from './SupportBlock';
 import { shortLabel } from '@/lib/date';
 import { formatScore } from '@/lib/format';
@@ -22,6 +23,8 @@ export interface DashboardProps {
   /** En rad per dag de senaste fjorton dagarna, äldst först. Tom dag = null. */
   chartData: Array<{ date: string; day: string; score: number | null; scores: Record<Category, number> | null }>;
   freq: { checkedIn: number; total: number; pct: number };
+  /** Dagens begäran om samtal, om personen redan skickat en. */
+  begaran: SamtalsbegaranStatus | null;
 }
 
 const FLIKAR = [
@@ -33,7 +36,7 @@ const FLIKAR = [
 const NYCKELTALSETIKETT = 'mb-0.5 text-[11px] font-bold uppercase tracking-[0.06em] text-slate-500';
 
 /** Behörigheten kontrolleras på servern i page.tsx innan detta renderas. */
-export default function SoldatDashboard({ scores, advice, chartData, freq }: DashboardProps) {
+export default function SoldatDashboard({ scores, advice, chartData, freq, begaran }: DashboardProps) {
   const [tab, setTab] = useState<'overview' | 'history'>('overview');
 
   const overall = avgScore(scores);
@@ -42,6 +45,19 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
 
   const svar = chartData.filter((d): d is typeof d & { score: number; scores: Record<Category, number> } => d.scores !== null);
   const trend = ownTrend(svar.map(d => d.scores));
+
+  /*
+   * Bara de två sämsta korten syns med en gång.
+   *
+   * Vid låga värden på allt blev sidan över fyra mobilskärmar lång: sex kort
+   * med arton punkter, varav de flesta sa någon variant av "berätta för ditt
+   * befäl". Den som orkar minst fick mest text. Råden kommer redan sorterade
+   * efter allvar, så de två första är de som betyder något — resten finns
+   * kvar bakom en knapp för den som vill läsa vidare.
+   */
+  const [visaAllaTips, setVisaAllaTips] = useState(false);
+  const synligaTips = visaAllaTips ? tips : tips.slice(0, 2);
+  const doldaTips = tips.length - synligaTips.length;
 
   // Sämsta värdet först: det är det man ska titta på.
   const sortedCats = [...CATEGORIES].sort((a, b) => scores[a.key] - scores[b.key]);
@@ -71,7 +87,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
 
         {tab === 'overview' && (
           <Panel id="overview">
-            {redCategories.length > 0 && <SupportBlock red={redCategories} />}
+            {redCategories.length > 0 && <SupportBlock red={redCategories} begaran={begaran} />}
 
             {/* Dagens två nyckeltal */}
             <div className="mb-4 grid grid-cols-2 gap-2.5">
@@ -134,8 +150,19 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
               <p className="text-sm leading-[1.7] text-slate-700">{advice}</p>
             </div>
 
+            {/*
+              Den som råkat svara fel ska upptäcka det direkt, inte efter
+              arton råd. Länken låg tidigare längst ner på sidan.
+            */}
+            <Link
+              href="/soldat?redigera=1"
+              className="mb-4 block rounded-md border border-slate-200 bg-white px-4 py-3 text-center text-[13px] text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
+            >
+              Blev något fel? Korrigera dagens rapport
+            </Link>
+
             {/* Ett kort per svagaste kategori, sämst först */}
-            {tips.map((tip, ti) => (
+            {synligaTips.map((tip, ti) => (
               <div
                 key={tip.category}
                 /*
@@ -144,7 +171,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
                  * bredden och de tre andra sidorna gör den inte.
                  */
                 className={`rounded-md border-y border-r border-l-[3px] border-slate-200 bg-white px-5 py-3.5 ${
-                  ti < tips.length - 1 ? 'mb-2' : 'mb-4'
+                  ti < synligaTips.length - 1 ? 'mb-2' : 'mb-4'
                 }`}
                 style={{ borderLeftColor: ti === 0 ? '#DC2626' : '#D97706' }}
               >
@@ -164,12 +191,15 @@ export default function SoldatDashboard({ scores, advice, chartData, freq }: Das
               </div>
             ))}
 
-            <Link
-              href="/soldat?redigera=1"
-              className="mb-4 block rounded-md border border-slate-200 bg-white px-4 py-3 text-center text-[13px] text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
-            >
-              Blev något fel? Korrigera dagens rapport
-            </Link>
+            {doldaTips > 0 && (
+              <button
+                type="button"
+                onClick={() => setVisaAllaTips(true)}
+                className="mb-4 block w-full cursor-pointer rounded-md border border-slate-200 bg-white px-4 py-3 text-center text-[13px] font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
+              >
+                Visa {doldaTips} råd till
+              </button>
+            )}
 
             {/* Kurvan över fjorton dagar */}
             {svar.length >= 3 && (

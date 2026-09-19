@@ -10,6 +10,7 @@ import {
   getOwnResponseFrequency,
   getTodayCheckIn,
 } from '@/lib/db/queries/checkins';
+import { samtalsbegaranIdag } from '@/lib/db/queries/notifications';
 
 import SoldatDashboard from './DashboardClient';
 
@@ -23,9 +24,12 @@ export default async function SoldatDashboardPage() {
   const today = await getTodayCheckIn(session.id);
   if (!today) redirect('/soldat');
 
-  const [history, freq] = await Promise.all([
+  const [history, freq, begaran] = await Promise.all([
     getOwnHistory(session.id, HISTORY_DAYS),
     getOwnResponseFrequency(session.id, HISTORY_DAYS),
+    // Har personen redan bett om samtal idag ska kvittot stå kvar, även
+    // efter en omladdning. Se samtalsbegaranIdag().
+    samtalsbegaranIdag(session.id),
   ]);
 
   const toScores = (r: typeof today): Record<Category, number> => ({
@@ -70,6 +74,7 @@ export default async function SoldatDashboardPage() {
           advice={today.advice ?? generateSoldierAdvice(scores)}
           chartData={chartData}
           freq={freq}
+          begaran={begaran}
         />
       </main>
     </div>

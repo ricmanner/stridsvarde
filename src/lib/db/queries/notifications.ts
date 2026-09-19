@@ -126,3 +126,40 @@ export async function markNotificationRead(userId: number, id: number): Promise<
     .where(and(eq(notifications.id, id), eq(notifications.recipientUserId, userId)));
 }
 
+
+export interface SamtalsbegaranStatus {
+  /** När begäran skickades, som ISO-tid. */
+  skickad: string;
+  /** Sant när befälet kvitterat att hen sett den. */
+  kvitterad: boolean;
+}
+
+/**
+ * Den värnpliktiges egen begäran om samtal idag, om det finns någon.
+ *
+ * Bekräftelsen låg tidigare bara i formulärets minne. Laddades sidan om var
+ * den borta, och den som bett om samtal möttes av knapparna igen som om
+ * ingenting hänt — utan svar på "gick det fram?". Den frågan ska inte behöva
+ * hänga i luften för någon som just räckt upp handen.
+ *
+ * Frågar på requested_by_user_id, alltså personens eget id. Det här är den
+ * enda vägen där en soldat läser en notisrad, och den läser bara sin egen.
+ */
+export async function samtalsbegaranIdag(
+  soldierUserId: number,
+): Promise<SamtalsbegaranStatus | null> {
+  const [rad] = await db
+    .select({ createdAt: notifications.createdAt, readAt: notifications.readAt })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.kind, 'talk_request'),
+        eq(notifications.requestedByUserId, soldierUserId),
+        eq(notifications.serviceDate, serviceDate()),
+      ),
+    )
+    .limit(1);
+
+  if (!rad) return null;
+  return { skickad: rad.createdAt, kvitterad: rad.readAt !== null };
+}

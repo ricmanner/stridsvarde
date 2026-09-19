@@ -194,3 +194,46 @@ test('en ny begäran når fram efter att befälet kvitterat den förra samma dag
     'den andra begäran nådde aldrig fram till befälet',
   );
 });
+
+test('den värnpliktige kan se att begäran ligger inne, och om befälet sett den', async () => {
+  /*
+   * Bekräftelsen fanns bara i formulärets minne. Laddades sidan om var den
+   * borta, och den som bett om samtal möttes av knapparna igen som om
+   * ingenting hänt — utan svar på "gick det fram?". Det är illa för vem som
+   * helst och sämst för just den som tryckt på knappen.
+   */
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const [soldat] = org.soldater['Grupp A'];
+
+  const befal = Number((await client.execute({
+    sql: 'INSERT INTO users (code_hash, label, role, unit_id, active, created_at) VALUES (?,?,?,?,1,?) RETURNING id',
+    args: [`hash-chef-status-${Date.now()}`, 'Plutonchef', 'pluton', org.pluton, new Date().toISOString()],
+  })).rows[0].id);
+
+  const { createTalkRequest, markNotificationRead, samtalsbegaranIdag, getUnreadNotifications } =
+    await import('../src/lib/db/queries/notifications.ts');
+
+  // Innan något begärts finns ingenting att visa.
+  assert.equal(await samtalsbegaranIdag(soldat), null);
+
+  await createTalkRequest({
+    soldierUserId: soldat,
+    soldierLabel: 'Värnpliktig 01',
+    soldierUnitName: 'Grupp A',
+    recipientUserId: befal,
+    subjectUnitId: org.grupper['Grupp A'],
+  });
+
+  const inne = await samtalsbegaranIdag(soldat);
+  assert.ok(inne, 'begäran syns inte för den som skickade den');
+  assert.equal(inne.kvitterad, false, 'markerades som sedd innan befälet sett den');
+
+  // Befälet kvitterar.
+  const [notis] = await getUnreadNotifications(befal);
+  await markNotificationRead(befal, notis.id);
+
+  const sedd = await samtalsbegaranIdag(soldat);
+  assert.ok(sedd, 'begäran försvann när den kvitterades');
+  assert.equal(sedd.kvitterad, true, 'kvitteringen syns inte för den värnpliktige');
+});

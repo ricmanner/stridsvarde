@@ -5,6 +5,7 @@ import { Check, LifeBuoy, Phone } from 'lucide-react';
 
 import { requestTalkAction, type TalkState } from '@/app/actions/support';
 import type { Category } from '@/lib/data';
+import type { SamtalsbegaranStatus } from '@/lib/db/queries/notifications';
 import { supportPlan, type SupportContact } from '@/lib/support';
 
 /**
@@ -15,7 +16,14 @@ import { supportPlan, type SupportContact } from '@/lib/support';
  * syns för någon som kan hjälpa. Den här knappen är den vägen, och det är
  * soldaten själv som öppnar den.
  */
-export default function SupportBlock({ red }: { red: Category[] }) {
+export default function SupportBlock({
+  red,
+  begaran,
+}: {
+  red: Category[];
+  /** Dagens begäran om samtal, om personen redan skickat en. */
+  begaran: SamtalsbegaranStatus | null;
+}) {
   const [state, formAction, pending] = useActionState<TalkState, FormData>(
     requestTalkAction,
     {},
@@ -53,13 +61,28 @@ export default function SupportBlock({ red }: { red: Category[] }) {
 
       <div className="mb-5" />
 
-      {state.sent ? (
+      {state.sent || begaran ? (
+        /*
+         * Kvittot låg tidigare bara i `state`, alltså i formulärets minne.
+         * Laddades sidan om var det borta och knapparna stod där igen som om
+         * ingenting hänt. `begaran` kommer från databasen och står kvar.
+         */
         <div className="flex items-start gap-2 rounded border border-emerald-200 bg-emerald-50 px-3 py-3">
           <Check size={15} className="mt-0.5 shrink-0 text-emerald-700" aria-hidden />
-          <p className="text-sm text-emerald-800">
-            Ditt befäl har fått veta att du vill prata. Dina svar i appen har{' '}
-            <strong>inte</strong> delats — bara att du sökt kontakt.
-          </p>
+          <div className="text-sm text-emerald-800">
+            <p>
+              Ditt befäl har fått veta att du vill prata. Dina svar i appen har{' '}
+              <strong>inte</strong> delats — bara att du sökt kontakt.
+            </p>
+            {begaran && (
+              <p className="mt-1.5 text-[13px]">
+                {begaran.kvitterad
+                  ? 'Befälet har öppnat din begäran.'
+                  : 'Befälet har inte öppnat den ännu.'}{' '}
+                Hör ingen av sig, använd numren ovan — de svarar dygnet runt.
+              </p>
+            )}
+          </div>
         </div>
       ) : (
         <form action={formAction}>
