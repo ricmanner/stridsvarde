@@ -679,35 +679,6 @@ async function inspectUnitDeletion(
     }
   }
 
-  /*
-   * I demoläge: enheter som bär demonstrationens egen historik.
-   *
-   * Skyddet ovan täckte bara de enheter som råkar ligga på vägen ner till de
-   * fem publicerade kontona — fyra av fyrtio i den seedade demon. De övriga
-   * trettiosex innehöll värnpliktiga och gick att radera; ett klick på
-   * "2. Kompaniet" tog 72 personers historik med sig. Administratörskoden står
-   * på inloggningssidan med flit, så vem som helst kan prova appen som
-   * administratör — och därmed radera det alla andra kommit för att se.
-   *
-   * Gränsen går vid rapporterna, inte vid namnen. En enhet som någon själv
-   * skapat i demon har inga och går att radera: det är så funktionen provas,
-   * på samma sätt som spärr och ny kod provas på ett konto man skapat själv.
-   *
-   * I pilotläge gäller ingenting av detta. Där är rapporterna verkliga och
-   * raderingen en riktig administratörsåtgärd med sina egna skydd ovan.
-   */
-  if (!refusal && environment() === 'demo' && userIds.length > 0) {
-    const [rader] = (await db.all(sql`
-      SELECT count(*) AS n FROM check_ins WHERE user_id IN ${userIds}
-    `)) as { n: number }[];
-
-    if (Number(rader?.n ?? 0) > 0) {
-      refusal =
-        'Enheten bär demonstrationens historik och kan inte raderas i demoläge. ' +
-        'Skapa en egen enhet om du vill prova radering.';
-    }
-  }
-
   return {
     unitId,
     name: unit.name,
