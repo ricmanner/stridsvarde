@@ -301,11 +301,30 @@ try {
          * och ett verktyg som ropar varg går man till slut förbi.
          */
         const utanNotiser = await js(
-          "(() => { const d = document.body.cloneNode(true);" +
-          " d.querySelectorAll('[data-notiser]').forEach((e) => e.remove());" +
-          " return d.innerText; })()",
+          /*
+           * Rutan göms i den LEVANDE sidan och visas igen direkt.
+           *
+           * Första försöket klonade body och tog bort rutan ur klonen. Men
+           * innerText på ett frånkopplat element beter sig som textContent
+           * och tar då med innehållet i script-taggarna — där Next lägger
+           * sidans data, inklusive samma notistext. Kontrollen larmade
+           * fortfarande, på text ingen kan se.
+           */
+          "(() => { const r = [...document.querySelectorAll('[data-notiser]')];" +
+          " const fore = r.map((e) => e.style.display);" +
+          " r.forEach((e) => { e.style.display = 'none'; });" +
+          " const t = document.body.innerText;" +
+          " r.forEach((e, i) => { e.style.display = fore[i]; });" +
+          " return t; })()",
         );
         const befalsvy = ['/pluton', '/kompani', '/bataljon', '/rapport'].includes(sida.url);
+        /*
+         * Kom ingen text tillbaka har kontrollen slutat kontrollera, och en
+         * tyst godkänd sida är värre än en falsk varning. Då ska det sägas.
+         */
+        if (befalsvy && (utanNotiser ?? '').length < 80) {
+          anmark(`${var_}: integritetskontrollen kunde inte läsa sidan`);
+        }
         if (befalsvy && /\b(värnpliktig|soldat)\s+\d{2}\b/.test((utanNotiser ?? '').toLowerCase())) {
           anmark(`${var_}: en enskild persons benämning syns i en befälsvy`);
         }
