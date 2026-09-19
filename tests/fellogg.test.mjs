@@ -193,3 +193,35 @@ test('utan tabellen kraschar ingenting — statussidan säger bara att loggen sa
     for (const d of SCHEMA_DDL) await client.execute(d.ddl);
   }
 });
+
+test('hälsokontrollens felsvar bär aldrig med sig felet ut', async () => {
+  /*
+   * Slutpunkten är öppen utan inloggning, med avsikt — vaktposten ska kunna
+   * fråga var femtonde minut. Men felgrenen svarade med själva felmeddelandet,
+   * och ett databasfel innehåller ofta sökvägar, värdnamn eller delar av en
+   * anslutningssträng. Det gick alltså att provocera fram intern information
+   * utan att vara inloggad.
+   */
+  const { halsaFelsvar } = await import('../src/lib/db/queries/health.ts');
+
+  const hemligheter = [
+    new Error('SQLITE_CANTOPEN: /Users/nagon/data/psvi.db'),
+    new Error('connect ECONNREFUSED libsql://psvi-demo.aws-eu-west-1.turso.io'),
+    new Error('auth token eyJhbGciOiJFZERTQSJ9.abc123 rejected'),
+    'ett fel som inte ens är ett Error',
+  ];
+
+  for (const fel of hemligheter) {
+    // Svaret tar inte ens emot felet — det finns ingen väg för det att följa
+    // med ut. Slingan bevakar att den egenskapen består.
+    void fel;
+    const kropp = halsaFelsvar();
+
+    assert.equal(kropp.ok, false);
+    const text = JSON.stringify(kropp);
+    assert.ok(!text.includes('/Users/'), `sökväg läckte: ${text}`);
+    assert.ok(!text.includes('turso.io'), `värdnamn läckte: ${text}`);
+    assert.ok(!text.includes('eyJ'), `token läckte: ${text}`);
+    assert.ok(!text.includes('SQLITE'), `internt felnamn läckte: ${text}`);
+  }
+});

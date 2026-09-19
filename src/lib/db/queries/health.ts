@@ -219,3 +219,19 @@ export async function health(): Promise<Health> {
   await db.get(sql`SELECT 1`);
   return { ok: true, miljo: environment(), tid: new Date().toISOString() };
 }
+
+/**
+ * Svaret när hälsokontrollen inte når databasen.
+ *
+ * Grenen svarade tidigare med själva felmeddelandet. Slutpunkten kräver ingen
+ * inloggning, och ett databasfel bär ofta sökvägar, värdnamn eller delar av en
+ * anslutningssträng — det gick alltså att provocera fram intern information
+ * utifrån, genom att fråga när något var trasigt.
+ *
+ * Svaret är därför konstant och tar inte emot felet alls — det går inte att
+ * råka skicka med något. Detaljen hör hemma i felloggen, som en administratör
+ * läser inloggad, och anropsstället skriver dit den innan det svarar.
+ */
+export function halsaFelsvar(): { ok: false; fel: string } {
+  return { ok: false, fel: 'databasen svarar inte' };
+}
