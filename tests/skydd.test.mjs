@@ -32,8 +32,17 @@ const UTAN_KRAV = new Set([
   path.join('api', 'halsa', 'route.ts'),
 ]);
 
-/** En kontroll räknas om filen kräver roll, kräver inloggning, eller ärver skalet. */
-const KONTROLL = /requireRole\(|requireUser\(|LeaderPageShell/;
+/**
+ * En kontroll räknas om filen kräver roll, kräver inloggning, ärver skalet,
+ * eller läser sessionen själv.
+ *
+ * Det sista gäller `api/klientfel`: den tar emot felrapporter från
+ * webbläsaren och svarar 204 för den som inte är inloggad, i stället för att
+ * skicka vidare till inloggningen. En sida som redan visar felrutan ska inte
+ * få en omdirigering tillbaka i ansiktet — men obehöriga får fortfarande
+ * ingenting skrivet till loggen.
+ */
+const KONTROLL = /requireRole\(|requireUser\(|getSessionUser\(|LeaderPageShell/;
 
 function filer(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((d) => {

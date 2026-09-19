@@ -7,6 +7,7 @@ import { generateSoldierAdvice } from '@/lib/advice';
 import { requireRole } from '@/lib/auth/guard';
 import { CATEGORIES, type Category } from '@/lib/data';
 import { evaluateAlerts } from '@/lib/db/queries/alerts';
+import { logError } from '@/lib/db/queries/health';
 import { saveCheckIn, type Scores } from '@/lib/db/queries/checkins';
 
 export interface CheckInState {
@@ -39,10 +40,27 @@ export async function submitCheckIn(
 
   await saveCheckIn(user.id, scores, generateSoldierAdvice(scores));
 
-  // Larmreglerna körs efter att svaret skickats, så soldaten aldrig får vänta
-  // på dem. Registreras före redirect() — den kastar, och då hinner inget
-  // efter den köras.
-  after(() => evaluateAlerts(user.unitId));
+  /*
+   * Larmreglerna körs efter att svaret skickats, så soldaten aldrig får vänta
+   * på dem. Registreras före redirect() — den kastar, och då hinner inget
+   * efter den köras.
+   *
+   * Egen try/catch: går utvärderingen sönder kan den värnpliktige ändå inte
+   * göra något åt det, men befälet får inget larm — och utan raden nedan syns
+   * det ingenstans. Ett larm som uteblir tyst är sämre än inget larmsystem,
+   * eftersom ingen vet att det inte fungerar.
+   */
+  after(async () => {
+    try {
+      await evaluateAlerts(user.unitId);
+    } catch (fel) {
+      await logError({
+        path: '/soldat (larmutvärdering)',
+        routeType: 'action',
+        message: fel instanceof Error ? fel.message : String(fel),
+      });
+    }
+  });
 
   redirect('/soldat/dashboard');
 }
