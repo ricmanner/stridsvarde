@@ -9,6 +9,25 @@ Läs `README.md` för arkitektur, kommandon och miljövariabler, och
 `NÄSTA-STEG.md` för var arbetet står just nu och vad som redan visat sig vara
 en återvändsgränd.
 
+## Så vill Richard arbeta
+
+Han är **inte teknisk**. Förklara på enkel svenska: vad något betyder, vad det
+får för följd, och vad valet står mellan. Undvik facktermer, eller förklara dem
+på en rad. Han läser gärna siffror och tabeller.
+
+- **Planera före större ändringar.** Lägg fram förslaget och vänta på ja.
+- **Committa efter varje steg**, inte allt på slutet.
+- **Visa resultatet innan du pushar, och pusha först när han sagt till.**
+  Han säger "pusha" när han vill ha ut det.
+- **Verifiera på riktigt, inte bara med tester.** Starta appen, klicka igenom
+  det du ändrat, och visa vad du såg. Flera fel i den här kodbasen har bara
+  visat sig vid en verklig körning.
+- **Vid design- eller avvägningsfrågor: lägg fram alternativ med för och emot,
+  och en rekommendation.** Besluta inte åt honom.
+- **Ta emot invändningar.** Han har flera gånger haft rätt mot ett förslag —
+  backa då hellre än att försvara det.
+- **Föreslå inte det som redan är gjort.** Läs `NÄSTA-STEG.md` först.
+
 ## Gränser som inte får överskridas
 
 - **Rör aldrig grenarna `main` eller `pilot`.** `main` är prototypen från i
@@ -90,8 +109,22 @@ npm run e2e         # 20 tester i webbläsare, inklusive tillgänglighet (axe)
 npm run rundtur     # klickar igenom appen som alla fem demokonton
 ```
 
-En push till `v2-produktion` driftsätts automatiskt av Vercel. GitHub kör
-samma kontroller, men först efter pushen — så kör dem själv innan.
+### Driftsättning
+
+Allt arbete sker på **`v2-produktion`**. En push dit driftsätts automatiskt av
+Vercel till <https://fm-psvi-v2.vercel.app> — ett bygge tar ungefär 30–60
+sekunder. GitHub kör samma kontroller, men först efter pushen, så kör dem
+själv innan.
+
+Kontrollera att rätt version ligger uppe med:
+
+```bash
+vercel ls --meta githubCommitSha=$(git rev-parse HEAD)
+```
+
+Gissa aldrig genom att hämta en sida och leta efter text — se
+återvändsgränderna i `NÄSTA-STEG.md`. Avsluta med `npm run rundtur`, som går
+mot den driftsatta demon som standard.
 
 ## Databasen
 
