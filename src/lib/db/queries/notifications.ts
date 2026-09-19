@@ -69,9 +69,30 @@ export async function createTalkRequest(params: {
       serviceDate: serviceDate(),
       createdAt: now,
     })
-    // Unikhetsvillkoret gäller per PERSON och dag: trycker samma värnpliktig
-    // flera gånger blir det en notis, men två olika personer krockar aldrig.
-    .onConflictDoNothing();
+    /*
+     * Unikhetsvillkoret gäller per PERSON och dag: trycker samma värnpliktig
+     * flera gånger blir det en notis, men två olika personer krockar aldrig.
+     *
+     * Vid krock väcks raden i stället för att slängas. Tidigare stod det
+     * `onConflictDoNothing()`, och eftersom kvitteringen bara sätter read_at
+     * låg raden kvar resten av dygnet: den som bad om samtal på morgonen, fick
+     * det kvitterat, och bad igen på eftermiddagen för att det blivit sämre
+     * försvann spårlöst — medan gränssnittet svarade att begäran skickats.
+     * Befälet fick aldrig veta, och personen trodde att hjälp var på väg.
+     *
+     * Att nolla read_at är hela poängen: notisen dyker upp som oläst igen.
+     * Är den förra ännu inte kvitterad händer ingenting synligt, vilket är
+     * rätt svar på ett dubbelklick.
+     */
+    .onConflictDoUpdate({
+      target: [
+        notifications.recipientUserId,
+        notifications.requestedByUserId,
+        notifications.serviceDate,
+      ],
+      targetWhere: sql`kind = 'talk_request'`,
+      set: { readAt: null, createdAt: now },
+    });
 }
 
 export interface NotificationRow {

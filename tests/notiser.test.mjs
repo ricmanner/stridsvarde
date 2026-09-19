@@ -144,3 +144,53 @@ test('ett nytt larm ersätter äldre olästa om samma sak, men aldrig en samtals
   assert.equal(larm[0].serviceDate, stockholmsDag(), 'och det ska vara dagens');
   assert.ok(olasta.some((n) => n.title === 'En värnpliktig vill prata med dig'), 'begäran får inte kvitteras av ett larm');
 });
+
+test('en ny begäran når fram efter att befälet kvitterat den förra samma dag', async () => {
+  /*
+   * Det här är fallet som betyder mest, och det som var trasigt.
+   *
+   * Unikhetsvillkoret gäller per person och dag, och kvitteringen sätter bara
+   * read_at — raden låg kvar. Bad någon om samtal på morgonen, fick den
+   * kvitterad, och bad igen på eftermiddagen för att det blivit sämre, slängdes
+   * den andra begäran tyst medan gränssnittet svarade att den skickats.
+   * Befälet fick aldrig veta, och personen trodde att hjälp var på väg.
+   */
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const [soldat] = org.soldater['Grupp A'];
+
+  const befal = Number((await client.execute({
+    sql: 'INSERT INTO users (code_hash, label, role, unit_id, active, created_at) VALUES (?,?,?,?,1,?) RETURNING id',
+    args: [`hash-chef-igen-${Date.now()}`, 'Plutonchef', 'pluton', org.pluton, new Date().toISOString()],
+  })).rows[0].id);
+
+  const { createTalkRequest, getUnreadNotifications, markNotificationRead } = await import(
+    '../src/lib/db/queries/notifications.ts'
+  );
+
+  const begar = () =>
+    createTalkRequest({
+      soldierUserId: soldat,
+      soldierLabel: 'Värnpliktig 01',
+      soldierUnitName: 'Grupp A',
+      recipientUserId: befal,
+      subjectUnitId: org.grupper['Grupp A'],
+    });
+
+  await begar();
+  const [forsta] = await getUnreadNotifications(befal);
+  assert.ok(forsta, 'den första begäran nådde inte fram');
+
+  // Befälet kvitterar: "jag har sett den".
+  await markNotificationRead(befal, forsta.id);
+  assert.equal((await getUnreadNotifications(befal)).length, 0, 'kvitteringen tog inte');
+
+  // Samma person ber igen senare samma dag.
+  await begar();
+
+  assert.equal(
+    (await getUnreadNotifications(befal)).length,
+    1,
+    'den andra begäran nådde aldrig fram till befälet',
+  );
+});
