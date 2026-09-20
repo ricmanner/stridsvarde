@@ -178,3 +178,25 @@ test('en långsam sidväxling visar att något är på gång', async ({ page }) 
     'ingenting visade att sidan hämtades — klicket ser ut att ha uteblivit',
   ).toBeVisible({ timeout: 3_000 });
 });
+
+/**
+ * Och luckan som laddningsvyn inte täcker: periodbytet.
+ *
+ * Det är samma sida med en ny parameter, alltså byter man inte vy och
+ * `loading.tsx` slår aldrig till — men det är den TYNGSTA åtgärden i appen,
+ * för hela underenhetsträdet räknas om. Återkopplingen måste därför sitta på
+ * knappen man just tryckte på.
+ */
+test('ett periodbyte som dröjer syns på knappen man tryckte på', async ({ page }) => {
+  await loggaIn(page, KODER.plutonchef);
+  const knapp = page.getByRole('link', { name: '21d' });
+  await expect(knapp).toBeVisible();
+
+  await sävligtNät(page, '/pluton');
+  await knapp.click();
+
+  await expect(
+    page.getByRole('link', { name: /21d.*Hämtar/ }),
+    'periodbytet gav ingen återkoppling — knappen ser oberörd ut',
+  ).toBeVisible({ timeout: 3_000 });
+});

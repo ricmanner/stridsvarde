@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import Link, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Activity, AlertTriangle, Brain, Download, FileText, Moon, Users, Utensils, Zap } from 'lucide-react';
 
@@ -418,6 +418,35 @@ function SL({ children, inline = false }: { children: React.ReactNode; inline?: 
 }
 
 /**
+ * Visar att länken man tryckt på håller på att hämtas.
+ *
+ * Måste ligga INNE i en <Link> — useLinkStatus gäller den länk den står i.
+ *
+ * Fyller luckan som `loading.tsx` inte når. Den visas när man byter vy, men
+ * ett periodbyte är samma vy med en ny parameter, och då slår den aldrig
+ * till. Ändå är periodbytet det tyngsta appen gör: hela underenhetsträdet
+ * räknas om. Utan det här står sidan helt stilla, och den som tror att
+ * klicket missade klickar igen — vilket startar om omräkningen.
+ *
+ * Texten är för skärmläsaren, pricken för ögat. Pricken slutar blinka för
+ * den som bett systemet om mindre rörelse; texten finns kvar.
+ */
+function Väntan() {
+  const { pending } = useLinkStatus();
+  if (!pending) return null;
+
+  return (
+    <>
+      <span
+        aria-hidden
+        className="ml-1 inline-block size-1.5 rounded-full bg-current motion-safe:animate-pulse"
+      />
+      <span className="sr-only">Hämtar…</span>
+    </>
+  );
+}
+
+/**
  * Periodväljaren är länkar, inte klientstate: intervallen är vitlistade på
  * servern. Kan ett befäl begära godtyckliga datum går det att räkna fram en
  * enskild dag ur skillnaden mellan två perioder och kringgå k-anonymiteten.
@@ -437,6 +466,7 @@ function PeriodPicker({ current, pathname }: { current: Period; pathname: string
           }`}
         >
           {d}d
+          <Väntan />
         </Link>
       ))}
     </div>
@@ -478,6 +508,9 @@ function ExportBar({ period, childLabel }: { period: Period; childLabel: string 
         className="flex items-center gap-1.5 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-900 hover:text-slate-900"
       >
         <FileText size={13} aria-hidden /> Rapport för utskrift
+        {/* Ligger ofta under skärmkanten och hinner då aldrig förhämtas, så
+            laddningsvyn kan inte visas direkt. Då får länken säga det själv. */}
+        <Väntan />
       </Link>
     </div>
   );
