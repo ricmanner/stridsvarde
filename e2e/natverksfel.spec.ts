@@ -174,7 +174,7 @@ test('en långsam sidväxling visar att något är på gång', async ({ page }) 
   await till.click();
 
   await expect(
-    page.getByRole('status'),
+    page.locator('[data-laddar]'),
     'ingenting visade att sidan hämtades — klicket ser ut att ha uteblivit',
   ).toBeVisible({ timeout: 3_000 });
 });

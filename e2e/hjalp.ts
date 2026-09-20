@@ -34,6 +34,13 @@ export async function loggaIn(page: Page, kod: string): Promise<void> {
  * "Enheter" kommer tillbaka som "ENHETER". Jämförelser görs därför i gemener.
  */
 export async function synligText(page: Page): Promise<string> {
+  /*
+   * Vänta ut laddningsvyn först. Utan det läser man "Hämtar…" i stället för
+   * sidan, och testet rapporterar att innehållet saknas fast det bara ännu
+   * inte hunnit fram. Väntar på kännetecknet och inte på role="status" —
+   * adminsidan har en egen sådan som ska stå kvar. Se components/Laddar.tsx.
+   */
+  await expect(page.locator('[data-laddar]')).toBeHidden();
   return (await page.locator('body').innerText()).toLowerCase();
 }
 

@@ -18,6 +18,9 @@ export default function Laddar({ text = 'Hämtar…' }: { text?: string }) {
   return (
     <div
       role="status"
+      // Märkt så att testerna kan vänta ut den. Rollen räcker inte: adminsidan
+      // har en egen role="status" som ska stå kvar.
+      data-laddar
       className="flex min-h-[60dvh] flex-col items-center justify-center gap-3 px-6 text-center"
     >
       <span
