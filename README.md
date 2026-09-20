@@ -192,9 +192,12 @@ dataskyddsombud, inte för utvecklaren.
 **Inga säkerhetskopior mot Turso.** `backup.ts` kopierar bara en lokal fil.
 Före skarp drift behövs en lösning för fjärrdatabasen.
 
-**Återkopplingsvyn är skriven i inline-stilar.** `DashboardClient.tsx` väntar
-på samma omskrivning som incheckningen fick. Det blockerar responsiva
-brytpunkter i just den filen.
+**Återkopplingsvyn har inga brytpunkter, med flit.** `DashboardClient.tsx` är
+mobilförst och hålls centrerad på `max-w-2xl` — den ser likadan ut på en
+storskärm som på en telefon, bara med marginaler. Det är ett val, inte en
+glömd uppgift: soldaten rapporterar i mobilen. De fyra inline-stilar som är
+kvar i filen är uträknade värden som inte går att uttrycka som klasser
+(stapelbredd i procent, färg ur ett värde), och var och en har en kommentar.
 
 **Förrådet är publikt.** Inga nycklar ligger i det — `.env` är utesluten — men
 källkoden är synlig för alla.
@@ -217,11 +220,10 @@ källkoden är synlig för alla.
 Se **`NÄSTA-STEG.md`** för var arbetet står just nu, vad som ligger närmast,
 och vilka återvändsgränder som redan är utforskade.
 
-Av genomgången från 18 september 2026 är åtta av tio punkter gjorda. Kvar:
-
-1. Skriva om `DashboardClient.tsx` i Tailwind (incheckningen är klar).
-2. Besluta om `RETENTION_DAYS`, säkerhetskopior av Turso och
-   säkerhetsrubriker (CSP) inför skarp drift.
+Av genomgången från 18 september 2026 är alla tekniska punkter gjorda:
+`DashboardClient.tsx` är omskriven i Tailwind, och säkerhetsrubrikerna med CSP
+sitter i `next.config.ts`. Kvar är de två besluten som inte är utvecklarens:
+**lagringstid** (`RETENTION_DAYS`) och **säkerhetskopior av Turso-databasen**.
 
 Tillgängligheten är åtgärdad i första omgången — axe godkänner alla sidor mot
 WCAG 2.1 AA — men ett verktyg fångar bara ungefär en tredjedel av kraven.

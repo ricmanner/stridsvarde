@@ -71,9 +71,17 @@ fram demodatan och återställa demon.
    verkligen menar 5 — Richard har avfärdat både det och att hoppa över frågor.
    Frågan är öppen.
 
-Utanför listan, när tillfälle ges: tillgängligheten är grön i axe på sex vyer i
-tre skärmbredder, men bör granskas av en människa med skärmläsare. Ett verktyg
-fångar bara ungefär en tredjedel av kraven.
+Utanför listan, när tillfälle ges — två saker om tillgängligheten, och var
+gränsen för vad vi vet faktiskt går:
+
+- **Axe är grön på sex vyer, men bara i datorbredd.** `playwright.config.ts`
+  har ett enda projekt, `devices['Desktop Chrome']`, och ingen testfil sätter
+  egen fönsterstorlek. Mobilen är prövad för hand. Att lägga till telefonbredd
+  i kontrollerna är en rimlig uppgift — men räkna med att den hittar fel som
+  då ska rättas, så ta den inte strax före en visning.
+- **Ingen människa med skärmläsare har provat appen.** Ett verktyg fångar bara
+  ungefär en tredjedel av kraven, och graferna berättar i dag vad de heter men
+  inte vad de visar.
 
 ## Före en visning
 
