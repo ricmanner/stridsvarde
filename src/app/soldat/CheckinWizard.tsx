@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import CategoryIcon from '@/components/CategoryIcon';
@@ -8,8 +8,120 @@ import ScoreSlider from '@/components/ScoreSlider';
 import { CATEGORIES, type Category, getStatus, statusBg, statusLabel, statusTextColor } from '@/lib/data';
 import { submitCheckIn, type CheckInState } from '@/app/actions/checkin';
 import { formatScore } from '@/lib/format';
+import { TIDSGRÄNS_KLIENT_MS } from '@/lib/tidsgrans';
 
 const EMPTY: Record<Category, number> = { fysisk: 5, psykisk: 5, social: 5, somn: 5, kost: 5, energi: 5 };
+
+/**
+ * Beskedet när ingenting alls kommer tillbaka.
+ *
+ * Skiljer sig från serverns med flit: når begäran aldrig fram vet vi inte om
+ * något sparades, och då får vi inte påstå att det inte gjordes. Att trycka
+ * igen är ofarligt — dagens rapport skrivs över, den dubbleras inte.
+ */
+const TYST_NÄT =
+  'Ingen kontakt med servern. Kontrollera täckningen och försök igen — ' +
+  'dina svar finns kvar, och du kan trycka utan att det blir dubbelt.';
+
+const KNAPP =
+  'flex w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-slate-900 ' +
+  'px-4 py-3.5 text-sm font-semibold tracking-[0.04em] text-white ' +
+  'disabled:cursor-not-allowed disabled:bg-slate-300';
+
+/**
+ * Knappen som skickar in, med allt som hör till när nätet sviker.
+ *
+ * Egen komponent för att den ska gå att montera om. Det är inte en
+ * uppstädning utan själva rättningen:
+ *
+ * `useActionState` KÖAR anrop. Ett nytt försök medan det första fortfarande
+ * hänger ställer sig bakom det och skickas aldrig — knappen ser ut att
+ * fungera men gör ingenting, vilket är värre än en låst knapp, för då tror
+ * den värnpliktige att rapporten gått iväg. Det fångades av
+ * `e2e/natverksfel.spec.ts`, inte av att någon läste koden.
+ *
+ * Att montera om komponenten ger en ny krok med tom kö. Den gamla begäran
+ * rullar vidare i bakgrunden och kan mycket väl komma fram — det är
+ * ofarligt, eftersom incheckningen skriver över dagens rad i stället för att
+ * lägga till en ny.
+ */
+function Skickaformular({
+  scores,
+  editing,
+  automatiskt,
+  nyttFörsök,
+}: {
+  scores: Record<Category, number>;
+  editing: boolean;
+  /** Sant när komponenten just monterats om för ett nytt försök. */
+  automatiskt: boolean;
+  nyttFörsök: () => void;
+}) {
+  const [state, formAction, pending] = useActionState<CheckInState, FormData>(submitCheckIn, {});
+  const [tystnad, setTystnad] = useState(false);
+  const formulär = useRef<HTMLFormElement>(null);
+
+  /*
+   * Skyddsnät för det servern inte kan se.
+   *
+   * Hänger databasen slår serverns tidsgräns till och vi får ett riktigt
+   * felmeddelande tillbaka. Men dör täckningen på väg TILL servern hör den
+   * aldrig av begäran — då finns ingen som kan svara, och bara webbläsaren
+   * vet att något är på gång.
+   *
+   * Väntar längre än servern (se lib/tidsgrans.ts), så att ett ärligt svar
+   * som är på väg hinner fram innan vi drar den här slutsatsen.
+   */
+  useEffect(() => {
+    if (!pending) return;
+    const klocka = setTimeout(() => setTystnad(true), TIDSGRÄNS_KLIENT_MS);
+    return () => clearTimeout(klocka);
+  }, [pending]);
+
+  // Trycket som begärde ett nytt försök var på den gamla komponenten. Skicka
+  // direkt när den nya är på plats, så att ett tryck räcker.
+  useEffect(() => {
+    if (automatiskt) formulär.current?.requestSubmit();
+  }, [automatiskt]);
+
+  const fel = state.error ?? (tystnad ? TYST_NÄT : null);
+  const etikett = editing ? 'Spara ändringen' : 'Bekräfta och skicka';
+
+  return (
+    /*
+      Svaren skickas som ett vanligt formulär till en Server Action.
+      Servern validerar varje värde på nytt — klienten är inte betrodd.
+    */
+    <form action={formAction} ref={formulär}>
+      {CATEGORIES.map((cat) => (
+        <input key={cat.key} type="hidden" name={cat.key} value={scores[cat.key]} />
+      ))}
+
+      {fel && (
+        <p role="alert" className="mb-3 text-center text-xs text-red-700">
+          {fel}
+        </p>
+      )}
+
+      {/*
+        Vid tystnad byts knappen ut mot en som ber om ett nytt formulär i
+        stället för att skicka i det gamla. Skickade den som vanligt skulle
+        anropet hamna i kön bakom det som redan hänger, och ingenting hända.
+      */}
+      {tystnad ? (
+        <button type="button" onClick={nyttFörsök} className={KNAPP}>
+          <Check size={16} aria-hidden />
+          {etikett}
+        </button>
+      ) : (
+        <button type="submit" disabled={pending} className={KNAPP}>
+          <Check size={16} aria-hidden />
+          {pending ? 'Sparar…' : etikett}
+        </button>
+      )}
+    </form>
+  );
+}
 
 /** Färgat märke — GRÖN, GUL eller RÖD. Färgen räknas fram, därav inline. */
 function Marke({ score, size = 'sm' }: { score: number; size?: 'sm' | 'md' }) {
@@ -53,7 +165,8 @@ interface Props {
 export default function SoldatCheckin({ initial, editing = false, dateLabel }: Props) {
   const [step, setStep] = useState(0);
   const [scores, setScores] = useState<Record<Category, number>>(initial ?? EMPTY);
-  const [state, formAction, pending] = useActionState<CheckInState, FormData>(submitCheckIn, {});
+  // Räknare, inte ett ja/nej: varje nytt försök ska ge ett NYTT formulär.
+  const [omtag, setOmtag] = useState(0);
 
   const etikett = 'text-etikett font-bold uppercase tracking-[0.08em] text-slate-500';
 
@@ -256,29 +369,16 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
         </div>
 
         {/*
-          Svaren skickas som ett vanligt formulär till en Server Action.
-          Servern validerar varje värde på nytt — klienten är inte betrodd.
+          Nyckeln gör om formuläret till ett nytt vid varje försök. Se
+          kommentaren i Skickaformular — det är hela poängen med den.
         */}
-        <form action={formAction}>
-          {CATEGORIES.map((cat) => (
-            <input key={cat.key} type="hidden" name={cat.key} value={scores[cat.key]} />
-          ))}
-
-          {state.error && (
-            <p role="alert" className="mb-3 text-center text-xs text-red-700">
-              {state.error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={pending}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-slate-900 px-4 py-3.5 text-sm font-semibold tracking-[0.04em] text-white disabled:cursor-not-allowed disabled:bg-slate-300"
-          >
-            <Check size={16} aria-hidden />
-            {pending ? 'Sparar…' : editing ? 'Spara ändringen' : 'Bekräfta och skicka'}
-          </button>
-        </form>
+        <Skickaformular
+          key={omtag}
+          scores={scores}
+          editing={editing}
+          automatiskt={omtag > 0}
+          nyttFörsök={() => setOmtag((n) => n + 1)}
+        />
 
         <p className="mt-2.5 text-center text-xs text-slate-500">
           Ditt befäl ser bara sammanställd data för hela gruppen, aldrig dina enskilda svar.

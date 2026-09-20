@@ -50,13 +50,11 @@ test('en incheckning som inte når fram ger besked i stället för att hänga', 
    * — det är just det en död förbindelse gör. Den kopplas in först nu, så
    * att inloggning och sidhämtningar dessförinnan fungerar som vanligt.
    */
-  await page.route(
-    (url) => url.pathname === '/soldat',
-    async (route) => {
-      if (route.request().method() !== 'POST') return route.continue();
-      await new Promise(() => {}); // svarar aldrig
-    },
-  );
+  const dödNät = async (route: import('@playwright/test').Route) => {
+    if (route.request().method() !== 'POST') return route.continue();
+    await new Promise(() => {}); // svarar aldrig
+  };
+  await page.route((url) => url.pathname === '/soldat', dödNät);
 
   await page.getByRole('button', { name: /Bekräfta och skicka|Spara ändringen/ }).click();
 
@@ -77,4 +75,38 @@ test('en incheckning som inte når fram ger besked i stället för att hänga', 
     page.getByRole('button', { name: /Ändra Sömn, nu 8 av 10/ }),
     'svaren försvann ur formuläret',
   ).toBeVisible();
+
+  /*
+   * 4. Och när täckningen kommer tillbaka ska ett nytt tryck faktiskt gå
+   *    fram. Det här är det egentliga kravet: en felruta som inte leder
+   *    någonstans hjälper ingen. Prövas på riktigt, för en ny begäran kan
+   *    hamna i kö bakom den som fortfarande hänger — och då ser knappen ut
+   *    att fungera utan att göra något.
+   */
+  // unrouteAll, inte unroute: den senare matchar på funktionens identitet,
+  // och en likadan men ny pilfunktion tar inte bort någonting. Kostade en
+  // felsökning — avlyssningen låg kvar och appen fick skulden.
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
+
+  const skickadeBegäran: string[] = [];
+  page.on('request', (r) => {
+    if (r.method() === 'POST') skickadeBegäran.push(r.url());
+  });
+
+  await knapp.click();
+
+  /*
+   * Två kontroller, för de faller på olika saker. Att en ny begäran alls
+   * gick ut skiljer "knappen gjorde ingenting" från "nätet är fortfarande
+   * nere" — och det är det första som är det farliga felet, eftersom
+   * ingenting då syns utåt.
+   */
+  await expect(async () =>
+    expect(skickadeBegäran.length, 'knappen skickade ingen ny begäran').toBeGreaterThan(0),
+  ).toPass({ timeout: 5_000 });
+
+  await expect(page, 'nytt försök gick inte fram trots att nätet var tillbaka').toHaveURL(
+    /\/soldat\/dashboard$/,
+    { timeout: RIMLIG_VANTAN },
+  );
 });
