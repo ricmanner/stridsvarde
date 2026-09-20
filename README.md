@@ -68,8 +68,8 @@ Utelåst som administratör? `npm run aterstall-admin` ger en ny adminkod.
 ```bash
 npm run dev                        # utvecklingsserver
 npm run build && npm start         # skarpt bygge
-npm test                           # 104 tester, Nodes egen testkörare
-npm run e2e                        # 20 tester i en riktig webbläsare
+npm test                           # 132 tester, Nodes egen testkörare
+npm run e2e                        # 25 tester i en riktig webbläsare
 npm run typecheck                  # tsc --noEmit
 npx eslint src tests scripts       # lint
 npm run rundtur                    # klickar igenom appen som alla fem demokonton

@@ -105,7 +105,7 @@ utskriftsrapporten och 64 px på incheckningens siffra.
 
 ```bash
 npm test && npm run typecheck && npx eslint src tests scripts && npm run build
-npm run e2e         # 20 tester i webbläsare, inklusive tillgänglighet (axe)
+npm run e2e         # 25 tester i webbläsare, inklusive tillgänglighet (axe)
 npm run rundtur     # klickar igenom appen som alla fem demokonton
 ```
 

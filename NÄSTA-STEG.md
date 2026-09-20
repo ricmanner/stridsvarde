@@ -3,13 +3,26 @@
 Kort överlämning mellan arbetspass. `README.md` beskriver appen, `CLAUDE.md`
 reglerna som styr arbetet — den här filen säger bara **var vi står just nu**.
 
-Senast uppdaterad: 19 september 2026, sent på kvällen.
+Senast uppdaterad: 20 september 2026.
 
 ## Läget
 
-Demon på <https://fm-psvi-v2.vercel.app> kör senaste koden. **127 enhetstester
-och 22 webbläsartester** är gröna, och GitHub kör dem vid varje push tillsammans
-med typkontroll, lint och bygge.
+**132 enhetstester och 25 webbläsartester** är gröna, och GitHub kör dem vid
+varje push tillsammans med typkontroll, lint och bygge. Demon på
+<https://fm-psvi-v2.vercel.app> kör koden fram till den 19 september —
+nätverksarbetet nedan är gjort men **ännu inte pushat**.
+
+Den 20 september fick appen sina första tidsgränser. Tidigare fanns ingen
+bortre gräns någonstans: hängde databasen hängde begäran, och den värnpliktige
+såg "Sparar…" för alltid.
+
+- **Incheckningen** har nu 10 sekunder på servern och 15 i webbläsaren, båda
+  definierade i `src/lib/tidsgrans.ts`. Går tiden ut får den värnpliktige ett
+  besked, knappen släpps, svaren ligger kvar och ett nytt tryck går fram.
+- **Laddningsvyer** finns på varje sida (`src/components/Laddar.tsx`), och
+  befälets periodknappar säger till när de arbetar.
+
+Allt prövat mot ett på riktigt strypt nät i en mobilskärm, inte bara i test.
 
 Den 19 september gjordes fyra genomgångar — säkerhet, robusthet, användbarhet
 och design. **Allt som klassades som kritiskt eller högt är åtgärdat.** I korthet:
@@ -31,14 +44,21 @@ fram demodatan och återställa demon.
 
 ## Att ta härnäst
 
-1. **Nätverksfelen.** Det finns **ingen tidsgräns någonstans i appen** — bara
-   ett `busy_timeout` på databasen. Hänger Turso hänger begäran: den
-   värnpliktige trycker "Bekräfta och skicka", knappen säger "Sparar…" och gör
-   det för alltid. Ingen felruta, ingen möjlighet att försöka igen. Börja med
-   incheckningen: en tidsgräns på ungefär tio sekunder och ett ärligt besked.
-   **Prova genom att strypa nätet, inte genom att läsa koden.**
-   Laddningstillstånd (`loading.tsx` saknas helt) hör ihop med samma fråga och
-   bör göras i samma svep.
+1. **Resten av nätverksfelen.** Incheckningen är klar, men den var bara den
+   första av flera skrivvägar. Utan tidsgräns står ännu inloggningen
+   (`actions/auth.ts`), samtalsbegäran, och administratörens åtgärder: skapa
+   och radera enheter, utfärda koder.
+
+   Mönstret finns färdigt i `medTidsgräns()`. Det som återstår är att välja
+   rätt gräns per väg och skriva ett test som först faller. **Men en
+   raderingsväg tål inte att köras två gånger** på det sätt incheckningen gör
+   — läs kommentaren i `src/lib/tidsgrans.ts` innan den används där.
+
+   **`logError()` kan själv hänga.** Den sväljer fel, men en try/catch
+   hjälper inte mot något som aldrig svarar, och den skriver till samma
+   databas som just visat sig hänga. Incheckningen går runt det genom att
+   logga i `after()`, alltså efter att svaret gått iväg. En egen kort
+   tidsgräns inuti `logError` vore en bättre lösning för hela appen.
 2. **De två besluten inför skarp drift**, som är verksamhetens och inte
    utvecklarens: lagringstid (`RETENTION_DAYS`) och säkerhetskopior av
    Turso-databasen. Underlag finns skrivet — fråga Richard efter det.
@@ -87,6 +107,33 @@ Schemat i den delade databasen är komplett sedan den 19 september; knappen
 ## Återvändsgränder — prova inte om igen
 
 Sådant som såg ut som förbättringar och inte var det. Varje rad kostade tid.
+
+- **En server som ligger kvar på port 3100 gör webbläsartesterna
+  lögnaktiga.** Playwright är satt att återanvända en befintlig server
+  (`reuseExistingServer`), så bygget körs inte om och testerna mäter gammal
+  kod. En nyskapad `loading.tsx` fanns inte i bygget på tre körningar i rad,
+  och appen fick skulden. Kör `lsof -ti:3100 | xargs kill` när ett resultat
+  ser omöjligt ut.
+- **`useActionState` KÖAR anrop.** Ett nytt försök medan det första hänger
+  lämnar aldrig webbläsaren — knappen ser levande ut och gör ingenting, vilket
+  är värre än en låst knapp, eftersom den värnpliktige går därifrån i tron att
+  rapporten är skickad. Lösningen är att montera om komponenten som äger
+  kroken (`Skickaformular` i `CheckinWizard.tsx`), inte att släppa knappen.
+- **`page.unroute(matchare, handlare)` matchar på funktionens identitet.** En
+  ny men likadan pilfunktion tar inte bort någonting, och avlyssningen ligger
+  kvar tyst. Använd `page.unrouteAll()`.
+- **En `loading.tsx` i roten gör ingenting när man byter sida inne i appen.**
+  Den visas bara när roten själv monteras. Varje sida behöver en egen.
+- **En laddningsvy visas bara om länken hunnit förhämtas.** Next förhämtar en
+  länk när den syns på skärmen; har det inte skett är navigeringen i stället
+  BLOCKERAD tills svaret kommer, och skärmen står still på den gamla sidan.
+  Det är därför periodknapparna och rapportlänken har `useLinkStatus` — den
+  luckan går inte att täcka med `loading.tsx`. I test: `toBeVisible()` räcker
+  inte, elementet måste rullas fram med `scrollIntoViewIfNeeded()`.
+- **Stryp inte förhämtningen när du provar en laddningsvy.** Bromsas även den
+  blockeras navigeringen och ingenting syns — det ser ut som att laddningsvyn
+  är trasig fast den fungerar. Bromsa bara begäran utan rubriken
+  `next-router-prefetch`.
 
 - **En databasfråga i stället för tre i `getUnitOverview` är LÅNGSAMMARE.**
   Mätt mot 5 000 värnpliktiga och ett års historik: 2 186 ms mot 925 ms. Den
