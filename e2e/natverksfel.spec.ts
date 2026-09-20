@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { loggaIn, oppnaIncheckning } from './hjalp';
+import { KODER, loggaIn, oppnaIncheckning } from './hjalp';
 
 /**
  * Vad som händer när nätet inte svarar.
@@ -109,4 +109,72 @@ test('en incheckning som inte når fram ger besked i stället för att hänga', 
     /\/soldat\/dashboard$/,
     { timeout: RIMLIG_VANTAN },
   );
+});
+
+/**
+ * Det andra fallet: nätet är inte dött, bara segt.
+ *
+ * Befälets vyer räknar om aggregat över hela underenhetsträdet. Tar det tid
+ * står den gamla sidan kvar oförändrad, och den rimliga slutsatsen är att
+ * klicket inte tog — så klickar man igen, och varje klick startar en ny
+ * omräkning som gör väntan längre.
+ */
+
+/**
+ * Gör appens egna sidhämtningar sävliga, som på ett dåligt mobilnät.
+ *
+ * Förhämtningen stoppas också, och det är inte fusk utan själva poängen.
+ * Next hämtar sidan i bakgrunden redan när länken syns, och lyckas det blir
+ * klicket omedelbart — då behövs ingen laddningsvy. Den behövs precis när
+ * förhämtningen INTE hunnit fram, vilket är vad ett svagt nät innebär.
+ *
+ * De två skiljs åt på rubrikerna: `rsc` finns på båda, `next-router-prefetch`
+ * bara på förhämtningen.
+ */
+async function sävligtNät(page: Page, sökväg: string, ms = 5_000): Promise<void> {
+  await page.route(
+    (url) => url.pathname === sökväg,
+    async (route) => {
+      const rubriker = route.request().headers();
+      if (!rubriker['rsc']) return route.continue();
+      /*
+       * Förhämtningen släpps fram, bara datan bromsas — och det är hela
+       * skillnaden. Next hämtar laddningsskalet i förväg och visar det
+       * omedelbart vid klicket; bromsas även förhämtningen är navigeringen
+       * i stället BLOCKERAD tills den kommer fram, och då syns ingenting
+       * alls. Det såg länge ut som att laddningsvyn var trasig.
+       */
+      if (rubriker['next-router-prefetch']) return route.continue();
+      await new Promise((r) => setTimeout(r, ms));
+      await route.continue();
+    },
+  );
+}
+
+test('en långsam sidväxling visar att något är på gång', async ({ page }) => {
+  await sävligtNät(page, '/rapport');
+  await loggaIn(page, KODER.plutonchef);
+
+  const till = page.getByRole('link', { name: /Rapport för utskrift/ });
+  await expect(till).toBeVisible();
+
+  /*
+   * Länken måste rullas fram och få ett ögonblick på sig.
+   *
+   * Next förhämtar en länk när den syns på skärmen, och det är förhämtningen
+   * som gör att laddningsvyn kan visas direkt vid klicket. Mätt: utan de här
+   * två raderna kommer första begäran först vid klicket, navigeringen
+   * blockeras tills den svarat, och skärmen står still på den gamla sidan.
+   * Playwrights toBeVisible() kräver inte att elementet syns i fönstret, så
+   * det räcker inte för att förhämtningen ska hinna starta.
+   */
+  await till.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(2_000);
+
+  await till.click();
+
+  await expect(
+    page.getByRole('status'),
+    'ingenting visade att sidan hämtades — klicket ser ut att ha uteblivit',
+  ).toBeVisible({ timeout: 3_000 });
 });
