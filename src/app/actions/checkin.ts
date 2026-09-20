@@ -9,6 +9,7 @@ import { CATEGORIES, type Category } from '@/lib/data';
 import { evaluateAlerts } from '@/lib/db/queries/alerts';
 import { logError } from '@/lib/db/queries/health';
 import { saveCheckIn, type Scores } from '@/lib/db/queries/checkins';
+import { medTidsgräns, Tidsgränsfel, TIDSGRÄNS_SERVER_MS } from '@/lib/tidsgrans';
 
 export interface CheckInState {
   error?: string;
@@ -38,7 +39,48 @@ export async function submitCheckIn(
     scores[key as Category] = raw;
   }
 
-  await saveCheckIn(user.id, scores, generateSoldierAdvice(scores));
+  /*
+   * Sparandet får en bortre gräns.
+   *
+   * Utan den väntar servern hur länge som helst på en databas som inte
+   * svarar, och den värnpliktige ser "Sparar…" tills hen ger upp och laddar
+   * om — varpå sex ifyllda svar är borta. Ett ärligt besked är sämre än ett
+   * sparat svar, men vida bättre än ingenting.
+   *
+   * Bara tidsgränsen fångas här. Ett annat fel, till exempel en trasig
+   * SQL-fråga, ska fortsätta upp och bli en riktig felsida: det är ett fel i
+   * appen, inte i nätet, och ska inte döljas bakom "försök igen".
+   */
+  try {
+    await medTidsgräns(
+      saveCheckIn(user.id, scores, generateSoldierAdvice(scores)),
+      TIDSGRÄNS_SERVER_MS,
+      'sparandet av incheckningen',
+    );
+  } catch (fel) {
+    if (!(fel instanceof Tidsgränsfel)) throw fel;
+
+    /*
+     * Loggas EFTER svaret, inte före. logError() sväljer fel, men den skriver
+     * till samma databas som just visat sig hänga — och en try/catch hjälper
+     * inte mot något som aldrig svarar. Väntade vi på loggningen skulle den
+     * värnpliktige få vänta ytterligare en tidsgräns på att få veta att det
+     * inte gick.
+     */
+    after(async () => {
+      await logError({
+        path: '/soldat (incheckning)',
+        routeType: 'action',
+        message: fel.message,
+      });
+    });
+
+    return {
+      error:
+        'Det gick inte att spara just nu — servern svarar inte. ' +
+        'Dina svar finns kvar. Försök igen om en stund.',
+    };
+  }
 
   /*
    * Larmreglerna körs efter att svaret skickats, så soldaten aldrig får vänta
