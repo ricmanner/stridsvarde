@@ -98,6 +98,22 @@ gränsen för vad vi vet faktiskt går:
 - Kör därefter `npm run rundtur`. Den tar en minut och går igenom appen som
   alla fem demokonton.
 
+**Färsk demodata och många lediga incheckningar går inte att få samtidigt.**
+Det är en avvägning, inte ett fel, och den avgör vilken knapp du ska trycka på:
+
+| Demodatans läge | Incheckningen | Befälsvyn |
+|---|---|---|
+| Nyss framflyttad | Bara de åtta P1G1-kontona är lediga | Ser rätt ut |
+| En dag gammal eller mer | Alla 216 värnpliktiga kan checka in | Säger **0 % svarat idag** |
+
+Inför en visning vill du ha det övre läget — en befälsvy som står på noll ser
+trasig ut på en storskärm. Flytta fram datan på morgonen, och igen om de åtta
+kontona tar slut under dagen; framflyttningen öppnar samma åtta på nytt.
+
+Räkna inte med 82 % för idag efter en framflyttning. Grupp 1 lämnas tom med
+flit, så Pluton 1 landar kring hälften — det är meningen, och det är vad som
+gör siffran realistisk i stället för att stå på 100 %.
+
 ## Kräver dig, inte utvecklaren
 
 - **Kontrollera säkerhetskopiorna hos Turso.** Är automatisk återställning
@@ -116,6 +132,20 @@ Schemat i den delade databasen är komplett sedan den 19 september; knappen
 
 Sådant som såg ut som förbättringar och inte var det. Varje rad kostade tid.
 
+- **Publicera inte fler demokoder på inloggningssidan.** Sidan förklarar redan
+  serien P1G1-01 till 08 och säger varför den medvetet inte räknar upp vilka
+  som är lediga: det ändras så fort någon provar demon, och en sida som lovar
+  fel sak är sämre än en som säger hur det fungerar. Listan styr dessutom
+  skyddet — att publicera en kod är samma sak som att göra kontot omöjligt att
+  spärra, radera eller byta kod på, och då försvinner det som övningsmål för
+  den som vill prova administrationen.
+- **En förhandsgren på Vercel fungerar inte som projektet står.** Alla fem
+  miljövariabler är satta enbart för produktion, så en ny gren får varken
+  databasadress eller peppar: den faller tillbaka på en lokal fil som töms
+  mellan anropen, och vägrar starta utan nyckel. Baksidan är förutsägbar —
+  framsidan är att en experimentgren därför inte *kan* skada demons data.
+  Behövs en riktig parallellmiljö krävs en egen Turso-databas och egna
+  variabler för den miljön, inte bara en gren.
 - **En server som ligger kvar på port 3100 gör webbläsartesterna
   lögnaktiga.** Playwright är satt att återanvända en befintlig server
   (`reuseExistingServer`), så bygget körs inte om och testerna mäter gammal

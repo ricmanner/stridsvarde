@@ -58,6 +58,25 @@ på en rad. Han läser gärna siffror och tabeller.
   person felsökningstid.
 - Svenska i kod, kommentarer, gränssnitt och tester. Engelska i commit-texter.
 
+## Under hackathonet
+
+*Tidsbegränsat avsnitt — ta bort det när hackathonet är över.*
+
+Appen visas för befäl och fysioterapeuter som kommer att be om ändringar på
+plats, ibland motstridiga: en vill ta bort samtalsknappen, nästa vill ha kvar
+den. Då gäller tre saker utöver det vanliga.
+
+- **Göm hellre än ta bort.** Stäng av funktionen, radera den inte. Att sätta
+  tillbaka blir då sekunder i stället för en halvtimme — koden går alltid att
+  hämta ur historiken, men att väva in den i något som hunnit ändras är arbete.
+- **Rör aldrig databasens struktur under dagen.** Kod går alltid att få
+  tillbaka; raderade uppgifter gör det inte. Sluta använda en kolumn om det
+  behövs, men radera den inte.
+- **Bygg inte motstridiga önskemål två gånger.** Att ett befäl och en
+  fysioterapeut tycker olika om samma funktion är dagens resultat, inte ett
+  problem att lösa på plats. Skriv ner vem som ville vad och varför, och låt
+  Richard bestämma efteråt. En ostadig demo hjälper ingen.
+
 ## Regler som kostat tid att lära sig
 
 - **Ett tal och dess färg får aldrig säga emot varandra.** Aggregaten räknas
