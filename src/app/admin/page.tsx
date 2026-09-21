@@ -13,6 +13,7 @@ import {
   type TreeNode,
 } from '@/lib/db/queries/admin';
 import { retentionStatus } from '@/lib/db/retention';
+import { fullDateLabel } from '@/lib/date';
 
 import UnitDetail from './UnitDetail';
 import UnitTree from './UnitTree';
@@ -102,28 +103,43 @@ export default async function AdminPage({
 
         {/* Lagringstid — beslutet är Försvarsmaktens, inte appens. */}
         <div className="no-print mb-6 rounded-md border border-slate-200 bg-white px-4 py-3">
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
-              Gallring av hälsodata
-            </span>
-            {retention.enabled ? (
-              <span className="text-sm text-slate-700">
-                Aktiv — sparas i {retention.days} dagar.
-                {retention.affected > 0 && ` ${retention.affected} äldre poster raderas automatiskt inom kort.`}
-              </span>
-            ) : (
-              <span className="text-sm text-slate-700">
-                Avstängd — incheckningar sparas tills vidare.
-              </span>
-            )}
-            {retention.oldest && (
-              <span className="text-xs text-slate-500">äldsta uppgift: {retention.oldest}</span>
-            )}
-          </div>
+          {/*
+            Rubriken behåller fackordet "gallring" — det är arkivlagens term
+            och den en registrator känner igen. Men meningen under förklarar
+            sig själv, så rutan går att förstå utan ordet. Richard, som är
+            just den administratör vyn skrivs för, kände inte igen varken
+            "gallring" eller "avstängd" när de stod som etiketter utan
+            förklaring.
+
+            Staplat i stället för på en rad: tre fragment i tre storlekar som
+            radbröts mot varandra gav ingen läsordning alls.
+          */}
+          <p className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
+            Gallring av hälsodata
+          </p>
+          <p className="mt-1 text-sm text-slate-900">
+            {retention.enabled
+              ? `Uppgifter raderas automatiskt när de är äldre än ${retention.days} dagar.`
+              : 'Gamla uppgifter raderas inte — allt sparas tills vidare.'}
+          </p>
+          {retention.enabled && retention.affected > 0 && (
+            <p className="mt-1 text-xs text-slate-500">
+              {retention.affected} poster är äldre än så och raderas inom kort.
+            </p>
+          )}
+          {retention.oldest && (
+            <p className="mt-1 text-xs text-slate-500">
+              Äldsta uppgift i databasen: {fullDateLabel(retention.oldest)}.
+            </p>
+          )}
           {!retention.enabled && (
-            <p className="mt-1 text-xs leading-relaxed text-slate-500">
-              GDPR tillåter inte att hälsodata sparas längre än nödvändigt. Hur länge
-              uppgifterna får sparas ska beslutas av Försvarsmaktens dataskyddsombud.
+            // Textbredd, inte rutbredd: rutan följer nyckeltalskorten ovanför
+            // och blir mycket bred på en storskärm. En mening som löper över
+            // hela den bredden tappar man bort sig i.
+            <p className="mt-2 max-w-2xl text-xs leading-relaxed text-slate-500">
+              Hur länge uppgifterna får sparas ska beslutas av Försvarsmaktens
+              dataskyddsombud — GDPR tillåter inte att hälsodata sparas längre än
+              nödvändigt.
             </p>
           )}
           {/*

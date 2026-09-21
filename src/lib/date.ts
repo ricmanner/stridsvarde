@@ -68,6 +68,23 @@ export function weekdayLabel(isoDate: string): string {
     .replace('.', '');
 }
 
+/**
+ * '2026-09-08' → '8 september 2026'. För enstaka datum i löpande text.
+ *
+ * Skilt från longDateLabel(): den skriver ut veckodagen, vilket hör hemma i
+ * en rubrik om dagen som är men bara är brus intill ett äldsta datum. Året
+ * tas med här av motsatt skäl — uppgiften kan vara flera år gammal.
+ */
+export function fullDateLabel(isoDate: string): string {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('sv-SE', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
 /** '2026-09-16' → 'onsdag 16 september'. För rubriker. */
 export function longDateLabel(isoDate: string): string {
   const [y, m, d] = isoDate.split('-').map(Number);

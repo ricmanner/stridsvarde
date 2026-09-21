@@ -23,3 +23,17 @@ test('snitt visas med decimalkomma och en decimal', async () => {
     assert.ok(!formatScore(v).includes('.'), `${v} gav "${formatScore(v)}"`);
   }
 });
+
+test('ett enstaka datum skrivs som en människa läser det', async () => {
+  const { fullDateLabel } = await import('../src/lib/date.ts');
+
+  // Adminsidans "äldsta uppgift" visade råa 2026-09-08 — appens enda
+  // maskindatum framför en läsare. Allt annat formateras på svenska.
+  assert.equal(fullDateLabel('2026-09-08'), '8 september 2026');
+  assert.equal(fullDateLabel('2026-01-01'), '1 januari 2026');
+  assert.equal(fullDateLabel('2025-12-31'), '31 december 2025');
+
+  // Får inte hoppa en dag kring sommartidsomställningarna.
+  assert.equal(fullDateLabel('2026-03-29'), '29 mars 2026');
+  assert.equal(fullDateLabel('2026-10-25'), '25 oktober 2026');
+});
