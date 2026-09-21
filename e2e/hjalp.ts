@@ -62,7 +62,20 @@ export async function ingaEnskildaPersoner(page: Page): Promise<void> {
  */
 export async function oppnaIncheckning(page: Page): Promise<void> {
   await page.goto('/soldat');
+
+  /*
+   * Vänta ut omdirigeringen innan adressen läses.
+   *
+   * Har dagen redan besvarats skickar servern vidare till återkopplingen,
+   * och den omdirigeringen hinner inte alltid fram innan goto() återvänder.
+   * Läser man adressen för tidigt ser den ut att vara /soldat, rättelsevägen
+   * hoppas över, och testet letar efter en startknapp på en sida som visar
+   * återkopplingen. Kostade en felsökning: fem av sex körningar föll på det,
+   * och det syntes inte alls förrän samma konto användes två gånger.
+   */
+  await page.waitForLoadState('networkidle');
   if (page.url().includes('/dashboard')) await page.goto('/soldat?redigera=1');
+
   await page.getByRole('button', { name: /Starta incheckning|Fortsätt/ }).click();
 }
 

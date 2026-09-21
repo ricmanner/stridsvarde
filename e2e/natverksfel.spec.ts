@@ -23,26 +23,45 @@ import { KODER, loggaIn, oppnaIncheckning } from './hjalp';
 /** Ungefär så länge en människa orkar vänta innan appen känns trasig. */
 const RIMLIG_VANTAN = 20_000;
 
-/** Besvarar de sex frågorna med samma värde och stannar på sammanfattningen. */
-async function fyllIIncheckningen(page: Page, steg: number): Promise<void> {
+/**
+ * Besvarar de sex frågorna med samma värde och stannar på sammanfattningen.
+ *
+ * Går via Home till 1 och räknar sedan uppåt, i stället för att trycka ett
+ * antal steg från där reglaget råkar stå. Skälet: vid en rättelse är svaren
+ * förifyllda med gårdagens — eller den här körningens — värden, och då landar
+ * ett fast antal tryck på fel tal. Testet måste ge samma resultat vare sig
+ * kontot svarat idag eller inte, annars går det inte att köra om.
+ */
+async function fyllIIncheckningen(page: Page, varde: number): Promise<void> {
   for (let fraga = 1; fraga <= 6; fraga++) {
     const reglage = page.locator('input[type="range"]');
     await expect(reglage).toBeVisible();
     await reglage.focus();
-    // Reglaget börjar på 5. Uppåt, så att värdena inte blir röda och drar in
-    // stödrutan — den hör till ett annat test.
-    for (let i = 0; i < steg; i++) await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Home'); // till 1, oavsett var det stod
+    for (let i = 1; i < varde; i++) await page.keyboard.press('ArrowRight');
+    await expect(reglage).toHaveValue(String(varde));
     await page.getByRole('button', { name: fraga === 6 ? 'Sammanfattning' : 'Nästa' }).click();
   }
   await expect(page.getByText(/Bekräfta din incheckning|Bekräfta ändringen/)).toBeVisible();
 }
 
 test('en incheckning som inte når fram ger besked i stället för att hänga', async ({ page }) => {
+  /*
+   * Behöver mer tid än standardens 45 sekunder, och det är inte slöseri:
+   * testet väntar medvetet ut klientens riktiga tidsgräns på 15 sekunder.
+   * Med inloggning, sex frågor, den väntan och sedan ett nytt försök ligger
+   * det nära taket på en snabb maskin och över det på en långsam — testet
+   * föll i GitHubs körning trots att det passerat lokalt tjugofem gånger.
+   */
+  test.setTimeout(120_000);
+
   // Egen värnpliktig: P1G1-01 till 03 används av andra tester, och den här
   // rapporten ska aldrig bli sparad.
   await loggaIn(page, 'P1G1-04');
   await oppnaIncheckning(page);
-  await fyllIIncheckningen(page, 3); // 5 + 3 = 8 på varje fråga
+  // 8 på varje fråga: grönt, så att stödrutan inte dras in — den hör till
+  // ett annat test. Samma tal kontrolleras längre ner i sammanfattningen.
+  await fyllIIncheckningen(page, 8);
 
   /*
    * Här stryps nätet. En Server Action är en POST till den adress man står
@@ -93,7 +112,17 @@ test('en incheckning som inte når fram ger besked i stället för att hänga', 
     if (r.method() === 'POST') skickadeBegäran.push(r.url());
   });
 
-  await knapp.click();
+  /*
+   * noWaitAfter: knappen förstörs av sitt eget klick.
+   *
+   * Trycket monterar om formuläret — det är hela rättningen — så elementet
+   * försvinner ur sidan i samma ögonblick. Utan det här ser Playwright att
+   * elementet lossnat, antar att klicket inte gick fram och försöker igen;
+   * då står det nya formuläret på "Sparar…" och matchar inte längre namnet,
+   * och försöken fortsätter tills testet tar slut. Det var precis så det föll
+   * i GitHubs körning medan det passerade lokalt.
+   */
+  await knapp.click({ noWaitAfter: true });
 
   /*
    * Två kontroller, för de faller på olika saker. Att en ny begäran alls

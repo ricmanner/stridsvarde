@@ -132,6 +132,25 @@ Schemat i den delade databasen är komplett sedan den 19 september; knappen
 
 Sådant som såg ut som förbättringar och inte var det. Varje rad kostade tid.
 
+- **Grönt lokalt betyder inte grönt hos GitHub.** `e2e/natverksfel.spec.ts`
+  passerade tjugofem lokala körningar och en CI-körning, och föll sedan på
+  nästa push — som bara innehöll textändringar. GitHubs maskin är långsammare,
+  och två saker tål ingen marginal: ett test som väntar ut en riktig tidsgräns
+  (här 15 sekunder) ligger nära taket på 45, och ett klick som förstör sitt
+  eget element behöver `noWaitAfter`. Utan den tror Playwright att klicket
+  missade och försöker igen mot ett element som hunnit bytas ut. Faller ett
+  test bara hos GitHub: misstänk tid och kapplöpningar, inte logik.
+- **Läs aldrig adressen direkt efter `page.goto()`.** Skickar servern vidare —
+  som `/soldat` gör när dagen redan är besvarad — hinner omdirigeringen inte
+  alltid fram innan `goto()` återvänder. Adressen ser då ut att vara den man
+  bad om, fel gren tas, och testet letar efter något på en sida som visar
+  något annat. Vänta på `networkidle` först. Det här kostade tre separata
+  felsökningar på en dag innan orsaken var densamma varje gång.
+- **Ett e2e-test som skriver måste gå att köra om.** Tryck inte ett fast antal
+  steg på ett reglage: vid en rättelse står det redan på gårdagens värde, och
+  samma tryck ger ett annat tal. Gå till ett känt läge först (Home) och räkna
+  därifrån. Annars går testet bara att köra en gång per konto och dag, och då
+  går det inte att bevisa att det slutat vara nyckfullt.
 - **Publicera inte fler demokoder på inloggningssidan.** Sidan förklarar redan
   serien P1G1-01 till 08 och säger varför den medvetet inte räknar upp vilka
   som är lediga: det ändras så fort någon provar demon, och en sida som lovar
