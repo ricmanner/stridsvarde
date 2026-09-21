@@ -70,6 +70,24 @@ fram demodatan och återställa demon.
    femmor som ser ut som svar. Att tvinga fram en rörelse straffar den som
    verkligen menar 5 — Richard har avfärdat både det och att hoppa över frågor.
    Frågan är öppen.
+4. **Flytta fram demodatan automatiskt varje natt.** Genomtänkt den 21
+   september, medvetet uppskjutet av Richard — inte avfärdat. Bygg inte om
+   analysen:
+   - `applyDemoTimeline()` är färdig, skyddad mot pilotläge och ofarlig att
+     köra två gånger: har datan redan flyttats idag returnerar den utan att
+     skriva något. Den öppnar dessutom `DAGEN_OPPEN`-kontona på nytt.
+   - Det som saknas är bara en utlösare. **GitHubs schemaläggning är redan
+     utesluten** — se återvändsgränderna nedan.
+   - Bygg en rutt som gör samma sak som knappen, med tre lås: rätt hemlighet
+     (jämförd tidssäkert), bara i demoläge, och **vägra helt om hemligheten
+     saknas** i stället för att falla öppen. Låt den skriva en rad i
+     `audit_log` — `actor_user_id` får vara null — så att det går att se när
+     den senast kört.
+   - Utlösaren kan vara Vercels egen schemaläggning eller en extern
+     väckartjänst; arbetet i rutten är detsamma. Föreslagen tid: 04:00.
+   - **Verifiera att den faktiskt gick igång**, en natt senare. Det är hela
+     lärdomen från GitHub-schemat: en klocka man tror går är värre än ingen.
+     Statussidan ska därefter alltid säga att demodatan är aktuell.
 
 Utanför listan, när tillfälle ges — två saker om tillgängligheten, och var
 gränsen för vad vi vet faktiskt går:
