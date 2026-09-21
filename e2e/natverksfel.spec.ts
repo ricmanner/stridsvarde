@@ -181,6 +181,23 @@ async function sävligtNät(page: Page, sökväg: string, ms = 5_000): Promise<v
 }
 
 test('en långsam sidväxling visar att något är på gång', async ({ page }) => {
+  /*
+   * Räkna förhämtningarna i stället för att hoppas på dem.
+   *
+   * Laddningsvyn kan bara visas direkt om Next hunnit hämta sidans skal i
+   * förväg. Att vänta ett bestämt antal sekunder på det är en gissning som
+   * håller på en snabb maskin och spricker på en långsam — alltså exakt den
+   * sortens antagande som får ett test att gå igenom här och falla hos
+   * GitHub. Vi väntar på att förhämtningen faktiskt svarat.
+   */
+  let forhamtad = false;
+  page.on('response', (r) => {
+    const u = new URL(r.url());
+    if (u.pathname === '/rapport' && r.request().headers()['next-router-prefetch']) {
+      forhamtad = true;
+    }
+  });
+
   await sävligtNät(page, '/rapport');
   await loggaIn(page, KODER.plutonchef);
 
@@ -188,24 +205,23 @@ test('en långsam sidväxling visar att något är på gång', async ({ page }) 
   await expect(till).toBeVisible();
 
   /*
-   * Länken måste rullas fram och få ett ögonblick på sig.
-   *
-   * Next förhämtar en länk när den syns på skärmen, och det är förhämtningen
-   * som gör att laddningsvyn kan visas direkt vid klicket. Mätt: utan de här
-   * två raderna kommer första begäran först vid klicket, navigeringen
-   * blockeras tills den svarat, och skärmen står still på den gamla sidan.
-   * Playwrights toBeVisible() kräver inte att elementet syns i fönstret, så
-   * det räcker inte för att förhämtningen ska hinna starta.
+   * Länken måste rullas fram i fönstret. Next förhämtar först när den syns,
+   * och Playwrights toBeVisible() kräver inte att elementet syns i rutan —
+   * bara att det finns och inte är dolt. Utan den här raden kommer första
+   * begäran vid klicket, navigeringen blockeras tills den svarat, och
+   * skärmen står still på den gamla sidan.
    */
   await till.scrollIntoViewIfNeeded();
-  await page.waitForTimeout(2_000);
+  await expect(() => expect(forhamtad, 'förhämtningen kom aldrig fram').toBe(true)).toPass({
+    timeout: 15_000,
+  });
 
   await till.click();
 
   await expect(
     page.locator('[data-laddar]'),
     'ingenting visade att sidan hämtades — klicket ser ut att ha uteblivit',
-  ).toBeVisible({ timeout: 3_000 });
+  ).toBeVisible({ timeout: 10_000 });
 });
 
 /**

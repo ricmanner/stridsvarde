@@ -97,6 +97,15 @@ gränsen för vad vi vet faktiskt går:
   egen fönsterstorlek. Mobilen är prövad för hand. Att lägga till telefonbredd
   i kontrollerna är en rimlig uppgift — men räkna med att den hittar fel som
   då ska rättas, så ta den inte strax före en visning.
+- **På en långsam telefon saknar sidan kortvarigt sin titel.** Vid en
+  navigering inne i appen sätts dokumentets titel av webbläsaren efter att
+  sidan bytts, inte av servern. Uppmätt med processorn bromsad tjugo gånger:
+  titeln är tom i knappt fyra tiondelar av en sekund efter inloggning. Vid en
+  vanlig omladdning finns den direkt. En skärmläsare kan alltså hinna säga
+  "namnlös sida" i det fönstret. Det är Next egen hantering och inte något
+  appen sätter, så det går inte att rätta här — men det hör hemma i en
+  tillgänglighetsredogörelse, och det var det som fällde GitHubs kontroll den
+  21 september.
 - **Ingen människa med skärmläsare har provat appen.** Ett verktyg fångar bara
   ungefär en tredjedel av kraven, och graferna berättar i dag vad de heter men
   inte vad de visar.
