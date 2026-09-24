@@ -3,24 +3,37 @@
 Kort överlämning mellan arbetspass. `README.md` beskriver appen, `CLAUDE.md`
 reglerna som styr arbetet — den här filen säger bara **var vi står just nu**.
 
-Senast uppdaterad: 20 september 2026.
+Senast uppdaterad: 24 september 2026.
 
 ## Läget
 
-**132 enhetstester och 25 webbläsartester** är gröna, och GitHub kör dem vid
-varje push tillsammans med typkontroll, lint och bygge. Demon på
-<https://fm-psvi-v2.vercel.app> kör koden fram till den 19 september —
-nätverksarbetet nedan är gjort men **ännu inte pushat**.
+**Allt är pushat, GitHubs kontroll är grön, och demon kör senaste koden.**
+133 enhetstester och 25 webbläsartester, plus typkontroll, lint och bygge.
+Rundturen gick igenom hela appen mot den driftsatta demon utan anmärkning.
 
-Den 20 september fick appen sina första tidsgränser. Tidigare fanns ingen
-bortre gräns någonstans: hängde databasen hängde begäran, och den värnpliktige
-såg "Sparar…" för alltid.
+Demon är återställd och står i visningsskick: räknaren på 2459 incheckningar,
+och de åtta P1G1-kontona har dagen öppen. **Inget arbete pågår just nu** —
+nästa uppgift står under "Att ta härnäst".
 
-- **Incheckningen** har nu 10 sekunder på servern och 15 i webbläsaren, båda
-  definierade i `src/lib/tidsgrans.ts`. Går tiden ut får den värnpliktige ett
-  besked, knappen släpps, svaren ligger kvar och ett nytt tryck går fram.
-- **Laddningsvyer** finns på varje sida (`src/components/Laddar.tsx`), och
-  befälets periodknappar säger till när de arbetar.
+Richard har skickat länken till en liten grupp kollegor för att testa. Han
+skrev ett eget meddelande till dem; underlaget finns i
+`underlag/meddelande-till-gruppen.md`.
+
+### Gjort den 20–24 september
+
+- **Tidsgränser i incheckningen.** 10 sekunder på servern, 15 i webbläsaren,
+  båda i `src/lib/tidsgrans.ts`. Går tiden ut får den värnpliktige ett besked,
+  knappen släpps, svaren ligger kvar och ett nytt tryck går fram. Uppmätt i
+  drift: sparandet tar 0,35 s, alltså tjugoåtta gångers marginal.
+- **Laddningsvyer** på varje sida (`src/components/Laddar.tsx`), plus
+  `useLinkStatus` på befälets periodknappar — de täcks inte av `loading.tsx`.
+- **Rutan om gallring på adminsidan omskriven.** Richard, som är just den
+  administratör vyn skrivs för, förstod varken "gallring" eller "avstängd".
+  Rubriken behåller fackordet, men meningen under förklarar sig själv.
+- **Juryunderlaget flyttat in i förrådet** som `underlag/juryfragor.md`.
+  `README.md` beskriver nu mappen `underlag/`, som tidigare var odokumenterad.
+- **Två felaktiga påståenden i dokumentationen rättade:** README påstod en
+  brist som var åtgärdad, NÄSTA-STEG en kontroll som inte kördes.
 
 Allt prövat mot ett på riktigt strypt nät i en mobilskärm, inte bara i test.
 

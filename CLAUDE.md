@@ -15,6 +15,11 @@ Han är **inte teknisk**. Förklara på enkel svenska: vad något betyder, vad d
 får för följd, och vad valet står mellan. Undvik facktermer, eller förklara dem
 på en rad. Han läser gärna siffror och tabeller.
 
+Det glider lättast iväg när något gått sönder. **Börja då med vad det betyder
+för honom** — är appen trasig, märker användarna något, är det åtgärdat — och
+håll mekanismen till ett par meningar efteråt. Detaljerna hör hemma i
+commit-texten, som skrivs för nästa utvecklare.
+
 - **Planera före större ändringar.** Lägg fram förslaget och vänta på ja.
 - **Committa efter varje steg**, inte allt på slutet.
 - **Visa resultatet innan du pushar, och pusha först när han sagt till.**
@@ -26,7 +31,10 @@ på en rad. Han läser gärna siffror och tabeller.
   och en rekommendation.** Besluta inte åt honom.
 - **Ta emot invändningar.** Han har flera gånger haft rätt mot ett förslag —
   backa då hellre än att försvara det.
-- **Föreslå inte det som redan är gjort.** Läs `NÄSTA-STEG.md` först.
+- **Föreslå inte det som redan är gjort.** Läs `NÄSTA-STEG.md` först — och
+  **titta i `underlag/`** innan du skriver något som ska läsas av andra
+  (meddelande till gruppen, manus, juryfrågor). Det har två gånger varit nära
+  att en andra version skrivits bredvid en befintlig som var bättre.
 
 ## Gränser som inte får överskridas
 
@@ -94,8 +102,6 @@ den. Då gäller tre saker utöver det vanliga.
 - **Utfärdade koder visas exakt en gång.** Logiken för kodlappen ligger i
   `lib/kodlapp.ts` och jämför koderna, inte deras längd. Ett fel här låser ute
   en värnpliktig permanent.
-- **Mät innan du optimerar.** Två av tre farhågor i genomgången var fel, och
-  en "förbättring" av befälsöversikten var 2,4 gånger långsammare.
 
 ## Typskalan
 
@@ -123,7 +129,8 @@ utskriftsrapporten och 64 px på incheckningens siffra.
 ## Innan något driftsätts
 
 ```bash
-npm test && npm run typecheck && npx eslint src tests scripts && npm run build
+npm test && npm run typecheck && npx eslint src tests scripts e2e && npm run build
+lsof -ti:3100 | xargs kill   # en server som ligger kvar ger gamla resultat
 npm run e2e         # 25 tester i webbläsare, inklusive tillgänglighet (axe)
 npm run rundtur     # klickar igenom appen som alla fem demokonton
 ```
@@ -144,6 +151,16 @@ vercel ls --meta githubCommitSha=$(git rev-parse HEAD)
 Gissa aldrig genom att hämta en sida och leta efter text — se
 återvändsgränderna i `NÄSTA-STEG.md`. Avsluta med `npm run rundtur`, som går
 mot den driftsatta demon som standard.
+
+**Kontrollera att GitHubs körning blev grön efter pushen, utgå inte från det.**
+Den föll två gånger den 21 september på tidsberoenden som aldrig syns lokalt,
+och Vercel driftsätter ändå — så appen kan vara ute medan kontrollen är röd.
+Går den inte att läsa utan behörighet finns felet i klartext här:
+
+```bash
+curl -s "https://api.github.com/repos/ricmanner/stridsvarde/commits/$(git rev-parse HEAD)/check-runs"
+# ta id:t för "webblasare" och hämta /check-runs/<id>/annotations
+```
 
 ## Databasen
 
