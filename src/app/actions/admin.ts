@@ -15,6 +15,7 @@ import {
   getUnitDeletion,
   moveUser,
   reissueCode,
+  renameUnit,
   renameUser,
   setUserActive,
   type IssuedCode,
@@ -52,6 +53,37 @@ export async function createUnitAction(
 
   revalidatePath('/admin');
   return { created: name.trim() };
+}
+
+export interface UnitRenameState {
+  error?: string;
+  /** Det nya namnet, så vyn kan kvittera bytet. */
+  renamed?: string;
+}
+
+/**
+ * Byter namn på en enhet.
+ *
+ * Fanns inte förrän nu, och saknaden märktes först vid tanken på en
+ * överlämning: den enhet som skapas vid första start heter "Bataljonen", och
+ * utan det här går den inte att döpa om till förbandets riktiga namn utan att
+ * gå direkt på databasen.
+ */
+export async function renameUnitAction(
+  _prev: UnitRenameState,
+  formData: FormData,
+): Promise<UnitRenameState> {
+  const admin = await requireRole('admin');
+
+  const unitId = Number(formData.get('unitId'));
+  const name = String(formData.get('name') ?? '');
+  if (!Number.isInteger(unitId)) return { error: 'Ogiltig enhet.' };
+
+  const result = await renameUnit(admin.id, unitId, name);
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath('/admin');
+  return { renamed: result.name };
 }
 
 export interface CodeState {

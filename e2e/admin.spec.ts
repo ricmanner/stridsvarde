@@ -29,8 +29,13 @@ test('två kodbyten i rad visar båda koderna', async ({ page }) => {
   await expect(page).toHaveURL(/unit=\d+/);
   await expect(page.getByRole('heading', { name: /Ny grupp under Pluton 2/ })).toBeVisible();
 
+  /*
+   * Exakt etikett. Sedan enheter går att byta namn finns två fält som slutar
+   * på "Namn" i vyn, och getByLabel söker på delsträng — utan exact träffar
+   * den båda och testet faller på "strict mode violation", inte på appen.
+   */
   const grupp = `E2E-koder ${Date.now().toString(36)}`;
-  await page.getByLabel('Namn').fill(grupp);
+  await page.getByLabel('Namn', { exact: true }).fill(grupp);
   await page.getByRole('button', { name: 'Skapa', exact: true }).click();
 
   const gruppLank = page.getByRole('link', { name: new RegExp(grupp) });
@@ -88,7 +93,7 @@ test('en ny grupp dyker upp, och går att radera igen', async ({ page }) => {
   // databasen lever kvar mellan körningar. Klockan modulo 10 000 upprepas var
   // tionde sekund och krockade med en tidigare körning.
   const namn = `Grupp E2E ${Date.now().toString(36)}`;
-  await page.getByLabel('Namn').fill(namn);
+  await page.getByLabel('Namn', { exact: true }).fill(namn);
   /*
    * Formuläret fungerar även innan sidan blivit interaktiv — då skickas det
    * som ett vanligt HTML-formulär och bekräftelsemeddelandet går förlorat,

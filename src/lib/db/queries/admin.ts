@@ -864,6 +864,55 @@ export async function renameUser(
 }
 
 /**
+ * Byter namn på en enhet.
+ *
+ * Rör bara enhetens egen rad. Trädet hänger ihop genom `parent_id`, alltså
+ * genom id och aldrig genom namn, så underenheter, personer och rapporter
+ * påverkas inte — och sökvägarna i flyttlistan räknas fram ur trädet vid
+ * varje anrop, så de visar det nya namnet direkt.
+ *
+ * Fanns inte tidigare, och det kostade data: ett felstavat enhetsnamn gick
+ * bara att rätta genom att radera enheten och skapa den på nytt, vilket tar
+ * med sig personerna och deras historik i samma transaktion.
+ *
+ * Samma gränser som när enheten skapas (2–60 tecken, unikt bland syskon), av
+ * det enkla skälet att ett namn som inte går att skapa inte heller ska gå att
+ * byta till.
+ */
+export async function renameUnit(
+  actorUserId: number,
+  unitId: number,
+  name: string,
+): Promise<{ ok: true; name: string } | { ok: false; error: string }> {
+  const trimmed = name.trim();
+  if (trimmed.length < 2 || trimmed.length > 60) {
+    return { ok: false, error: 'Namnet måste vara mellan 2 och 60 tecken.' };
+  }
+
+  const unit = await getUnit(unitId);
+  if (!unit) return { ok: false, error: 'Enheten saknas.' };
+
+  // Oförändrat namn är inte ett fel. Ett dubbelklick, eller ett formulär som
+  // sparas utan ändring, skulle annars mötas av "namnet är upptaget" — av
+  // enheten själv.
+  if (unit.name === trimmed) return { ok: true, name: trimmed };
+
+  try {
+    await db.update(units).set({ name: trimmed }).where(eq(units.id, unitId));
+  } catch (fel) {
+    // Unikindexet (parent_id, name) — två syskon får inte heta lika.
+    if (arUnikhetsfel(fel)) {
+      return { ok: false, error: `Det finns redan en enhet som heter "${trimmed}" här.` };
+    }
+    throw fel;
+  }
+
+  // Det tidigare namnet loggas INTE, av samma skäl som vid renameUser().
+  await audit(actorUserId, 'unit.rename', `enhet ${unitId}`);
+  return { ok: true, name: trimmed };
+}
+
+/**
  * Enkel driftsöversikt för adminstartsidan. Inga hälsovärden.
  *
  * EN fråga, inte fyra. Tidigare kördes de fyra räkningarna efter varandra,

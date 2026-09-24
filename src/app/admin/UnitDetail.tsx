@@ -6,6 +6,7 @@ import { ArrowRightLeft, Info, KeyRound, Pencil, Plus, Trash, Trash2, UserCheck,
 import BekraftaKnapp from '@/components/BekraftaKnapp';
 import {
   createUnitAction,
+  renameUnitAction,
   createUsersAction,
   deleteUserAction,
   erasePersonalDataAction,
@@ -19,6 +20,7 @@ import {
   type EraseState,
   type MoveState,
   type RenameState,
+  type UnitRenameState,
   type UnitState,
 } from '@/app/actions/admin';
 import { kodnyckel, visaKodlapp } from '@/lib/kodlapp';
@@ -57,6 +59,7 @@ const CHILD_KIND: Record<string, ChildKind | null> = {
 
 export default function UnitDetail({ unit, members, currentUserId, moveTargets, childNames }: Props) {
   const [unitState, unitFormAction, creatingUnit] = useActionState<UnitState, FormData>(createUnitAction, {});
+  const [namnState, namnFormAction, byterNamn] = useActionState<UnitRenameState, FormData>(renameUnitAction, {});
   const [codeState, codeFormAction, creatingUsers] = useActionState<CodeState, FormData>(createUsersAction, {});
   const [reissueState, reissueFormAction] = useActionState<CodeState, FormData>(reissueCodeAction, {});
   const [activeState, activeFormAction] = useActionState<ActiveState, FormData>(toggleUserActiveAction, {});
@@ -263,6 +266,50 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
           )}
 
           {codeState.error && <p role="alert" className="mt-3 text-sm text-red-700">{codeState.error}</p>}
+        </section>
+
+        {/* ── Byt namn på enheten ── */}
+        <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
+          {/* "Byt namn på enheten", inte på sorten: KIND_LABEL + "en" ger
+              "kompanien" i stället för "kompaniet". Ett neutrum bland tre
+              utrum är inte värt en böjningstabell. */}
+          <h3 className="mb-3 text-sm font-bold text-slate-900">Byt namn på enheten</h3>
+          <form action={namnFormAction} className="flex flex-wrap items-end gap-2">
+            <input type="hidden" name="unitId" value={unit.id} />
+            {/*
+              "Enhetens namn", inte bara "Namn": fältet för ny underenhet
+              längre ned heter också Namn, och två fält med samma etikett på
+              samma sida går inte att skilja åt för den som lyssnar sig
+              igenom formulären i stället för att se rubrikerna ovanför.
+            */}
+            <label className="flex flex-col gap-1">
+              <span className="text-etikett font-semibold text-slate-500">Enhetens namn</span>
+              {/*
+                Nyckeln tvingar fram ett nytt fält när namnet ändrats. Utan
+                den står det gamla värdet kvar i rutan efter ett lyckat byte,
+                eftersom defaultValue bara läses när fältet monteras.
+              */}
+              <input
+                key={unit.name}
+                name="name" required minLength={2} maxLength={60}
+                defaultValue={unit.name}
+                className="w-56 max-w-full rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+              />
+            </label>
+            <button
+              type="submit" disabled={byterNamn}
+              className="cursor-pointer rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
+            >
+              {byterNamn ? 'Sparar…' : 'Spara namnet'}
+            </button>
+          </form>
+          {namnState.error && <p role="alert" className="mt-2 text-sm text-red-700">{namnState.error}</p>}
+          {namnState.renamed && !namnState.error && (
+            <p className="mt-2 text-sm text-emerald-700">Enheten heter nu {namnState.renamed}.</p>
+          )}
+          <p className="mt-2 text-xs text-slate-500">
+            Namnet är det enda som ändras. Underenheter, personer och rapporter påverkas inte.
+          </p>
         </section>
 
         {/* ── Ny underenhet ── */}

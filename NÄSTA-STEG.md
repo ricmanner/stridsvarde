@@ -23,6 +23,20 @@ skrev ett eget meddelande till dem; underlaget finns i
 
 ### Gjort den 20–24 september
 
+- **Enheter går att byta namn.** Fanns inte tidigare: ett felstavat enhetsnamn
+  gick bara att rätta genom att radera enheten och skapa den på nytt, och
+  raderingen tar personer och rapporter med sig. Fältet sitter i adminvyn på
+  varje enhet. Trädet hänger ihop genom id, aldrig genom namn, så
+  underenheter, personer och rapporter är orörda — det är bevisat i
+  `tests/byt-enhetsnamn.test.mjs` och prövat i webbläsaren hela vägen upp till
+  kompanichefens jämförelsevy. Behövs framför allt vid en överlämning: roten
+  heter "Bataljonen" tills någon döper om den.
+
+  Det nya fältet heter **"Enhetens namn"** och inte bara "Namn", eftersom
+  fältet för ny underenhet redan heter så och två likadana etiketter i samma
+  vy inte går att skilja åt för den som lyssnar. Två e2e-tester använde
+  `getByLabel('Namn')`, som söker på delsträng, och behövde `exact: true`.
+
 - **Demodatan flyttas fram av sig själv varje natt.** Rutten
   `/api/demo-tidslinje` gör samma sak som knappen på `/status`, och Vercels
   schemaläggning knackar på den 02:00 UTC — 04:00 svensk sommartid, med upp
@@ -228,6 +242,44 @@ gör siffran realistisk i stället för att stå på 100 %.
 
 Schemat i den delade databasen är komplett sedan den 19 september; knappen
 "Uppdatera schemat" på `/status` visas bara när något saknas.
+
+## Om appen ska lämnas över tom
+
+Läget finns redan inbyggt och kräver ingen ny kod: `SEED_DEMO_DATA=false`
+tillsammans med `PSVI_ENVIRONMENT=pilot`. Vid första start skapas då exakt två
+saker — en enhet högst upp som heter "Bataljonen", och ett administratörskonto
+— och inget mer. Administratören loggar in och bygger kompanier, plutoner,
+grupper och personer i gränssnittet.
+
+**Konvertera inte demon. Starta en ny databas.** Demodatan ligger redan i den
+nuvarande, och det finns ingen "töm allt"-funktion utanför demoläget:
+återställningen vägrar med flit att köras mot skarp drift, eftersom den
+raderar hälsodata.
+
+### Administratörskoden visas en gång, i serverloggen
+
+Det här är det som kan gå fel, så här är vad det betyder i praktiken.
+
+Koden till det första administratörskontot slumpas fram vid första start och
+skrivs ut **i serverns egen utskrift** — inte i appen, inte i ett mejl, inte
+någonstans där den går att hämta i efterhand. Kör du lokalt står den i
+terminalfönstret. Ligger appen på Vercel står den i projektets **Logs**, i
+körningen för den allra första driftsättningen.
+
+Den lagras bara som hash i databasen, precis som alla andra koder. Missas den
+finns `npm run aterstall-admin`, men det kommandot kräver databasens nycklar,
+och de är märkta som känsliga och går inte att hämta ner. Alltså: **läs av
+koden direkt vid första start, innan du gör något annat.**
+
+### Öppna frågor som inte är kodfrågor
+
+- **En rot per installation.** Det går inte att skapa en andra enhet högst
+  upp; varje ny enhet måste ha en förälder. Två bataljoner betyder alltså två
+  installationer med var sin databas — vilket samtidigt är den enklaste
+  garantin för att bataljonschef 1 aldrig ser bataljonschef 2:s data.
+- **Vem lägger upp värnpliktiga?** Idag kan bara administratören det. Om det
+  i praktiken är plutonchefen som vet vilka som finns i gruppen behöver den
+  behörigheten flyttas eller delas. Inte utrett.
 
 ## Återvändsgränder — prova inte om igen
 
