@@ -232,3 +232,32 @@ test('statussidan skiljer en klocka som går från en som stannat', async () => 
   });
   assert.equal(forLange.varning, true, 'en utebliven natt ska märkas');
 });
+
+/**
+ * Dörren måste också gå att KNACKA på.
+ *
+ * Proxyn skickar varje adress utan sessionskaka vidare till inloggningen. För
+ * en människa är det rätt; för en klocka är det förödande, och tyst: Vercel
+ * följer inte omdirigeringar, utan betraktar svaret som färdigt och går
+ * därifrån. Jobbet hade alltså stått som lyckat i loggen varje natt utan att
+ * en enda rad flyttats.
+ *
+ * Exakt samma fel har den här appen haft en gång förut, på hälsokontrollen:
+ * vaktposten läste omdirigeringen som "allt är bra". Se kommentaren i
+ * proxy.ts. Det upptäcktes inte av något test utan av ett riktigt anrop mot
+ * en körande app — därför finns det här testet nu.
+ */
+test('proxyn släpper fram nattkörningen i stället för inloggningen', async () => {
+  const { proxy } = await import('../src/proxy.ts');
+  const { NextRequest } = await import('next/server');
+
+  const knack = (sokvag) => proxy(new NextRequest(new Request(`https://exempel.test${sokvag}`)));
+
+  const svar = knack('/api/demo-tidslinje');
+  assert.equal(svar.status, 200, 'nattkörningen skickades till inloggningen');
+  assert.equal(svar.headers.get('location'), null, 'en klocka följer inte en omdirigering');
+
+  // Kontrollgrupp: allt annat utan session ska fortfarande skickas bort.
+  assert.equal(knack('/status').status, 307, 'skyddade sidor ska kräva inloggning');
+  assert.equal(knack('/pluton').status, 307);
+});

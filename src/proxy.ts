@@ -23,7 +23,21 @@ import { SESSION_COOKIE } from '@/lib/auth/constants';
  * värt att skydda. Utan undantaget svarade den med en omdirigering till
  * inloggningen, vilket vaktposten läste som "allt är bra".
  */
-const PUBLIC_PATHS = new Set(['/', '/ingen-behorighet', '/api/halsa']);
+/*
+ * '/api/demo-tidslinje' är öppen av samma skäl, och skyddas på samma sätt: av
+ * sin egen hemlighet, inte av en sessionskaka som en schemalagd körning aldrig
+ * kan ha. Utan undantaget svarade rutten med en omdirigering till
+ * inloggningen — och Vercels klocka följer inte omdirigeringar, utan bockar av
+ * jobbet som utfört. Nattkörningen hade alltså sett lyckad ut varje natt utan
+ * att flytta en enda rad. Samma fel som hälsokontrollen hade, upptäckt på
+ * samma sätt: genom ett riktigt anrop, inte genom att läsa koden.
+ */
+const PUBLIC_PATHS = new Set([
+  '/',
+  '/ingen-behorighet',
+  '/api/halsa',
+  '/api/demo-tidslinje',
+]);
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

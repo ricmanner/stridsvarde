@@ -51,6 +51,21 @@ export async function resolve(specifier, context, next) {
     if (existsSync(stub)) return { url: pathToFileURL(stub).href, shortCircuit: true };
   }
 
+  /*
+   * next/server går inte att importera på namn utanför Next: paketets
+   * exports-karta pekar bara ut modulen för ramverkets egen laddare, och en
+   * vanlig `import 'next/server'` svarar "hittar inte modulen". Filen finns i
+   * paketet, så testerna pekar rakt på den.
+   *
+   * Utan det här går proxy.ts inte att pröva alls — och proxyn är den som
+   * avgör om ett anrop över huvud taget når fram till sin rutt. Byter Next
+   * sökväg vid en uppgradering faller testet med ett begripligt fel.
+   */
+  if (specifier === 'next/server') {
+    const fil = path.join(SRC, '..', 'node_modules', 'next', 'dist', 'server', 'web', 'exports', 'index.js');
+    if (existsSync(fil)) return { url: pathToFileURL(fil).href, shortCircuit: true };
+  }
+
   // '@/lib/x' → <projekt>/src/lib/x
   if (specifier.startsWith('@/')) {
     const file = resolveFile(path.join(SRC, specifier.slice(2)));
