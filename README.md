@@ -100,8 +100,10 @@ src/lib/
   db/queries/       all SQL. admin.ts rör aldrig check_ins
   db/schema.ts      tabellerna. Migrationer i drizzle/
   privacy.ts        k-anonymitetens tröskel och de tillåtna perioderna
-tests/              104 tester mot en riktig databas byggd ur migrationerna
+tests/              133 tester mot en riktig databas byggd ur migrationerna
 scripts/            engångs- och driftskommandon
+underlag/           material om appen, inte kod: meddelande till gruppen,
+                    manus för skärminspelning, juryfrågor med svar, skärmbilder
 ```
 
 Tre befälsnivåer delar en enda vy: `/pluton`, `/kompani` och `/bataljon` är
@@ -125,11 +127,15 @@ före driftsättning.
 
 ## Drift
 
-Vercel bygger och driftsätter grenen `v2-produktion` automatiskt. Vid varje
-push kör GitHub typkontroll, lint, tester och bygge
-(`.github/workflows/kontroll.yml`). Fel som servern fångar hamnar i appens
-egen databas och visas för administratören på `/status` — ingenting skickas
-till någon utomstående tjänst.
+Vercel bygger och driftsätter grenen `v2-produktion` automatiskt till
+<https://fm-psvi-v2.vercel.app>. Vid varje push kör GitHub typkontroll, lint,
+tester och bygge (`.github/workflows/kontroll.yml`). Fel som servern fångar
+hamnar i appens egen databas och visas för administratören på `/status` —
+ingenting skickas till någon utomstående tjänst.
+
+Prototypen från maj 2026 ligger kvar på <https://fmpsvi.netlify.app> och byggs
+från `main`. Den sparade svaren i webbläsaren och visade påhittade siffror för
+befäl; den finns kvar enbart för att kunna jämföra.
 
 **Vaktposten** (`vakt.yml`) frågar om appen och databasen lever. Den har ett
 schema, men **lita inte på det**: GitHub startade det aldrig under ett halvt
