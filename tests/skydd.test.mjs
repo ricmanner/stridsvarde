@@ -30,6 +30,13 @@ const UTAN_KRAV = new Set([
   // Hälsokontrollen är öppen med avsikt: en vaktpost ska kunna fråga om
   // appen lever utan nyckel, och svaret innehåller inget att skydda.
   path.join('api', 'halsa', 'route.ts'),
+  /*
+   * Nattkörningen kan inte ha en session: den anropas av en klocka, inte av
+   * en människa. Den är alltså undantagen från inloggning — men inte från
+   * lås. Testet längst ned i den här filen kräver att låsen finns kvar, och
+   * att de fungerar prövas på riktigt i nattkorning.test.mjs.
+   */
+  path.join('api', 'demo-tidslinje', 'route.ts'),
 ]);
 
 /**
@@ -103,4 +110,20 @@ test('befälsvyerna hämtar enheten ur sessionen, inte ur adressfältet', () => 
     !/searchParams\.get\('enhet'\)|searchParams\.get\("unit"\)/.test(exportRoute),
     'exporten tar inte emot en enhet utifrån',
   );
+});
+
+/**
+ * Undantaget ovan får inte bli en glugg.
+ *
+ * Rutten flyttar datum på hälsodata och är öppen mot internet. Tas låsen bort
+ * — eller byts hemligheten mot en jämförelse med `===` — ska det stoppa
+ * bygget, inte upptäckas av den som hittar adressen.
+ */
+test('nattkörningens rutt är undantagen från inloggning men inte från sina lås', () => {
+  const kod = readFileSync(path.join(APP, 'api', 'demo-tidslinje', 'route.ts'), 'utf8');
+
+  assert.match(kod, /CRON_SECRET/, 'hemligheten läses inte');
+  assert.match(kod, /hemligheterLika\(/, 'hemligheten jämförs inte tidssäkert');
+  assert.match(kod, /environment\(\) !== 'demo'/, 'pilotläget hindras inte');
+  assert.match(kod, /503/, 'en saknad hemlighet stänger inte dörren');
 });

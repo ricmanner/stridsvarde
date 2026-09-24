@@ -7,19 +7,43 @@ Senast uppdaterad: 24 september 2026.
 
 ## Läget
 
-**Allt är pushat, GitHubs kontroll är grön, och demon kör senaste koden.**
-133 enhetstester och 25 webbläsartester, plus typkontroll, lint och bygge.
-Rundturen gick igenom hela appen mot den driftsatta demon utan anmärkning.
+**Nattkörningen är byggd men inte bevisad.** Koden är committad på
+`v2-produktion`, 144 enhetstester och 25 webbläsartester är gröna, och
+hemligheten ligger i Vercel. Två saker återstår: en push, och att en natt
+faktiskt passerar så att `/status` visar en körning ingen människa startat.
+**Innan det har hänt vet vi inte att klockan går** — det var hela lärdomen
+från GitHubs schema.
 
 Demon är återställd och står i visningsskick: räknaren på 2459 incheckningar,
-och de åtta P1G1-kontona har dagen öppen. **Inget arbete pågår just nu** —
-nästa uppgift står under "Att ta härnäst".
+och de åtta P1G1-kontona har dagen öppen.
 
 Richard har skickat länken till en liten grupp kollegor för att testa. Han
 skrev ett eget meddelande till dem; underlaget finns i
 `underlag/meddelande-till-gruppen.md`.
 
 ### Gjort den 20–24 september
+
+- **Demodatan flyttas fram av sig själv varje natt.** Rutten
+  `/api/demo-tidslinje` gör samma sak som knappen på `/status`, och Vercels
+  schemaläggning knackar på den 02:00 UTC — 04:00 svensk sommartid, med upp
+  till en timmes spridning. Tre lås: rätt hemlighet (`CRON_SECRET`, jämförd
+  tidssäkert), bara i demoläge, och **avstängd om hemligheten saknas** i
+  stället för att falla öppen. Varje körning skriver en rad i `audit_log`
+  med tom avsändare — även de nätter inget behövde flyttas, för annars går
+  "klockan ringde, allt var aktuellt" inte att skilja från "klockan ringde
+  aldrig". Statussidan visar den raden, och varnar om den blir äldre än 26
+  timmar.
+
+  **Knappen behövs fortfarande under en visningsdag.** Nattkörningen öppnar
+  de åtta P1G1-kontona en gång per natt. Tar de slut under dagen — och det
+  gör de när flera provar incheckningen — måste du trycka på "Flytta fram
+  demodatan" på `/status` som förut. Klockan tar bort det du måste komma
+  ihåg mellan dagarna, inte det du kan behöva göra under en.
+
+  `CRON_SECRET` ligger i Vercel för produktion, märkt som känslig: den går
+  inte att läsa tillbaka, och behöver inte det — Vercel skickar den själv.
+  Ska rutten knuffas igång för hand görs det med `vercel crons`, inte med
+  curl.
 
 - **Tidsgränser i incheckningen.** 10 sekunder på servern, 15 i webbläsaren,
   båda i `src/lib/tidsgrans.ts`. Går tiden ut får den värnpliktige ett besked,
@@ -76,31 +100,18 @@ fram demodatan och återställa demon.
    utvecklarens: lagringstid (`RETENTION_DAYS`) och säkerhetskopior av
    Turso-databasen. Underlag finns skrivet — fråga Richard efter det.
    Säkerhetskopiorna är den mer akuta av de två: appens egen kopiering fungerar
-   bara mot en lokal fil, så den driftsatta demon förlitar sig helt på Turso,
-   och **ingen har kontrollerat att det är påslaget**.
+   bara mot en lokal fil, så den driftsatta demon förlitar sig helt på Turso.
+   Turso kopierar alltid, automatiskt och utan att gå att stänga av — det som
+   skiljer är **hur långt bakåt**, och det avgörs av abonnemanget: 24 timmar
+   på gratisplanen, 10 dagar på Developer, 30 på Scaler, 90 på Pro. Frågan är
+   alltså inte om det är påslaget utan vilken plan kontot har, och i vilken
+   region databasen ligger. Värt att veta i förväg: en återställning skapar en
+   **ny** databas, så adressen i Vercel måste pekas om efteråt.
 3. **Designfrågor som väntar på ett samtal**, inte på kod: reglaget i
    incheckningen börjar på 5, så den som bara trycker "Nästa" skickar in sex
    femmor som ser ut som svar. Att tvinga fram en rörelse straffar den som
    verkligen menar 5 — Richard har avfärdat både det och att hoppa över frågor.
    Frågan är öppen.
-4. **Flytta fram demodatan automatiskt varje natt.** Genomtänkt den 21
-   september, medvetet uppskjutet av Richard — inte avfärdat. Bygg inte om
-   analysen:
-   - `applyDemoTimeline()` är färdig, skyddad mot pilotläge och ofarlig att
-     köra två gånger: har datan redan flyttats idag returnerar den utan att
-     skriva något. Den öppnar dessutom `DAGEN_OPPEN`-kontona på nytt.
-   - Det som saknas är bara en utlösare. **GitHubs schemaläggning är redan
-     utesluten** — se återvändsgränderna nedan.
-   - Bygg en rutt som gör samma sak som knappen, med tre lås: rätt hemlighet
-     (jämförd tidssäkert), bara i demoläge, och **vägra helt om hemligheten
-     saknas** i stället för att falla öppen. Låt den skriva en rad i
-     `audit_log` — `actor_user_id` får vara null — så att det går att se när
-     den senast kört.
-   - Utlösaren kan vara Vercels egen schemaläggning eller en extern
-     väckartjänst; arbetet i rutten är detsamma. Föreslagen tid: 04:00.
-   - **Verifiera att den faktiskt gick igång**, en natt senare. Det är hela
-     lärdomen från GitHub-schemat: en klocka man tror går är värre än ingen.
-     Statussidan ska därefter alltid säga att demodatan är aktuell.
 
 Utanför listan, när tillfälle ges — två saker om tillgängligheten, och var
 gränsen för vad vi vet faktiskt går:
@@ -130,7 +141,9 @@ gränsen för vad vi vet faktiskt går:
   tillbaka — och sätter historiken så att den slutar idag. Kräver att ordet
   ÅTERSTÄLL skrivs, och loggar ut dig. Koderna är desamma efteråt.
 - **Tryck på "Flytta fram demodatan"** om inget är trasigt utan datan bara
-  hunnit bli gammal. Den flyttar datum och rör inget annat, alltså behålls
+  hunnit bli gammal. Nattkörningen gör det åt dig varje natt, men **bara en
+  gång per natt** — tar de åtta lediga incheckningarna slut mitt under en
+  visningsdag är knappen fortfarande vägen tillbaka. Den flyttar datum och rör inget annat, alltså behålls
   det någon lagt till i demon. Demodatan står still medan kalendern går: efter en
   vecka är befälsvyns förvalda period tom, efter tre veckor visar varje vy
   "Underlag saknas". Rutan räknar ut läget själv och knappen syns bara när det
@@ -156,11 +169,11 @@ gör siffran realistisk i stället för att stå på 100 %.
 
 ## Kräver dig, inte utvecklaren
 
-- **Kontrollera säkerhetskopiorna hos Turso.** Är automatisk återställning
-  påslagen, hur många dagar bakåt räcker den, och i vilket land lagras
-  kopiorna? Utan de tre svaren går beslutet om säkerhetskopior inte att fatta,
-  och frågan går inte att besvara från en terminal: databasnycklarna är märkta
-  som känsliga.
+- **Kontrollera säkerhetskopiorna hos Turso.** Automatisk återställning är
+  alltid påslagen; vilket abonnemang kontot har avgör hur långt bakåt den
+  räcker, och regionen avgör i vilket land kopiorna ligger. Båda står i
+  Tursos egen kontrollpanel och tar tio minuter att läsa av. Frågan går inte
+  att besvara från en terminal: databasnycklarna är märkta som känsliga.
 - **Lagringstiden** behöver ett svar från Försvarsmaktens dataskyddsombud.
   Mekaniken är färdig och medvetet avstängd — svaret blir en siffra i
   inställningarna.
@@ -171,6 +184,17 @@ Schemat i den delade databasen är komplett sedan den 19 september; knappen
 ## Återvändsgränder — prova inte om igen
 
 Sådant som såg ut som förbättringar och inte var det. Varje rad kostade tid.
+
+- **En schemalagd körning möts av proxyn, inte av sin rutt.** Proxyn skickar
+  varje adress utan sessionskaka vidare till inloggningen, och en klocka har
+  aldrig någon kaka. Vercel följer inte omdirigeringar utan bockar av jobbet
+  som utfört — nattkörningen hade alltså stått som lyckad varje natt utan att
+  flytta en rad. Exakt samma fel hade hälsokontrollen en gång, och varningen
+  om det står tre rader ovanför raden som behövde ändras i `src/proxy.ts`.
+  Ingen av gångerna hittades det genom att läsa koden: enhetstesterna var
+  gröna och ett riktigt anrop mot en körande app svarade 307. **Nya
+  API-rutter som anropas av något annat än en inloggad människa måste in i
+  `PUBLIC_PATHS`** — och bära sitt eget lås.
 
 - **Grönt lokalt betyder inte grönt hos GitHub.** `e2e/natverksfel.spec.ts`
   passerade tjugofem lokala körningar och en CI-körning, och föll sedan på
