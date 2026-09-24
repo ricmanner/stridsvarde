@@ -62,6 +62,7 @@ Utelåst som administratör? `npm run aterstall-admin` ger en ny adminkod.
 | `SEED_DEMO_DATA` | nej | `true` skapar demoorganisationen. Servern vägrar starta med `true` i skarp drift. |
 | `RETENTION_DAYS` | nej | Antal dagar hälsodata sparas. **Tom = ingen gallring.** Ska beslutas av dataskyddsombud före skarp drift. |
 | `MIN_RESPONDERS` | nej | Tröskeln för k-anonymitet. Standard 4, går inte att sätta under 3. |
+| `CRON_SECRET` | i demodrift | Hemligheten Vercel skickar med till nattkörningen som flyttar fram demodatan (`/api/demo-tidslinje`). Saknas den är rutten avstängd, och statussidan säger till. |
 
 ## Kommandon
 

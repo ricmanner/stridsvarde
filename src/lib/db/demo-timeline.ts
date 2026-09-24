@@ -264,3 +264,68 @@ export async function senasteAutomatiskaKorning(): Promise<{
 
   return rad ?? null;
 }
+
+export interface Nattbesked {
+  /** Sant när något behöver åtgärdas — klockan går inte som den ska. */
+  varning: boolean;
+  text: string;
+}
+
+/**
+ * Längsta normala avstånd mellan två nattkörningar, i timmar.
+ *
+ * Klockan är ställd på 02:00 UTC, men Vercel får dröja upp till en timme för
+ * att sprida belastningen. Kör den 02:00 en natt och 02:59 nästa är avståndet
+ * knappt 25 timmar. 26 ger marginal utan att dölja en natt som uteblivit —
+ * och en varning som lyser i onödan är en varning man slutar se.
+ */
+const LANGSTA_NORMALA_GLAPP_H = 26;
+
+/**
+ * Vad statussidan säger om den automatiska framflyttningen.
+ *
+ * Skild från databasfrågan så att bedömningen går att pröva utan databas, av
+ * samma skäl som beskrivDemoTidslinje() är det.
+ *
+ * Den viktigaste raden är den om en hemlighet som saknas. Då är rutten
+ * avstängd — den vägrar hellre än faller öppen — och demodatan slutar tyst
+ * att flyttas fram. Utan det här beskedet skulle det upptäckas först framför
+ * en publik.
+ */
+export function beskrivNattkorning(läge: {
+  hemlighetSatt: boolean;
+  senaste: { tid: string; detalj: string | null } | null;
+}): Nattbesked {
+  if (!läge.hemlighetSatt) {
+    return {
+      varning: true,
+      text:
+        'Den automatiska framflyttningen är avstängd: hemligheten CRON_SECRET ' +
+        'saknas i inställningarna. Demodatan måste flyttas fram för hand.',
+    };
+  }
+
+  if (!läge.senaste) {
+    return {
+      varning: true,
+      text:
+        'Den automatiska framflyttningen har inte kört ännu. Är den nyss ' +
+        'driftsatt är det väntat — kontrollera igen efter natten.',
+    };
+  }
+
+  const timmar = (Date.now() - Date.parse(läge.senaste.tid)) / 3_600_000;
+  // Tiden visas som den står i loggen, alltså UTC, precis som fellistan intill.
+  // Ordet UTC står med för att 02:00 där är 04:00 på en svensk klocka.
+  const när = `${läge.senaste.tid.slice(0, 16).replace('T', ' ')} UTC`;
+  const vad = läge.senaste.detalj ?? 'körd';
+
+  if (timmar > LANGSTA_NORMALA_GLAPP_H) {
+    return {
+      varning: true,
+      text: `Senaste automatiska körningen var ${när} (${vad}) — mer än ett dygn sedan. Klockan kan ha slutat gå.`,
+    };
+  }
+
+  return { varning: false, text: `Senaste automatiska körningen: ${när} (${vad}).` };
+}

@@ -5,7 +5,14 @@ import SkickaKnapp from '@/components/SkickaKnapp';
 import { requireRole } from '@/lib/auth/guard';
 import { dbStatus } from '@/lib/db';
 import { dbAdressFörVisning, environment } from '@/lib/db/client';
-import { beskrivDemoTidslinje, planDemoTimeline, type DemoTidslinjeBesked } from '@/lib/db/demo-timeline';
+import {
+  beskrivDemoTidslinje,
+  beskrivNattkorning,
+  planDemoTimeline,
+  senasteAutomatiskaKorning,
+  type DemoTidslinjeBesked,
+  type Nattbesked,
+} from '@/lib/db/demo-timeline';
 import { errorSummary, ERROR_RETENTION_DAYS, missingSchema } from '@/lib/db/queries/health';
 import { aterstallDemoAction, applyDemoTimelineAction, applySchemaAction } from '@/app/actions/admin';
 import { ATERSTALL_ORD } from '@/lib/demo';
@@ -47,11 +54,27 @@ export default async function StatusPage({
    * visas ingen ruta alls.
    */
   let demotid: DemoTidslinjeBesked | null = null;
+  let natt: Nattbesked | null = null;
   if (environment() === 'demo' && !error) {
     try {
       demotid = beskrivDemoTidslinje(await planDemoTimeline());
+
+      /*
+       * Går klockan?
+       *
+       * Rutan ovanför säger om datan är aktuell just nu. Den säger ingenting
+       * om VARFÖR — och en nattkörning som slutat fungera syns därför inte
+       * förrän datan hunnit bli gammal igen, alltså en vecka för sent.
+       * Hemligheten läses här och inte i rutten: den som anropar rutten utan
+       * att vara inbjuden får inget veta, men administratören ska få det.
+       */
+      natt = beskrivNattkorning({
+        hemlighetSatt: Boolean(process.env.CRON_SECRET?.trim()),
+        senaste: await senasteAutomatiskaKorning(),
+      });
     } catch {
       demotid = null;
+      natt = null;
     }
   }
 
@@ -150,6 +173,16 @@ export default async function StatusPage({
                   </form>
                 )}
               </div>
+
+              {natt && (
+                <p
+                  className={`mt-2 text-xs ${
+                    natt.varning ? 'font-semibold text-amber-900' : 'text-slate-500'
+                  }`}
+                >
+                  {natt.text}
+                </p>
+              )}
 
               {/*
                 Återställningen står för sig, under tidslinjen: den flyttar

@@ -196,3 +196,39 @@ test('väckarklockan är inställd och pekar på rutten', async () => {
   // dröja upp till en timme — fortfarande mitt i natten.
   assert.equal(jobb.schedule, '0 2 * * *');
 });
+
+/**
+ * Vad statussidan säger om klockan.
+ *
+ * Skilt från databasfrågan, som beskrivDemoTidslinje() är det — bedömningen
+ * ska gå att pröva utan en databas, och texten ska stämma med vad som
+ * faktiskt hänt. En sida som säger "allt är bra" om en klocka som slutat gå
+ * är sämre än ingen sida alls.
+ */
+test('statussidan skiljer en klocka som går från en som stannat', async () => {
+  const { beskrivNattkorning } = await import('../src/lib/db/demo-timeline.ts');
+
+  const timmarSedan = (h) => new Date(Date.now() - h * 3_600_000).toISOString();
+
+  const utanHemlighet = beskrivNattkorning({ hemlighetSatt: false, senaste: null });
+  assert.equal(utanHemlighet.varning, true, 'en avstängd klocka ska synas');
+  assert.match(utanHemlighet.text, /avstängd|hemlighet/i);
+
+  const aldrigKort = beskrivNattkorning({ hemlighetSatt: true, senaste: null });
+  assert.equal(aldrigKort.varning, true, 'ingen körning alls ska synas');
+
+  // Klockan ringer 02:00 UTC men Vercel får dröja en timme, så längsta
+  // normala avstånd mellan två körningar är knappt 25 timmar.
+  const igar = beskrivNattkorning({
+    hemlighetSatt: true,
+    senaste: { tid: timmarSedan(24), detalj: 'historiken flyttad 1 dagar fram' },
+  });
+  assert.equal(igar.varning, false, 'ett dygn sedan är precis som det ska vara');
+  assert.match(igar.text, /flyttad/, 'vad körningen gjorde ska stå kvar');
+
+  const forLange = beskrivNattkorning({
+    hemlighetSatt: true,
+    senaste: { tid: timmarSedan(30), detalj: 'inget att flytta' },
+  });
+  assert.equal(forLange.varning, true, 'en utebliven natt ska märkas');
+});
