@@ -1,11 +1,12 @@
 import 'server-only';
 
-import { sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
 import { hashCode } from '../auth/codes';
 import { daysBetween, serviceDate } from '../date';
 import { ALLOWED_PERIODS } from '../privacy';
 import { db, environment } from './client';
+import { auditLog } from './schema';
 import { DAGEN_OPPEN } from './seed';
 
 /*
@@ -217,4 +218,49 @@ export async function applyDemoTimeline(idag: string = serviceDate()): Promise<D
   });
 
   return plan;
+}
+
+/**
+ * Vad den automatiska nattkörningen heter i granskningsloggen.
+ *
+ * Skild från en knapptryckning med flit: raden ska gå att räkna och visa upp
+ * som svar på frågan "går klockan?". En administratörs manuella tryck svarar
+ * inte på den frågan.
+ */
+export const AUTOMATISK_KORNING = 'demo.timeline.auto';
+
+/**
+ * Antecknar att nattkörningen varit här.
+ *
+ * Skrivs ÄVEN när ingenting behövde flyttas, och det är hela poängen. Utan en
+ * rad vid varje körning går det inte att skilja "klockan ringde, allt var
+ * redan aktuellt" från "klockan ringde aldrig" — och det var precis den
+ * skillnaden som gjorde att GitHubs schemalagda körning kunde vara ur funktion
+ * i ett halvt dygn utan att någon märkte det.
+ *
+ * `actor_user_id` är null eftersom ingen människa tryckte. Kolumnen tillåter
+ * det, och en påhittad avsändare vore sämre än ingen.
+ */
+export async function antecknaAutomatiskKorning(dagar: number): Promise<void> {
+  await db.insert(auditLog).values({
+    actorUserId: null,
+    action: AUTOMATISK_KORNING,
+    detail: dagar === 0 ? 'inget att flytta' : `historiken flyttad ${dagar} dagar fram`,
+    createdAt: new Date().toISOString(),
+  });
+}
+
+/** Senaste automatiska körningen, för statussidan. Null om ingen ägt rum. */
+export async function senasteAutomatiskaKorning(): Promise<{
+  tid: string;
+  detalj: string | null;
+} | null> {
+  const [rad] = await db
+    .select({ tid: auditLog.createdAt, detalj: auditLog.detail })
+    .from(auditLog)
+    .where(and(eq(auditLog.action, AUTOMATISK_KORNING), isNull(auditLog.actorUserId)))
+    .orderBy(desc(auditLog.createdAt))
+    .limit(1);
+
+  return rad ?? null;
 }
