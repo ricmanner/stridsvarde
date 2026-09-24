@@ -34,11 +34,15 @@ skrev ett eget meddelande till dem; underlaget finns i
   aldrig". Statussidan visar den raden, och varnar om den blir äldre än 26
   timmar.
 
-  **Knappen behövs fortfarande under en visningsdag.** Nattkörningen öppnar
-  de åtta P1G1-kontona en gång per natt. Tar de slut under dagen — och det
-  gör de när flera provar incheckningen — måste du trycka på "Flytta fram
-  demodatan" på `/status` som förut. Klockan tar bort det du måste komma
-  ihåg mellan dagarna, inte det du kan behöva göra under en.
+  **Nattkörningen räcker inte under en visningsdag, och knappen räcker inte
+  heller.** De åtta P1G1-kontona öppnas bara av en framflyttning som
+  faktiskt flyttar något. Har historiken redan flyttats till idag är
+  `plan.dagar` noll, och då returnerar `applyDemoTimeline()` direkt utan att
+  öppna kontona — dessutom visas knappen inte alls, eftersom rutan då säger
+  att demodatan är aktuell. Tar kontona slut mitt på dagen finns i dag bara
+  `Återställ demon`, som bygger om allt och loggar ut dig. Se punkt 1 under
+  "Att ta härnäst"; det upptäcktes av rundturen den 24 september, inte av
+  ett test.
 
   `CRON_SECRET` ligger i Vercel för produktion, märkt som känslig: den går
   inte att läsa tillbaka, och behöver inte det — Vercel skickar den själv.
@@ -105,7 +109,25 @@ fram demodatan och återställa demon.
 
 ## Att ta härnäst
 
-1. **Resten av nätverksfelen.** Incheckningen är klar, men den var bara den
+1. **De åtta demokontona går inte att öppna mitt på dagen.** Ett beslut, inte
+   ett fel: incheckningen är det första man vill visa, och kontona tar slut
+   när flera provar. Tre vägar, med för och emot:
+
+   - **Låt framflyttningen öppna kontona även när den inte flyttar något.**
+     Ett steg flyttas ut ur `applyDemoTimeline()`:s tidiga retur. Minst kod,
+     och gör påståendet i tabellen längre ned sant igen. Emot: funktionen gör
+     då två saker, och den som läser namnet gissar bara den ena.
+   - **En egen knapp på `/status`: "Öppna demokontona igen".** Tydligast för
+     den som står mitt i en visning, och syns alltid i demoläge. Emot: en
+     knapp till på en sida som redan har tre.
+   - **Låt det vara.** `Återställ demon` fungerar, men bygger om allt och
+     loggar ut dig — mitt under en visning är det inte ett alternativ.
+
+   Min rekommendation är den andra: den som behöver den här knappen står
+   framför en publik och ska inte behöva veta vad "flytta fram" betyder.
+   Frågan är din.
+
+2. **Resten av nätverksfelen.** Incheckningen är klar, men den var bara den
    första av flera skrivvägar. Utan tidsgräns står ännu inloggningen
    (`actions/auth.ts`), samtalsbegäran, och administratörens åtgärder: skapa
    och radera enheter, utfärda koder.
@@ -120,7 +142,7 @@ fram demodatan och återställa demon.
    databas som just visat sig hänga. Incheckningen går runt det genom att
    logga i `after()`, alltså efter att svaret gått iväg. En egen kort
    tidsgräns inuti `logError` vore en bättre lösning för hela appen.
-2. **De två besluten inför skarp drift**, som är verksamhetens och inte
+3. **De två besluten inför skarp drift**, som är verksamhetens och inte
    utvecklarens: lagringstid (`RETENTION_DAYS`) och säkerhetskopior av
    Turso-databasen. Underlag finns skrivet — fråga Richard efter det.
    Säkerhetskopiorna är den mer akuta av de två: appens egen kopiering fungerar
@@ -131,7 +153,7 @@ fram demodatan och återställa demon.
    alltså inte om det är påslaget utan vilken plan kontot har, och i vilken
    region databasen ligger. Värt att veta i förväg: en återställning skapar en
    **ny** databas, så adressen i Vercel måste pekas om efteråt.
-3. **Designfrågor som väntar på ett samtal**, inte på kod: reglaget i
+4. **Designfrågor som väntar på ett samtal**, inte på kod: reglaget i
    incheckningen börjar på 5, så den som bara trycker "Nästa" skickar in sex
    femmor som ser ut som svar. Att tvinga fram en rörelse straffar den som
    verkligen menar 5 — Richard har avfärdat både det och att hoppa över frågor.
@@ -165,9 +187,11 @@ gränsen för vad vi vet faktiskt går:
   tillbaka — och sätter historiken så att den slutar idag. Kräver att ordet
   ÅTERSTÄLL skrivs, och loggar ut dig. Koderna är desamma efteråt.
 - **Tryck på "Flytta fram demodatan"** om inget är trasigt utan datan bara
-  hunnit bli gammal. Nattkörningen gör det åt dig varje natt, men **bara en
-  gång per natt** — tar de åtta lediga incheckningarna slut mitt under en
-  visningsdag är knappen fortfarande vägen tillbaka. Den flyttar datum och rör inget annat, alltså behålls
+  hunnit bli gammal. Nattkörningen gör det åt dig varje natt. Knappen syns
+  bara när datan hunnit bli minst två dagar gammal — **tar de åtta lediga
+  incheckningarna slut mitt under en visningsdag hjälper varken klockan
+  eller knappen**, utan bara `Återställ demon`. Se punkt 1 under "Att ta
+  härnäst". Den flyttar datum och rör inget annat, alltså behålls
   det någon lagt till i demon. Demodatan står still medan kalendern går: efter en
   vecka är befälsvyns förvalda period tom, efter tre veckor visar varje vy
   "Underlag saknas". Rutan räknar ut läget själv och knappen syns bara när det
