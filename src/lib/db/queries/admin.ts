@@ -554,12 +554,35 @@ export async function canErasePersonalData(
   userId: number,
 ): Promise<{ ok: true; label: string } | { ok: false; error: string }> {
   const [target] = await db
-    .select({ label: users.label })
+    .select({ label: users.label, role: users.role })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
 
   if (!target) return { ok: false, error: 'Personen saknas.' };
+
+  /*
+   * Bara värnpliktiga har hälsodata.
+   *
+   * Incheckningen släpper bara in rollen soldat, och ingen väg i
+   * gränssnittet byter roll på någon — ett befäls antal incheckningar är
+   * alltså alltid noll. Utan den här spärren gick det att välja sin
+   * plutonchef i raderingsrutan och få "0 incheckningar raderade": ofarligt,
+   * men vyn påstod därmed att befäl har egna hälsouppgifter, vilket är raka
+   * motsatsen till vad appen bygger på.
+   *
+   * Spärren ligger här och inte bara i listan, av samma skäl som
+   * k-anonymiteten ligger i SELECT-satsen: gränssnittet är aldrig skyddet.
+   *
+   * BÖRJAR BEFÄL NÅGON GÅNG RAPPORTERA sitt eget mående är det här regeln
+   * ska ändras, tillsammans med requireRole('soldat') i incheckningen.
+   */
+  if (target.role !== 'soldat') {
+    return {
+      ok: false,
+      error: `${ROLE_LABEL[target.role as Role]} har ingen hälsodata — bara värnpliktiga rapporterar.`,
+    };
+  }
 
   if (await arPublicerattDemokonto(userId)) {
     return { ok: false, error: DEMOKONTO_SKYDDAT };

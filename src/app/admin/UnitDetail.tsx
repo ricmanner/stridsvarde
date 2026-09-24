@@ -67,14 +67,21 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
   const [eraseState, eraseFormAction, erasing] = useActionState<EraseState, FormData>(erasePersonalDataAction, {});
 
   /*
+   * Uppdelningen måste ligga före raderingsrutans state nedan, som utgår
+   * från den första värnpliktige.
+   */
+  const soldiers = members.filter((m) => m.role === 'soldat');
+  const leaders = members.filter((m) => m.role !== 'soldat');
+
+  /*
    * Vem raderingsrutan ska namnge.
    *
    * Förvalt är första personen i listan — samma som webbläsaren väljer åt en
    * okontrollerad select. Utan det står fältet tomt och knappen går inte att
    * använda förrän man rört den.
    */
-  const [raderaId, setRaderaId] = useState(() => String(members[0]?.id ?? ''));
-  const raderaNamn = members.find((m) => String(m.id) === raderaId)?.label ?? 'personen';
+  const [raderaId, setRaderaId] = useState(() => String(soldiers[0]?.id ?? ''));
+  const raderaNamn = soldiers.find((m) => String(m.id) === raderaId)?.label ?? 'personen';
   const [renameState, renameFormAction] = useActionState<RenameState, FormData>(renameUserAction, {});
   const [deleteState, deleteFormAction] = useActionState<DeleteState, FormData>(deleteUserAction, {});
   const [dismissed, setDismissed] = useState('');
@@ -83,8 +90,6 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
   /** Om formuläret för värnpliktiga direkt på plutonen är utfällt. */
   const [visaVpl, setVisaVpl] = useState(false);
 
-  const soldiers = members.filter((m) => m.role === 'soldat');
-  const leaders = members.filter((m) => m.role !== 'soldat');
 
   // Namn som förekommer flera gånger i enheten. Utan något som skiljer dem
   // åt går det inte att se vilken rad man faktiskt klickar på.
@@ -621,8 +626,17 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
           </section>
         )}
 
-        {/* ── Radera hälsodata ── */}
-        {members.length > 0 && (
+        {/*
+          ── Radera hälsodata ──
+
+          Bara värnpliktiga. Listan visade tidigare alla i enheten, alltså
+          även befäl — och eftersom bara rollen soldat får checka in blev
+          svaret alltid "0 incheckningar raderade". Det ofarliga var de noll
+          raderna; det skadliga var att rutan därmed påstod att befäl har
+          egna hälsouppgifter. Servern vägrar numera också, se
+          canErasePersonalData().
+        */}
+        {soldiers.length > 0 && (
           <section className="rounded-md border border-red-200 bg-red-50/40 p-4 sm:p-5">
             <h3 className="mb-1 text-sm font-bold text-red-900">Radera hälsodata</h3>
             <p className="mb-3 text-xs leading-relaxed text-red-800">
@@ -646,7 +660,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                   onChange={(e) => setRaderaId(e.target.value)}
                   className="w-48 max-w-full rounded border-[1.5px] border-red-200 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-red-600"
                 >
-                  {members.map((m) => (
+                  {soldiers.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.label}
                       {dupeLabels.has(m.label) ? ` (#${m.id})` : ''}

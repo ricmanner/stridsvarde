@@ -52,6 +52,55 @@ test('hälsodata går inte att nolla för någon som inte finns', async () => {
   assert.match(saknas.error, /saknas/i);
 });
 
+test('hälsodata går inte att nolla för ett befäl — befäl har ingen', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const { canErasePersonalData } = await import('../src/lib/db/queries/admin.ts');
+
+  /*
+   * Bara rollen soldat släpps in i incheckningen, och det finns ingen väg i
+   * gränssnittet att byta roll på någon. Ett befäls antal incheckningar är
+   * alltså alltid noll, och att erbjuda radering av dem är att erbjuda en
+   * åtgärd som inte gör något.
+   *
+   * Det farliga är inte de noll raderna utan vad vyn PÅSTÅR: att befäl har
+   * egna hälsouppgifter. Hela appen bygger på motsatsen. Spärren ligger här
+   * och inte bara i listan, av samma skäl som k-anonymiteten ligger i
+   * SELECT-satsen: gränssnittet är aldrig skyddet.
+   *
+   * Skulle befäl någon gång börja rapportera sitt eget mående är det HÄR den
+   * regeln ändras — och då faller det här testet och pekar ut stället.
+   */
+  const befal = async (roll, unitId) =>
+    Number(
+      (
+        await client.execute({
+          sql: 'INSERT INTO users (code_hash, label, role, unit_id, active, created_at) VALUES (?,?,?,?,1,?) RETURNING id',
+          args: [`hash-bef-${Math.random()}`, `Chef ${roll}`, roll, unitId, iso()],
+        })
+      ).rows[0].id,
+    );
+
+  for (const [roll, unitId] of [
+    ['pluton', org.pluton],
+    ['kompani', org.kompani],
+    ['bataljon', org.bataljon],
+  ]) {
+    const svar = await canErasePersonalData(await befal(roll, unitId));
+    assert.equal(svar.ok, false, `${roll} borde ha nekats`);
+    assert.match(svar.error, /värnpliktig/i, 'felet ska säga varför, inte bara nej');
+  }
+
+  // Administratören har ingen hälsodata heller.
+  const adm = await skapaAdmin(client, org.bataljon);
+  assert.equal((await canErasePersonalData(adm)).ok, false);
+
+  // Men en värnpliktig ska fortfarande gå att radera — rättigheten enligt
+  // GDPR artikel 17 får inte spärras bort på vägen.
+  const soldat = org.soldater['Grupp A'][0];
+  assert.equal((await canErasePersonalData(soldat)).ok, true, 'en värnpliktig måste gå att radera');
+});
+
 test('radering av en person tar konto, rapporter och båda loggraderna på en gång', async () => {
   const { client } = await database();
   const { deleteUser } = await import('../src/lib/db/queries/admin.ts');
