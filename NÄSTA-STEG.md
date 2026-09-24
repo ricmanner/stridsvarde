@@ -23,6 +23,68 @@ skrev ett eget meddelande till dem; underlaget finns i
 
 ### Gjort den 20–24 september
 
+- **Hela appen genomgången i drift den 24 september.** Varje vy och varje
+  knapp som går att trycka på, som alla fem roller, mot den driftsatta demon.
+  Allt fungerade. Det som prövades: incheckningen med reglagets tangentbord,
+  ändring från sammanfattningen, sparandet, återkopplingens båda flikar,
+  stödblocket vid röda värden, samtalsbegäran och kvittot, korrigering av
+  dagens rapport, alla tre befälsnivåerna med tre flikar och tre perioder,
+  jämförelsevyn med val av underenhet, båda CSV-exporterna, utskriftsrapporten,
+  kvittering av notiser, hela administrationen (skapa enhet, skapa personer,
+  kodlapp, byta namn på person och enhet, ny kod, spärra, aktivera, flytta,
+  radera hälsodata, radera enhet med namnbekräftelse), statussidan,
+  felsidan, `/ingen-behorighet` och felmeddelandet vid fel kod.
+
+  Bevisat på köpet: en ny kod fungerar direkt, en utfärdad kod slutar gälla
+  när en ny utfärdas, kodlappen går inte att få tillbaka efter att den
+  stängts, ett publicerat demokonto visar **Låst — demonstrationens ingång**
+  i stället för knappar, administratören nekas befälsvyerna, och exporterna
+  innehåller inga enskilda namn. Felloggen var tom efteråt: ingenting kastade
+  under hela genomgången. Allt som skapades raderades, och demon står på
+  samma siffror som innan — 40 enheter, 216 värnpliktiga, 13 befäl, 0 spärrade.
+
+  **Mobilbredd 390 px** prövad på inloggning, admin, status och befälsvyns tre
+  flikar: inget vågrätt spill. De breda tabellerna rullar inuti sin egen ruta,
+  vilket är meningen.
+
+  Tre saker att veta, ingen av dem ett fel:
+
+  1. **"Underlag saknas" går inte att visa i demon som den står.** Texten
+     kräver en enhet med färre än fyra svarande i perioden, och demons grupper
+     har åtta var med hög svarsfrekvens. Jag fick skapa en egen grupp med två
+     personer för att se den. `underlag/juryfragor.md` tar upp den i listan
+     över vad som ska visas — antingen behöver demon en liten enhet, eller så
+     bör den punkten skrivas om.
+  2. **Kvittot på en samtalsbegäran står kvar hela dagen**, med flit (se
+     `aktivSamtalsbegaran()`). Följden är att den som bett om samtal på
+     morgonen inte kan be igen samma dag via appen — varken till samma befäl
+     eller till nästa nivå. Numren till stödlinjerna står kvar. Om det är rätt
+     avvägning är en fråga för dig, inte för koden.
+  3. **Demon har just nu ingen öppen samtalsbegäran.** Det fanns ingen när
+     jag började heller; den jag skapade under genomgången kvitterade jag för
+     att prova krysset. Vill du ha en liggande inför en visning skapar jag en
+     på en minut.
+
+### Svarstider i drift, uppmätta 24 september
+
+Referens att jämföra mot när något känns segt. Uppmätt från en laptop i
+Sverige mot demon, flera anrop per väg.
+
+| Väg | Svarstid |
+|---|---|
+| Värnpliktigas incheckningssida | 140–180 ms |
+| Hälsokontrollen `/api/halsa` | 175–390 ms |
+| Plutonchefens vy, 7 dagar | 200–350 ms |
+| Bataljonschefens vy, 21 dagar — appens tyngsta fråga | 250–320 ms |
+| CSV-export, 21 dagar | 195–245 ms |
+| Inloggning (tre skrivningar till databasen) | ~780 ms |
+| Spara en incheckning, inklusive omdirigering och återkopplingssidan | ~950 ms |
+| Rundturen, hela appen som fem konton | 46 s |
+| Första anropet efter en driftsättning (kallstart) | ~1,5 s |
+
+Sparandet självt ligger kring 0,35 s; resten av den knappa sekunden är
+nätet, omdirigeringen och återkopplingssidans egna frågor.
+
 - **Enheter går att byta namn.** Fanns inte tidigare: ett felstavat enhetsnamn
   gick bara att rätta genom att radera enheten och skapa den på nytt, och
   raderingen tar personer och rapporter med sig. Fältet sitter i adminvyn på
