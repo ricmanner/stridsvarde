@@ -45,6 +45,30 @@ skrev ett eget meddelande till dem; underlaget finns i
   Ska rutten knuffas igång för hand görs det med `vercel crons`, inte med
   curl.
 
+  **Så stänger du av den igen.** Tre nivåer, från snabbast till mest
+  fullständig:
+
+  1. **Ta bort hemligheten** — `vercel env rm CRON_SECRET production` och
+     driftsätt om. Klockan ringer vidare men får nej (503), demodatan slutar
+     flyttas, och statussidan säger att framflyttningen är avstängd. Koden
+     står kvar, så att sätta tillbaka är att lägga in hemligheten igen. Det
+     här är vägen mitt under en visningsdag.
+  2. **Ta bort klockan** — stryk `crons` ur `vercel.json` och driftsätt om.
+     Obs: en *Instant Rollback* i Vercel räcker INTE. Enligt Vercels egen
+     dokumentation uppdateras aktiva cron-jobb inte vid en rollback, utan
+     fortsätter ringa tills de tas bort med en ny driftsättning eller stängs
+     av i projektets inställningar.
+  3. **Ta bort allt** — `git revert --no-edit 7807735 43f7e42 ffa857f
+     379241b`. Prövat den 24 september: trädet blir då identiskt med läget
+     före arbetet, och de 133 tester som fanns då är gröna. Glöm inte
+     hemligheten i steg 1 — den ligger utanför förrådet och försvinner inte
+     med koden.
+
+  Två saker går inte att ångra, och ingen av dem är en skada: datum som
+  redan hunnit flyttas i demodatan stannar där de hamnat (det är samma sak
+  knappen gör, och `Återställ demon` bygger upp allt från grunden om det
+  behövs), och raderna i `audit_log` står kvar som historik.
+
 - **Tidsgränser i incheckningen.** 10 sekunder på servern, 15 i webbläsaren,
   båda i `src/lib/tidsgrans.ts`. Går tiden ut får den värnpliktige ett besked,
   knappen släpps, svaren ligger kvar och ett nytt tryck går fram. Uppmätt i
