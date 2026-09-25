@@ -14,6 +14,7 @@ import {
 } from '@/lib/db/queries/admin';
 import { retentionStatus } from '@/lib/db/retention';
 import { fullDateLabel } from '@/lib/date';
+import { antal } from '@/lib/format';
 
 import UnitDetail from './UnitDetail';
 import UnitTree from './UnitTree';
@@ -124,7 +125,8 @@ export default async function AdminPage({
           </p>
           {retention.enabled && retention.affected > 0 && (
             <p className="mt-1 text-xs text-slate-500">
-              {retention.affected} poster är äldre än så och raderas inom kort.
+              {antal(retention.affected, 'uppgift är', 'uppgifter är')} äldre än så och
+              raderas inom kort.
             </p>
           )}
           {retention.oldest && (

@@ -128,3 +128,19 @@ test('ingen bygger en mening av enhetens sort plus ett böjt ord', () => {
   const befalsvy = utanKommentarer('src/components/leader/LeaderDashboard.tsx');
   assert.ok(!/Jämför en \{/.test(befalsvy), 'artikeln får inte stå fast — ett kompani, en pluton');
 });
+
+test('adminvyns antal böjs med antal(), inte med ett fast plural', () => {
+  const utanKommentarer = (fil) =>
+    readFileSync(fil, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+
+  const detalj = utanKommentarer('src/app/admin/UnitDetail.tsx');
+  assert.ok(!/'incheckningar'\} raderade/.test(detalj), 'raderade incheckningar böjs efter talet');
+  assert.ok(!/rapporter raderade`/.test(detalj), 'raderade rapporter böjs efter talet');
+
+  const sida = utanKommentarer('src/app/admin/page.tsx');
+  assert.ok(!/poster är äldre/.test(sida), 'gallringsrutan böjs efter talet');
+
+  for (const [fil, kod] of [['UnitDetail.tsx', detalj], ['page.tsx', sida]]) {
+    assert.match(kod, /antal\(/, `${fil} ska använda antal() ur lib/format.ts`);
+  }
+});

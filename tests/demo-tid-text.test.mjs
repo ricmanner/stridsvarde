@@ -73,3 +73,12 @@ test('incheckningar gjorda efter historiken nämns, för de försvinner', () => 
   assert.match(b.text, /3/);
   assert.match(b.text, /raderas|tas bort/i);
 });
+
+test('en enda incheckning efter historiken nämns i singular', () => {
+  // Siffran ett är det vanliga fallet här: någon har provat demon en gång
+  // efter att historiken tagit slut. Då stod det "1 incheckningar gjorda".
+  const b = beskrivDemoTidslinje(plan({ dagar: 9, senasteHistorikdag: '2026-11-11', efterHistoriken: 1 }));
+
+  assert.match(b.text, /1 incheckning gjord /, 'ett i singular');
+  assert.ok(!/1 incheckningar/.test(b.text), 'plural efter ettan');
+});

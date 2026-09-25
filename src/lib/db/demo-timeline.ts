@@ -4,6 +4,7 @@ import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
 import { hashCode } from '../auth/codes';
 import { daysBetween, serviceDate } from '../date';
+import { antal } from '../format';
 import { ALLOWED_PERIODS } from '../privacy';
 import { db, environment } from './client';
 import { auditLog } from './schema';
@@ -134,8 +135,8 @@ export function beskrivDemoTidslinje(plan: DemoTimelinePlan): DemoTidslinjeBeske
 
   if (plan.efterHistoriken > 0) {
     delar.push(
-      `${plan.efterHistoriken} incheckningar gjorda efter historiken raderas av flytten — ` +
-        'annars skulle de hamna i framtiden.',
+      `${antal(plan.efterHistoriken, 'incheckning gjord', 'incheckningar gjorda')} ` +
+        'efter historiken raderas av flytten — annars skulle de hamna i framtiden.',
     );
   }
 

@@ -37,3 +37,23 @@ test('ett enstaka datum skrivs som en människa läser det', async () => {
   assert.equal(fullDateLabel('2026-03-29'), '29 mars 2026');
   assert.equal(fullDateLabel('2026-10-25'), '25 oktober 2026');
 });
+
+/*
+ * Antal och böjning hör ihop.
+ *
+ * Fyra ställen satte ihop ett tal med ett substantiv i plural och lät
+ * participet stå kvar i plural: "1 incheckning raderade", "1 rapporter
+ * raderade", "1 poster är äldre än så", "1 incheckningar gjorda efter
+ * historiken". Siffran ett är inte ovanlig i något av dem — en administratör
+ * som raderar en persons svar ser den nästan alltid.
+ */
+test('ett antal böjer både substantivet och participet efter talet', async () => {
+  const { antal } = await import('../src/lib/format.ts');
+
+  assert.equal(antal(1, 'incheckning raderad', 'incheckningar raderade'), '1 incheckning raderad');
+  assert.equal(antal(3, 'incheckning raderad', 'incheckningar raderade'), '3 incheckningar raderade');
+
+  // Noll tar plural på svenska: "0 uppgifter", inte "0 uppgift".
+  assert.equal(antal(0, 'uppgift', 'uppgifter'), '0 uppgifter');
+  assert.equal(antal(2, 'underenhet', 'underenheter'), '2 underenheter');
+});

@@ -23,6 +23,25 @@ export function formatScore(n: number): string {
 }
 
 /**
+ * Ett antal med orden böjda efter talet.
+ *
+ * Fyra ställen satte ihop en siffra med ett plural och lät participet stå
+ * kvar: "1 incheckning raderade", "1 rapporter raderade", "1 poster är äldre
+ * än så". Ettan är inte ett undantagsfall — en administratör som raderar en
+ * persons svar ser den nästan varje gång.
+ *
+ * Tar hela ledet, inte bara substantivet, eftersom det som ska böjas ofta är
+ * participet intill: "incheckning raderad" mot "incheckningar raderade".
+ * Noll tar plural på svenska: "0 uppgifter".
+ *
+ * Fanns tidigare som en egen liten funktion i raderingsrutan. Den låg där
+ * ensam tills tre andra ställen behövde samma sak.
+ */
+export function antal(n: number, ental: string, flertal: string): string {
+  return `${n} ${n === 1 ? ental : flertal}`;
+}
+
+/**
  * Räknar upp led på svenskt sätt: komma mellan, "och" före det sista.
  *
  * Raderingsrutan byggde tidigare sin mening genom att lägga till

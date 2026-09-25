@@ -11,7 +11,7 @@ import {
   type DeleteUnitState,
 } from '@/app/actions/admin';
 import type { UnitDeletion, UnitKind } from '@/lib/db/queries/admin';
-import { uppräkning } from '@/lib/format';
+import { antal, uppräkning } from '@/lib/format';
 import { ordformer } from '@/lib/unit-names';
 
 /**
@@ -97,10 +97,6 @@ export default function UnitDeleteSection({
       {state.error && <p role="alert" className="mt-2 text-sm text-red-700">{state.error}</p>}
     </section>
   );
-}
-
-function antal(n: number, en: string, flera: string): string {
-  return `${n} ${n === 1 ? en : flera}`;
 }
 
 function DeleteForm({

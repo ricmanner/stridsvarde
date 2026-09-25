@@ -23,6 +23,7 @@ import {
   type UnitRenameState,
   type UnitState,
 } from '@/app/actions/admin';
+import { antal } from '@/lib/format';
 import { kodnyckel, visaKodlapp } from '@/lib/kodlapp';
 import type { AdminUser, MoveTarget, UnitKind } from '@/lib/db/queries/admin';
 import { ROLE_LABEL, type Role } from '@/lib/roles';
@@ -568,7 +569,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
             <p className="mt-2 text-sm text-slate-600">
               {deleteState.deleted.label} borttagen
               {deleteState.deleted.erased > 0 &&
-                ` — ${deleteState.deleted.erased} rapporter raderade`}
+                ` — ${antal(deleteState.deleted.erased, 'rapport raderad', 'rapporter raderade')}`}
               .
             </p>
           )}
@@ -692,7 +693,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
             {eraseState.error && <p role="alert" className="mt-2 text-sm text-red-700">{eraseState.error}</p>}
             {eraseState.erased !== undefined && (
               <p className="mt-2 text-sm text-red-900">
-                {eraseState.erased} {eraseState.erased === 1 ? 'incheckning' : 'incheckningar'} raderade.
+                {antal(eraseState.erased, 'incheckning raderad', 'incheckningar raderade')}.
               </p>
             )}
           </section>
