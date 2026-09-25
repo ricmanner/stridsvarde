@@ -108,8 +108,8 @@ test('enhetssorternas böjda ordformer står på ett ställe', async () => {
   assert.equal(ordformer('kompani').tom, 'tomt', 'kompaniet är tomt');
   assert.equal(ordformer('grupp').tom, 'tom');
 
-  assert.equal(ordformer('kompani').pronomen, 'Det', 'det tas bort');
-  assert.equal(ordformer('pluton').pronomen, 'Den');
+  assert.equal(ordformer('kompani').pronomen, 'det', 'allt som ligger under det');
+  assert.equal(ordformer('pluton').pronomen, 'den');
 });
 
 test('ingen bygger en mening av enhetens sort plus ett böjt ord', () => {
@@ -121,9 +121,15 @@ test('ingen bygger en mening av enhetens sort plus ett böjt ord', () => {
   assert.match(detalj, /ordformer\(/, 'UnitDetail ska hämta formerna ur ordformer()');
 
   const radering = utanKommentarer('src/app/admin/UnitDeleteSection.tsx');
-  assert.ok(!/är tom\./.test(radering), '"är tom" gäller inte ett kompani');
-  assert.ok(!/Den tas bort/.test(radering), '"Den" gäller inte ett kompani');
+  assert.ok(!/preview\.name\} är tom\b/.test(radering), '"2. Kompaniet är tom" böjer fel');
+  assert.ok(!/under den/.test(radering), '"under den" gäller inte ett kompani');
   assert.match(radering, /ordformer\(/, 'raderingsrutan ska hämta formerna ur ordformer()');
+
+  const sida = utanKommentarer('src/app/admin/page.tsx');
+  assert.ok(
+    !/låg under den/.test(sida),
+    'beskedet efter en radering säger "allt som låg under den" om ett kompani också',
+  );
 
   const befalsvy = utanKommentarer('src/components/leader/LeaderDashboard.tsx');
   assert.ok(!/Jämför en \{/.test(befalsvy), 'artikeln får inte stå fast — ett kompani, en pluton');

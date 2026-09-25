@@ -158,7 +158,7 @@ export default async function AdminPage({
 
         {raderad && (
           <p role="status" className="no-print mb-4 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-            <strong>{raderad}</strong> raderades, med allt som låg under den.
+            <strong>{raderad}</strong> raderades, med allt som låg i enheten.
           </p>
         )}
 

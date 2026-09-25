@@ -56,7 +56,8 @@ export default function UnitDeleteSection({
                 något som inte kunde finnas. */}
             {unitKind === 'grupp'
               ? `Tar bort ${unitName} med alla personer i den och deras rapporter.`
-              : `Tar bort ${unitName} med allt som ligger under den: underenheter, personer och deras rapporter.`}
+              : `Tar bort ${unitName} med allt som ligger under ${ordformer(unitKind).pronomen}: ` +
+                'underenheter, personer och deras rapporter.'}
           </p>
           <button
             type="button"
@@ -138,8 +139,8 @@ function DeleteForm({
 
       {tom ? (
         <p className="mb-3 text-xs leading-relaxed text-red-800">
-          {/* "tomt" och "Det" om ett kompani — se ordformer() i lib/unit-names.ts. */}
-          {preview.name} är {ord.tom}. {ord.pronomen} tas bort permanent.
+          {/* "tomt" om ett kompani — se ordformer() i lib/unit-names.ts. */}
+          {preview.name} är {ord.tom} och tas bort permanent.
         </p>
       ) : (
         <>

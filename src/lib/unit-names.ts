@@ -96,17 +96,14 @@ export interface Ordformer {
   ny: 'Ny' | 'Nytt';
   /** "enheten är tom", "kompaniet är tomt". */
   tom: 'tom' | 'tomt';
-  /**
-   * Pronomen med versal, eftersom det alltid inleder en mening där det
-   * används: "Det tas bort permanent."
-   */
-  pronomen: 'Den' | 'Det';
+  /** "allt som ligger under den", "allt som ligger under det". */
+  pronomen: 'den' | 'det';
 }
 
 export function ordformer(sort: UnitKind): Ordformer {
   return NEUTRUM[sort]
-    ? { artikel: 'ett', ny: 'Nytt', tom: 'tomt', pronomen: 'Det' }
-    : { artikel: 'en', ny: 'Ny', tom: 'tom', pronomen: 'Den' };
+    ? { artikel: 'ett', ny: 'Nytt', tom: 'tomt', pronomen: 'det' }
+    : { artikel: 'en', ny: 'Ny', tom: 'tom', pronomen: 'den' };
 }
 
 /** Samma ord med versal, som rubrik: "Kompaninivå". */
