@@ -11,6 +11,7 @@ export default async function KompaniPage(props: {
       role="kompani"
       levelLabel={nivåRubrik('kompani')}
       childLabel="plutoner"
+      childKind="pluton"
       searchParams={props.searchParams}
     />
   );

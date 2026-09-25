@@ -14,6 +14,7 @@ import Suppressed from '@/components/leader/Suppressed';
 import { CATEGORIES, getStatus } from '@/lib/data';
 import type { ChildComparison, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
 import { ALLOWED_PERIODS, type Period } from '@/lib/privacy';
+import { ordformer, type ChildKind } from '@/lib/unit-names';
 import { formatScore } from '@/lib/format';
 
 const FLIKAR = [
@@ -33,7 +34,10 @@ const ICONS: Record<string, React.ReactNode> = {
 
 export interface LeaderDashboardProps {
   levelLabel: string;
+  /** Underenheterna i plural, för rubriker: "plutoner". */
   childLabel: string;
+  /** Underenheternas sort i singular. Bär genus — ett kompani, en pluton. */
+  childKind: ChildKind;
   period: Period;
   overview: UnitOverview;
   series: SeriesPoint[];
@@ -50,7 +54,7 @@ export interface LeaderDashboardProps {
  * grupper, kompanichefen plutoner, bataljonschefen kompanier, med samma kod.
  */
 export default function LeaderDashboard({
-  levelLabel, childLabel, period, overview, series, comparison, advice,
+  levelLabel, childLabel, childKind, period, overview, series, comparison, advice,
 }: LeaderDashboardProps) {
   const pathname = usePathname();
   const [tab, setTab] = useState<'overview' | 'trends' | 'compare'>('overview');
@@ -307,7 +311,9 @@ export default function LeaderDashboard({
                   <ComparisonGrid items={comparison.children} childLabel={childLabel} />
                 </div>
 
-                <SL>Jämför en {childLabel.replace(/er$/, '')} med hela enheten</SL>
+                {/* "ett kompani", "en pluton" — artikeln kommer ur ordformer(),
+                    inte ur ett fast "en". Se lib/unit-names.ts. */}
+                <SL>Jämför {ordformer(childKind).artikel} {childKind} med hela enheten</SL>
                 <div className="mb-6">
                   <ChildFocus
                     items={comparison.children}

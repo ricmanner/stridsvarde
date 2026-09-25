@@ -11,6 +11,7 @@ export default async function BataljonPage(props: {
       role="bataljon"
       levelLabel={nivåRubrik('bataljon')}
       childLabel="kompanier"
+      childKind="kompani"
       searchParams={props.searchParams}
     />
   );

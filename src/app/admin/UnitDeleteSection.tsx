@@ -12,6 +12,7 @@ import {
 } from '@/app/actions/admin';
 import type { UnitDeletion, UnitKind } from '@/lib/db/queries/admin';
 import { uppräkning } from '@/lib/format';
+import { ordformer } from '@/lib/unit-names';
 
 /**
  * Radera en enhet med allt under sig.
@@ -81,6 +82,7 @@ export default function UnitDeleteSection({
       {preview && !('error' in preview) && !preview.refusal && (
         <DeleteForm
           preview={preview}
+          unitKind={unitKind}
           bekraftelse={bekraftelse}
           setBekraftelse={setBekraftelse}
           formAction={formAction}
@@ -103,6 +105,7 @@ function antal(n: number, en: string, flera: string): string {
 
 function DeleteForm({
   preview,
+  unitKind,
   bekraftelse,
   setBekraftelse,
   formAction,
@@ -110,6 +113,7 @@ function DeleteForm({
   onCancel,
 }: {
   preview: UnitDeletion;
+  unitKind: UnitKind;
   bekraftelse: string;
   setBekraftelse: (v: string) => void;
   formAction: (fd: FormData) => void;
@@ -117,6 +121,7 @@ function DeleteForm({
   onCancel: () => void;
 }) {
   const tom = preview.subunits === 0 && preview.people === 0;
+  const ord = ordformer(unitKind);
   const matchar = bekraftelse.trim() === preview.name;
 
   /*
@@ -137,7 +142,8 @@ function DeleteForm({
 
       {tom ? (
         <p className="mb-3 text-xs leading-relaxed text-red-800">
-          {preview.name} är tom. Den tas bort permanent.
+          {/* "tomt" och "Det" om ett kompani — se ordformer() i lib/unit-names.ts. */}
+          {preview.name} är {ord.tom}. {ord.pronomen} tas bort permanent.
         </p>
       ) : (
         <>

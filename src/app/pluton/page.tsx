@@ -11,6 +11,7 @@ export default async function PlutonPage(props: {
       role="pluton"
       levelLabel={nivåRubrik('pluton')}
       childLabel="grupper"
+      childKind="grupp"
       searchParams={props.searchParams}
     />
   );

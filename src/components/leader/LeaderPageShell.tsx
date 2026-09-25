@@ -10,11 +10,14 @@ import {
 } from '@/lib/db/queries/aggregates';
 import { parsePeriod } from '@/lib/privacy';
 import type { Role } from '@/lib/roles';
+import type { ChildKind } from '@/lib/unit-names';
 
 interface Props {
   role: Role;
   levelLabel: string;
   childLabel: string;
+  /** Underenheternas sort. Bär genus, så rubriken kan säga "ett kompani". */
+  childKind: ChildKind;
   searchParams: Promise<{ period?: string }>;
 }
 
@@ -30,6 +33,7 @@ export default async function LeaderPageShell({
   role,
   levelLabel,
   childLabel,
+  childKind,
   searchParams,
 }: Props) {
   const session = await requireRole(role);
@@ -61,6 +65,7 @@ export default async function LeaderPageShell({
         <LeaderDashboard
           levelLabel={levelLabel}
           childLabel={childLabel}
+          childKind={childKind}
           period={period}
           overview={overview}
           series={series}

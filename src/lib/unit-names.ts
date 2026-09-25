@@ -69,6 +69,46 @@ export const NIVÅORD: Record<UnitKind, string> = {
   grupp: 'gruppnivå',
 };
 
+/**
+ * Böjda ordformer per enhetssort.
+ *
+ * Kompani är ett neutrum bland tre utrum: ett kompani, kompaniet är tomt, det
+ * raderas — medan bataljon, pluton och grupp tar en, tom och den. Byggs en
+ * mening av sorten plus ett böjt ord blir den alltså fel för kompani var gång.
+ * Det hände på tre ställen: "Ny kompani under Bataljonen" i adminvyn, "Jämför
+ * en kompani med hela enheten" i bataljonschefens vy, och "Kompaniet är tom.
+ * Den tas bort permanent." i raderingsrutan.
+ *
+ * Samma fel och samma lösning som NIVÅORD ovan: formerna står på ett ställe,
+ * och en ny enhetssort tvingas fylla i sina av TypeScript.
+ */
+const NEUTRUM: Record<UnitKind, boolean> = {
+  bataljon: false,
+  kompani: true,
+  pluton: false,
+  grupp: false,
+};
+
+export interface Ordformer {
+  /** Obestämd artikel: "en pluton", "ett kompani". */
+  artikel: 'en' | 'ett';
+  /** Adjektivet ny, som rubrik: "Ny grupp", "Nytt kompani". */
+  ny: 'Ny' | 'Nytt';
+  /** "enheten är tom", "kompaniet är tomt". */
+  tom: 'tom' | 'tomt';
+  /**
+   * Pronomen med versal, eftersom det alltid inleder en mening där det
+   * används: "Det tas bort permanent."
+   */
+  pronomen: 'Den' | 'Det';
+}
+
+export function ordformer(sort: UnitKind): Ordformer {
+  return NEUTRUM[sort]
+    ? { artikel: 'ett', ny: 'Nytt', tom: 'tomt', pronomen: 'Det' }
+    : { artikel: 'en', ny: 'Ny', tom: 'tom', pronomen: 'Den' };
+}
+
 /** Samma ord med versal, som rubrik: "Kompaninivå". */
 export function nivåRubrik(sort: UnitKind): string {
   const ord = NIVÅORD[sort];

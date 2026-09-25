@@ -83,3 +83,48 @@ test('en uppräkning får komma mellan leden och "och" före det sista', async (
   assert.equal(uppräkning(['1 underenhet']), '1 underenhet');
   assert.equal(uppräkning([]), '');
 });
+
+/*
+ * Genus: kompani är ett neutrum bland tre utrum.
+ *
+ * Samma sorts fel som "kompanisnivå", och av samma orsak: en mening byggdes
+ * av enhetens sort plus ett böjt ord. Det blev "Ny kompani", "Jämför en
+ * kompani" och "Kompaniet är tom. Den tas bort permanent." — tre ställen där
+ * bataljonschefen och administratören möttes av fel svenska. Formerna står nu
+ * i ordformer(), som NIVÅORD, och kontrollerna nedan läser koden eftersom det
+ * är formen som är felet.
+ */
+test('enhetssorternas böjda ordformer står på ett ställe', async () => {
+  const { ordformer } = await import('../src/lib/unit-names.ts');
+
+  assert.equal(ordformer('kompani').artikel, 'ett', 'ett kompani');
+  assert.equal(ordformer('bataljon').artikel, 'en');
+  assert.equal(ordformer('pluton').artikel, 'en');
+  assert.equal(ordformer('grupp').artikel, 'en');
+
+  assert.equal(ordformer('kompani').ny, 'Nytt', 'Nytt kompani');
+  assert.equal(ordformer('pluton').ny, 'Ny');
+
+  assert.equal(ordformer('kompani').tom, 'tomt', 'kompaniet är tomt');
+  assert.equal(ordformer('grupp').tom, 'tom');
+
+  assert.equal(ordformer('kompani').pronomen, 'Det', 'det tas bort');
+  assert.equal(ordformer('pluton').pronomen, 'Den');
+});
+
+test('ingen bygger en mening av enhetens sort plus ett böjt ord', () => {
+  const utanKommentarer = (fil) =>
+    readFileSync(fil, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+
+  const detalj = utanKommentarer('src/app/admin/UnitDetail.tsx');
+  assert.ok(!/Ny \{childKind\}/.test(detalj), 'rubriken för ny underenhet böjer inte "ny" efter sorten');
+  assert.match(detalj, /ordformer\(/, 'UnitDetail ska hämta formerna ur ordformer()');
+
+  const radering = utanKommentarer('src/app/admin/UnitDeleteSection.tsx');
+  assert.ok(!/är tom\./.test(radering), '"är tom" gäller inte ett kompani');
+  assert.ok(!/Den tas bort/.test(radering), '"Den" gäller inte ett kompani');
+  assert.match(radering, /ordformer\(/, 'raderingsrutan ska hämta formerna ur ordformer()');
+
+  const befalsvy = utanKommentarer('src/components/leader/LeaderDashboard.tsx');
+  assert.ok(!/Jämför en \{/.test(befalsvy), 'artikeln får inte stå fast — ett kompani, en pluton');
+});

@@ -26,7 +26,7 @@ import {
 import { kodnyckel, visaKodlapp } from '@/lib/kodlapp';
 import type { AdminUser, MoveTarget, UnitKind } from '@/lib/db/queries/admin';
 import { ROLE_LABEL, type Role } from '@/lib/roles';
-import { NIVÅORD, suggestChildName, type ChildKind } from '@/lib/unit-names';
+import { NIVÅORD, ordformer, suggestChildName, type ChildKind } from '@/lib/unit-names';
 
 import CodeSheet from './CodeSheet';
 import UnitDeleteSection from './UnitDeleteSection';
@@ -323,7 +323,8 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
         {childKind && (
           <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
             <h3 className="mb-3 text-sm font-bold text-slate-900">
-              Ny {childKind} under {unit.name}
+              {/* "Nytt kompani", inte "Ny kompani" — se ordformer() i lib/unit-names.ts. */}
+              {ordformer(childKind).ny} {childKind} under {unit.name}
             </h3>
             <form action={unitFormAction} className="flex flex-wrap items-end gap-2">
               <input type="hidden" name="parentId" value={unit.id} />
@@ -346,7 +347,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
               </button>
             </form>
             {unitState.error && <p role="alert" className="mt-2 text-sm text-red-700">{unitState.error}</p>}
-            {unitState.created && <p className="mt-2 text-sm text-emerald-700">{unitState.created} skapad.</p>}
+            {unitState.created && <p className="mt-2 text-sm text-emerald-700">Skapade {unitState.created}.</p>}
           </section>
         )}
 
