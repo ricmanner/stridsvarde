@@ -14,9 +14,10 @@ P1G1-kontona öppnades på nytt (kontrollerat: P1G1-01, som var förbrukad under
 gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
-**Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 153 enhetstester och 25
-webbläsartester, plus typkontroll, lint och bygge.
+**Fem commitar väntar på att pushas.** Språkrättningarna nedan (paket A och B
+ur genomgången) är klara och kontrollerade lokalt: 162 enhetstester, 25
+webbläsartester, typkontroll, lint, bygge och rundtur. Demon som ligger uppe
+kör alltså ännu den gamla texten. Richard säger till när de ska ut.
 
 Nästa uppgift står under "Att ta härnäst". Punkterna 1–4 där är föreslagna och
 **medvetet uppskjutna av Richard den 25 september** — inte avfärdade. Ordningen
@@ -30,6 +31,56 @@ skrev ett eget meddelande till dem; underlaget finns i
 `underlag/meddelande-till-gruppen.md`.
 
 ### Gjort den 25 september
+
+- **Grammatikgenomgång av hela gränssnittet, och hälften av den rättad.**
+  All text i `src` lästes igenom — stavning, böjning, militärt språkbruk och
+  skrivregler. Richard valde att ta paket A och B; C och D ligger kvar under
+  "Att ta härnäst" som punkt 7.
+
+  **Paket A — böjning (fem commitar, elva ställen).** Det största var att
+  *kompani* är ett neutrum bland fyra enhetssorter, och att tre meningar byggdes
+  av sorten plus ett böjt ord: "Ny kompani under Bataljonen", "Jämför en
+  kompani med hela enheten", "2. Kompaniet är tom. Den tas bort permanent."
+  Samma fel och samma orsak som "kompanisnivå" tidigare samma dag. Formerna
+  ligger nu i `ordformer()` i `lib/unit-names.ts`, intill `NIVÅORD`, där
+  TypeScript tvingar en ny enhetssort att fylla i sina egna. Befälssidorna
+  skickar `childKind` så rubriken kan fråga efter artikeln i stället för att
+  ha "en" inskrivet.
+
+  Fyra ställen satte en siffra före ett plural och lät participet stå kvar:
+  "1 incheckning raderade", "1 rapporter raderade", "1 poster är äldre än så",
+  "1 incheckningar gjorda efter historiken". `antal()` flyttade ur
+  raderingsrutan till `lib/format.ts` och tar hela ledet, eftersom det som
+  ska böjas oftast är participet intill. Nattkörningens egen logg hörde till
+  samma familj — "historiken flyttad 1 dagar fram", en rad som visas på
+  `/status`. Dessutom: "Hur sov du igår natt?" → **i natt**, "Senaste värde" →
+  **värdet**, "har inte kört ännu" → **körts**, och "poster" → **uppgifter**,
+  som är begripligt för den administratör rutan skrivs för.
+
+  **Två av felen hittades först i webbläsaren**, efter att testerna var gröna:
+  "Tar bort X med allt som ligger under **den**" och "X raderades, med allt som
+  låg under **den**". Testet läste de meningar jag redan tänkt på. Det är värt
+  att komma ihåg nästa gång något liknande ska rättas — den här sortens fel
+  syns inte i ett test man skrivit själv.
+
+  **Paket B — militärt språkbruk (en commit, sex rader i `lib/advice.ts`).**
+  *lagledare* → **gruppchef** (lagledare är idrottsspråk), *sjukvårdsutbildad i
+  kompaniet* → **kompaniets sjukvårdare** (samma ord som `lib/support.ts`),
+  *sovrummet* → **logementet**, *Bjud en kamrat till middagen* → **Ät middag
+  med en kamrat**, bart *befäl* → **ditt befäl** på fyra ställen, och *symptom*
+  → **symtom**. Råden läses av någon som just rapporterat låga värden, så
+  tonen betyder mer där än någon annanstans i appen.
+
+  **Så tar du bort allt igen:** `git revert --no-edit 3a1ac55 9036735 c77372b
+  865905f 2d70c5a`. Prövat den 25 september på en egen gren — `src` blir då
+  identisk med läget före arbetet, och de 153 tester som fanns då är gröna.
+  Ingenting ligger utanför förrådet, så det finns ingen hemlighet eller
+  inställning att komma ihåg.
+
+  Varje rättning har ett test som först föll: de ligger i `tests/sprak.test.mjs`
+  och läser koden där det är formen som är felet. En rad kunde bara prövas med
+  test — gallringsrutans "1 uppgift är äldre än så" kräver en demo vars data är
+  äldre än lagringstiden, och demons historik är fjorton dagar.
 
 - **Språket i adminvyn rättat, och regeln som gjorde det fel borttagen.**
   Nivåordet byggdes av enhetens sort plus "snivå" — rätt för bataljon och
@@ -278,7 +329,36 @@ fram demodatan och återställa demon.
    alltså inte om det är påslaget utan vilken plan kontot har, och i vilken
    region databasen ligger. Värt att veta i förväg: en återställning skapar en
    **ny** databas, så adressen i Vercel måste pekas om efteråt.
-7. **Designfrågor som väntar på ett samtal**, inte på kod: reglaget i
+7. **Resten av språkgenomgången — paket C och D.** Ur genomgången den 25
+   september, uppskjutna av Richard, inte avfärdade. Ingenting här är ett rent
+   fel; det är samma sak sagd på två sätt, och skrivregler.
+
+   **C, ungefär en timme.** Rollen heter *Plutonchef* i `lib/roles.ts`, men
+   inloggningssidan säger "plutonsbefälet" och stödblockets knapp "Mitt
+   plutonsbefäl" — intill knappen "Kompanichefen". Ett felmeddelande i
+   `queries/admin.ts` säger "Soldater placeras i en grupp eller pluton" där
+   appen annars alltid säger *värnpliktiga*. Fem ställen säger "sammanställd
+   data" och ett "befälet ser inga data". `/status` har appens enda engelska
+   etikett, **Foreign keys**. Två frågor är Richards och inte kodens: vilket
+   ord som ska gälla för det en värnpliktig lämnar in — *rapport*,
+   *incheckning* eller *svar*, som alla tre används om samma sak i
+   adminvyn — och om kategorierna ska heta samma i incheckningen som på
+   tipskorten ("Fysisk form" mot "Fysisk hälsa", "Kost och näring" mot "Kost").
+   **Obs:** orden *plutonsbefäl* och *Historia* står i webbläsartesterna och
+   måste ändras i samma commit.
+
+   **D, ungefär en halvtimme.** Procenttecknet skrivs "78%" på fyra ställen och
+   "78 %" på två (utskriftsrapporten och larmtexten); svensk regel är
+   mellanslag. Små tal med bokstäver: "Besvara 6 frågor", "ungefär 2 minuter",
+   "minst 3 ordentliga mål". "kl 14" → kl. 14, "p.g.a. schema" → på grund av
+   schemat, "innan sänggående" och "innan läggdags" → **före** (innan binder en
+   sats, före ett substantiv). Fliken **Historia** på den värnpliktiges sida bör
+   heta *Historik*. Inloggningssidan säger samma sak två gånger ("Ange koden du
+   fått av ditt befäl" och "Din kod tillhandahålls av ditt befäl"), och
+   demokodrutan låter en kod rapportera: "Har den koden redan rapporterat
+   idag". I enhetsträdet står "vpl." och "bef." med punkt, som FM skriver utan.
+
+8. **Designfrågor som väntar på ett samtal**, inte på kod: reglaget i
    incheckningen börjar på 5, så den som bara trycker "Nästa" skickar in sex
    femmor som ser ut som svar. Att tvinga fram en rörelse straffar den som
    verkligen menar 5 — Richard har avfärdat både det och att hoppa över frågor.
