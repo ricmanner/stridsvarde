@@ -31,6 +31,19 @@ mellan dem är en rekommendation, inte hans beslut.
 Att den schemalagda molnkontrollen inte kunde läsa demon står under
 återvändsgränderna.
 
+**Mappen är ett eget förråd sedan den 25 september.** `~/Code/stridsvarde-v2`
+var tidigare en länkad arbetskopia (`git worktree`) av förrådet i
+`~/Code/Stridvärde app`, som höll git-datan för båda. Två följder: en radering
+av den gamla mappen hade tagit v2:s historik med sig, och en session som
+startade i den gamla mappen kunde inte pusha. Nu är mappen en egen klon —
+kontrollkedjan, rundturen och en torrkörd push är prövade därifrån. Filerna som
+inte ligger i git kopierades för hand: `.env`, `.env.local`, `.vercel/` och
+`data/`. Behövs de igen finns originalen kvar i
+`~/Code/stridsvarde-v2-gammal-arbetskopia`, som är den gamla arbetskopian med
+nytt namn. Den går att radera när som helst; kör sedan `git worktree prune` i
+`~/Code/Stridvärde app` så försvinner registreringen. Vägen tillbaka, om något
+skulle fattas: ta filerna ur den gamla mappen, den är orörd.
+
 Richard har skickat länken till en liten grupp kollegor för att testa. Han
 skrev ett eget meddelande till dem; underlaget finns i
 `underlag/meddelande-till-gruppen.md`.
