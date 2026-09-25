@@ -7,15 +7,21 @@ Senast uppdaterad: 24 september 2026.
 
 ## Läget
 
-**Nattkörningen är byggd men inte bevisad.** Koden är committad på
-`v2-produktion`, 144 enhetstester och 25 webbläsartester är gröna, och
-hemligheten ligger i Vercel. Två saker återstår: en push, och att en natt
-faktiskt passerar så att `/status` visar en körning ingen människa startat.
-**Innan det har hänt vet vi inte att klockan går** — det var hela lärdomen
-från GitHubs schema.
+**Nattkörningen är bevisad.** Natten till den 25 september gick den igång av
+sig själv 02:05 UTC — inom fönstret 02:00–02:59, utan att någon rörde något —
+och flyttade historiken en dag fram. `/status` visar raden, de åtta
+P1G1-kontona öppnades på nytt (kontrollerat: P1G1-01, som var förbrukad under
+gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
+Klockan är alltså inte längre något vi tror går.
 
-Demon är återställd och står i visningsskick: räknaren på 2459 incheckningar,
-och de åtta P1G1-kontona har dagen öppen.
+Allt är pushat, GitHubs kontroller är gröna och demon står i visningsskick.
+150 enhetstester och 25 webbläsartester.
+
+**En sak att inte lita på:** den schemalagda kontrollen i molnet kunde INTE
+läsa demon. Miljöns nätverksregler nekar `fm-psvi-v2.vercel.app`, så den
+rapporterade att den inte kunde svara — korrekt beteende, men den duger inte
+som väktare förrän domänen tillåts i miljöns inställningar. Kontrollen gjordes
+i stället härifrån. Vill man ha den automatisk måste domänen läggas till.
 
 Richard har skickat länken till en liten grupp kollegor för att testa. Han
 skrev ett eget meddelande till dem; underlaget finns i
