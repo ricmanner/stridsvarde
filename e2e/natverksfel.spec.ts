@@ -113,16 +113,26 @@ test('en incheckning som inte når fram ger besked i stället för att hänga', 
   });
 
   /*
-   * noWaitAfter: knappen förstörs av sitt eget klick.
+   * dispatchEvent, inte click: knappen förstörs av sitt eget klick.
    *
    * Trycket monterar om formuläret — det är hela rättningen — så elementet
-   * försvinner ur sidan i samma ögonblick. Utan det här ser Playwright att
-   * elementet lossnat, antar att klicket inte gick fram och försöker igen;
-   * då står det nya formuläret på "Sparar…" och matchar inte längre namnet,
-   * och försöken fortsätter tills testet tar slut. Det var precis så det föll
-   * i GitHubs körning medan det passerade lokalt.
+   * försvinner ur sidan i samma ögonblick. `click()` kontrollerar först att
+   * elementet är synligt och stilla, och hinner React rita om mellan den
+   * kontrollen och trycket lossnar elementet: Playwright antar då att klicket
+   * missade och försöker igen mot ett element som inte finns kvar. Försöken
+   * fortsätter tills testet tar slut.
+   *
+   * `noWaitAfter` räckte inte — det styr bara väntan EFTER klicket, inte
+   * kontrollen före. Testet föll på just det i GitHubs körning den 21 och den
+   * 25 september, båda gånger på pushar som bara innehöll textändringar,
+   * medan det passerade lokalt varje gång. GitHubs maskin är långsammare, och
+   * kapplöpningen vinns där.
+   *
+   * dispatchEvent skickar händelsen rakt på elementet utan de kontrollerna.
+   * Testet tappar ingenting på det: att trycket verkligen gick fram bevisas
+   * av de två kontrollerna nedan, inte av att Playwright hann se knappen.
    */
-  await knapp.click({ noWaitAfter: true });
+  await knapp.dispatchEvent('click');
 
   /*
    * Två kontroller, för de faller på olika saker. Att en ny begäran alls
