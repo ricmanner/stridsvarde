@@ -14,10 +14,15 @@ P1G1-kontona öppnades på nytt (kontrollerat: P1G1-01, som var förbrukad under
 gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
-**Fem commitar väntar på att pushas.** Språkrättningarna nedan (paket A och B
-ur genomgången) är klara och kontrollerade lokalt: 162 enhetstester, 25
-webbläsartester, typkontroll, lint, bygge och rundtur. Demon som ligger uppe
-kör alltså ännu den gamla texten. Richard säger till när de ska ut.
+**Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
+är gröna, demon är driftsatt och står i visningsskick. 162 enhetstester och 25
+webbläsartester, plus typkontroll, lint och bygge.
+
+Språkrättningarna nedan (paket A och B ur genomgången den 25 september) ligger
+ute sedan kvällen samma dag. Kontrollerat mot den driftsatta demon: rundturen
+går igenom som alla fem konton, och de två fel som var synliga för besökare —
+"Ny kompani under Bataljonen" och "Jämför en kompani med hela enheten" — står nu
+rätt.
 
 Nästa uppgift står under "Att ta härnäst". Punkterna 1–4 där är föreslagna och
 **medvetet uppskjutna av Richard den 25 september** — inte avfärdade. Ordningen
