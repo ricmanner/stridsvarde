@@ -34,7 +34,7 @@ const categoryContext: Record<Category, { yellow: string; red: string }> = {
   },
   energi: {
     yellow: 'Energin ligger under din normala nivå.',
-    red: 'Så här låg energi är nästan alltid ett symptom på något annat — sömn, mat, sjukdom eller stress.',
+    red: 'Så här låg energi är nästan alltid ett symtom på något annat — sömn, mat, sjukdom eller stress.',
   },
 };
 
@@ -43,32 +43,32 @@ const actionTips: Record<Category, Record<Status, string[]>> = {
   fysisk: {
     green: ['Stretcha 5–10 min efter varje pass', 'Drick 2–3 liter vatten om dagen'],
     yellow: ['Sänk intensiteten i nästa träningspass', 'Gör 5 min rörlighetsträning i kväll', 'Välj vila framför extra rep om du är osäker'],
-    red: ['Vila från tung belastning idag', 'Kontakta sjukvårdsutbildad i kompaniet', 'Informera din lagledare om besvären'],
+    red: ['Vila från tung belastning idag', 'Kontakta kompaniets sjukvårdare', 'Informera din gruppchef om besvären'],
   },
   psykisk: {
     green: ['Ta 2 min djupandning om stressen ökar', 'Håll kontakten med kamrater — det skyddar'],
     yellow: ['Prata med en kamrat du litar på idag', 'Fysisk aktivitet hjälper mot stress — ta en promenad', 'Sätt av 10 min tid för dig själv i kväll'],
-    red: ['Prata med befäl eller kurator idag', 'Du behöver inte berätta allt — bara att du behöver stöd', 'Kontakta krisstöd om det känns akut'],
+    red: ['Prata med ditt befäl eller en kurator idag', 'Du behöver inte berätta allt — bara att du behöver stöd', 'Kontakta krisstöd om det känns akut'],
   },
   social: {
     green: ['Bjud in någon som verkar utanför till nästa aktivitet', 'Engagemang i gruppen stärker din egen hälsa'],
-    yellow: ['Bjud en kamrat till middagen idag', 'Ta initiativet — de flesta väntar på att någon ska ta det', 'Delta i gruppaktiviteter även om du inte är sugen'],
-    red: ['Berätta för befäl hur du har det', 'Det är befälets ansvar att säkerställa trivsel — du gör rätt som säger till', 'Välj en person du litar på och prata'],
+    yellow: ['Ät middag med en kamrat idag', 'Ta initiativet — de flesta väntar på att någon ska ta det', 'Delta i gruppaktiviteter även om du inte är sugen'],
+    red: ['Berätta för ditt befäl hur du har det', 'Det är befälets ansvar att säkerställa trivsel — du gör rätt som säger till', 'Välj en person du litar på och prata'],
   },
   somn: {
     green: ['Undvik skärmar 30 min innan sänggående', 'Håll samma sovtider även på lediga dagar'],
-    yellow: ['Inget koffein efter kl 14', 'Mörklägg sovrummet så mycket som möjligt', 'Sätt undan mobilen en timme innan läggdags'],
-    red: ['Informera befäl om sömnproblemen', 'Undvik koffein helt de närmaste dagarna', 'Be om hjälp med eventuella störningar i sovmiljön'],
+    yellow: ['Inget koffein efter kl 14', 'Mörklägg logementet så mycket som möjligt', 'Sätt undan mobilen en timme innan läggdags'],
+    red: ['Informera ditt befäl om sömnproblemen', 'Undvik koffein helt de närmaste dagarna', 'Be om hjälp med eventuella störningar i sovmiljön'],
   },
   kost: {
     green: ['Ät inom 30 min efter träning för snabbare återhämtning', 'Variera kostens sammansättning under dagen'],
     yellow: ['Hoppa inte över frukost — det kostar för mycket senare', 'Ät minst 3 ordentliga mål om dagen', 'Ha alltid ett litet mellanmål tillgängligt'],
-    red: ['Berätta för befäl om kostproblemen', 'Ät vad du kan, när du kan — något är bättre än inget', 'Kontrollera att du inte missar måltider p.g.a. schema'],
+    red: ['Berätta för ditt befäl om kostproblemen', 'Ät vad du kan, när du kan — något är bättre än inget', 'Kontrollera att du inte missar måltider p.g.a. schema'],
   },
   energi: {
     green: ['Håll koll på vätskeintaget under hela dagen', 'Kort promenad i friska luften ökar energin snabbt'],
     yellow: ['Drick ett stort glas vatten nu', 'Ät ett litet mellanmål inom nästa timme', 'Ta en 5–10 min promenad utomhus'],
-    red: ['Vila — tvinga inte kroppen idag', 'Berätta för lagledaren om du mår dåligt', 'Ät och drick regelbundet även om du inte är hungrig'],
+    red: ['Vila — tvinga inte kroppen idag', 'Berätta för din gruppchef om du mår dåligt', 'Ät och drick regelbundet även om du inte är hungrig'],
   },
 };
 

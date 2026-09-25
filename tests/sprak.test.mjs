@@ -180,3 +180,41 @@ test('nattkörningens egen rad böjer dagarna efter talet', async () => {
     'en natt som flyttar en dag loggade "historiken flyttad 1 dagar fram" — och raden visas på statussidan',
   );
 });
+
+/*
+ * Orden i råden till den värnpliktige.
+ *
+ * Råden läses av någon som just rapporterat låga värden, och de ska låta som
+ * förbandet talar. "Lagledare" är idrottsspråk — befälet i en grupp är
+ * gruppchefen. En värnpliktig sover i logementet, inte i sovrummet. Och
+ * "bjuda en kamrat till middagen" är restaurang; i matsalen äter man middag
+ * tillsammans.
+ */
+test('råden till den värnpliktige använder förbandets ord', async () => {
+  const kod = readFileSync('src/lib/advice.ts', 'utf8');
+
+  assert.ok(!/lagledare/.test(kod), 'gruppchef, inte lagledare');
+  assert.ok(!/sovrummet/.test(kod), 'logementet, inte sovrummet');
+  assert.ok(!/sjukvårdsutbildad/.test(kod), 'kompaniets sjukvårdare är den som finns på plats');
+  assert.ok(!/Bjud en kamrat till middagen/.test(kod), 'man äter middag med en kamrat');
+  assert.ok(!/symptom/.test(kod), 'symtom är den svenska formen');
+
+  /*
+   * Och befälet ska alltid ha sitt "ditt", som överallt annars i appen.
+   * "Informera befäl om sömnproblemen" läser som en instruktion ur en
+   * handbok, inte som ett råd till en person.
+   */
+  const { getSoldierTips } = await import('../src/lib/advice.ts');
+  const bra = { fysisk: 8, psykisk: 8, social: 8, somn: 8, kost: 8, energi: 8 };
+
+  for (const cat of ['fysisk', 'psykisk', 'social', 'somn', 'kost', 'energi']) {
+    for (const värde of [8, 5, 2]) {
+      for (const tip of getSoldierTips({ ...bra, [cat]: värde })) {
+        for (const punkt of tip.tips) {
+          if (!/befäl/.test(punkt)) continue;
+          assert.match(punkt, /ditt befäl|befälets/, `"${punkt}" saknar sitt "ditt"`);
+        }
+      }
+    }
+  }
+});

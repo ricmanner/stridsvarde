@@ -38,7 +38,7 @@ test('förklaring och åtgärder säger inte samma sak', async () => {
    */
   const bra = { fysisk: 8, psykisk: 8, social: 8, somn: 8, kost: 8, energi: 8 };
   const nyckelord =
-    /\b(befäl|kurator|vila|koffein|frukost|vatten|promenad|mellanmål|kamrat|sjukvårdsutbildad|skärmar)\b/g;
+    /\b(befäl|kurator|vila|koffein|frukost|vatten|promenad|mellanmål|kamrat|sjukvårdare|gruppchef|skärmar)\b/g;
 
   for (const cat of ['fysisk', 'psykisk', 'social', 'somn', 'kost', 'energi']) {
     for (const värde of [5, 2]) {
