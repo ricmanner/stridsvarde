@@ -44,7 +44,7 @@ test('två kodbyten i rad visar båda koderna', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /Lägg till personer/ })).toBeVisible();
 
   await page.getByLabel('Antal värnpliktiga').fill('2');
-  await page.getByRole('button', { name: /Skapa och generera koder/ }).click();
+  await page.getByRole('button', { name: /Skapa värnpliktiga och koder/ }).click();
 
   // Först visas lappen med de två nya koderna. Stäng den.
   await expect(page.getByText(KODMONSTER).first()).toBeVisible({ timeout: 20_000 });

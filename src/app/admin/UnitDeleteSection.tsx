@@ -10,7 +10,8 @@ import {
   previewUnitDeletionAction,
   type DeleteUnitState,
 } from '@/app/actions/admin';
-import type { UnitDeletion } from '@/lib/db/queries/admin';
+import type { UnitDeletion, UnitKind } from '@/lib/db/queries/admin';
+import { uppräkning } from '@/lib/format';
 
 /**
  * Radera en enhet med allt under sig.
@@ -26,7 +27,15 @@ import type { UnitDeletion } from '@/lib/db/queries/admin';
  *      Namnet kontrolleras också på servern, så det här är inte bara ett hinder
  *      i formuläret.
  */
-export default function UnitDeleteSection({ unitId, unitName }: { unitId: number; unitName: string }) {
+export default function UnitDeleteSection({
+  unitId,
+  unitName,
+  unitKind,
+}: {
+  unitId: number;
+  unitName: string;
+  unitKind: UnitKind;
+}) {
   const [preview, setPreview] = useState<UnitDeletion | { error: string } | null>(null);
   const [loading, startLoading] = useTransition();
   const [bekraftelse, setBekraftelse] = useState('');
@@ -41,8 +50,12 @@ export default function UnitDeleteSection({ unitId, unitName }: { unitId: number
       {!preview && (
         <>
           <p className="mb-3 text-xs leading-relaxed text-red-800">
-            Tar bort {unitName} med allt som ligger under den: underenheter, personer
-            och deras rapporter.
+            {/* En grupp kan aldrig ha underenheter — den ligger nederst i
+                trädet. Texten var densamma för alla nivåer och lovade därför
+                något som inte kunde finnas. */}
+            {unitKind === 'grupp'
+              ? `Tar bort ${unitName} med alla personer i den och deras rapporter.`
+              : `Tar bort ${unitName} med allt som ligger under den: underenheter, personer och deras rapporter.`}
           </p>
           <button
             type="button"
@@ -106,10 +119,17 @@ function DeleteForm({
   const tom = preview.subunits === 0 && preview.people === 0;
   const matchar = bekraftelse.trim() === preview.name;
 
+  /*
+   * Ett enda led i uppräkningen, inte två listor som skarvas ihop efteråt.
+   * Rapporterna låg tidigare utanför och lades till med ", och …", vilket gav
+   * komma före "och" mellan två led — och två "och" efter varandra när både
+   * underenheter och personer fanns. Se uppräkning() i lib/format.ts.
+   */
   const delar = [
     preview.subunits > 0 && antal(preview.subunits, 'underenhet', 'underenheter'),
     preview.people > 0 && antal(preview.people, 'person', 'personer'),
-  ].filter(Boolean);
+    preview.people > 0 && 'alla deras rapporter',
+  ].filter((d): d is string => Boolean(d));
 
   return (
     <form action={formAction}>
@@ -122,8 +142,7 @@ function DeleteForm({
       ) : (
         <>
           <p className="mb-3 text-xs leading-relaxed text-red-900">
-            Raderar <strong>{preview.name}</strong> med {delar.join(' och ')}
-            {preview.people > 0 && ', och alla deras rapporter'}.{' '}
+            Raderar <strong>{preview.name}</strong> med {uppräkning(delar)}.{' '}
             <strong>Det går inte att ångra.</strong>
           </p>
           <label className="mb-3 flex flex-col gap-1">

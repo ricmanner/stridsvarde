@@ -21,3 +21,18 @@ export function formatScore(n: number): string {
     maximumFractionDigits: 1,
   });
 }
+
+/**
+ * Räknar upp led på svenskt sätt: komma mellan, "och" före det sista.
+ *
+ * Raderingsrutan byggde tidigare sin mening genom att lägga till
+ * ", och alla deras rapporter" efter en lista som redan kunde innehålla ett
+ * "och". Resultatet var antingen ett komma före "och" mellan två led — vilket
+ * svensk kommatering inte gör — eller två "och" tätt intill varandra:
+ * "med 1 underenhet och 2 personer, och alla deras rapporter".
+ */
+export function uppräkning(delar: string[]): string {
+  if (delar.length === 0) return '';
+  if (delar.length === 1) return delar[0];
+  return `${delar.slice(0, -1).join(', ')} och ${delar[delar.length - 1]}`;
+}

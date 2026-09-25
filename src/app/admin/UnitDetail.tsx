@@ -24,15 +24,15 @@ import {
   type UnitState,
 } from '@/app/actions/admin';
 import { kodnyckel, visaKodlapp } from '@/lib/kodlapp';
-import type { AdminUser, MoveTarget } from '@/lib/db/queries/admin';
+import type { AdminUser, MoveTarget, UnitKind } from '@/lib/db/queries/admin';
 import { ROLE_LABEL, type Role } from '@/lib/roles';
-import { suggestChildName, type ChildKind } from '@/lib/unit-names';
+import { NIVÅORD, suggestChildName, type ChildKind } from '@/lib/unit-names';
 
 import CodeSheet from './CodeSheet';
 import UnitDeleteSection from './UnitDeleteSection';
 
 interface Props {
-  unit: { id: number; name: string; kind: string; kindLabel: string };
+  unit: { id: number; name: string; kind: UnitKind; kindLabel: string };
   members: AdminUser[];
   /** Inloggad administratör — den egna raden hanteras annorlunda. */
   currentUserId: number;
@@ -182,7 +182,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                 className="flex cursor-pointer items-center gap-1.5 rounded-md bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:bg-slate-300"
               >
                 <Plus size={14} aria-hidden />
-                {creatingUsers ? 'Skapar…' : 'Skapa och generera koder'}
+                {creatingUsers ? 'Skapar…' : 'Skapa värnpliktiga och koder'}
               </button>
             </form>
           )}
@@ -265,8 +265,10 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
 
           {!canHoldSoldiers && (
             <p className="mt-4 border-t border-slate-100 pt-4 text-xs text-slate-500">
-              Värnpliktiga placeras i en grupp, inte direkt på{' '}
-              {unit.kindLabel.toLowerCase()}snivå.
+              {/* Ordet hämtas ur NIVÅORD. Byggt av sorten plus "snivå" blev det
+                  "kompanisnivå", medan kompanichefens egen vy heter
+                  "Kompaninivå" — appen motsade sig själv om samma enhet. */}
+              Värnpliktiga placeras i en grupp, inte direkt på {NIVÅORD[unit.kind]}.
             </p>
           )}
 
@@ -640,7 +642,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
           <section className="rounded-md border border-red-200 bg-red-50/40 p-4 sm:p-5">
             <h3 className="mb-1 text-sm font-bold text-red-900">Radera hälsodata</h3>
             <p className="mb-3 text-xs leading-relaxed text-red-800">
-              Rätten att bli raderad enligt GDPR artikel 17. Personens incheckningar
+              Rätten till radering enligt GDPR artikel 17. Personens incheckningar
               tas bort permanent. Kontot och enhetstillhörigheten behålls, så att
               svarsfrekvensen fortfarande räknas rätt. Går inte att ångra.
             </p>
@@ -695,7 +697,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
           </section>
         )}
 
-        <UnitDeleteSection unitId={unit.id} unitName={unit.name} />
+        <UnitDeleteSection unitId={unit.id} unitName={unit.name} unitKind={unit.kind} />
 
         <p className="text-center text-xs leading-relaxed text-slate-500">
           Administratörsrollen har ingen åtkomst till hälsodata. Att lägga upp enheter

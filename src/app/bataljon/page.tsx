@@ -1,4 +1,5 @@
 import LeaderPageShell from '@/components/leader/LeaderPageShell';
+import { nivåRubrik } from '@/lib/unit-names';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +9,7 @@ export default async function BataljonPage(props: {
   return (
     <LeaderPageShell
       role="bataljon"
-      levelLabel="Bataljonsnivå"
+      levelLabel={nivåRubrik('bataljon')}
       childLabel="kompanier"
       searchParams={props.searchParams}
     />

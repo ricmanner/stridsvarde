@@ -6,6 +6,7 @@ import { generateCode, hashCode } from '../../auth/codes';
 import { serviceDate } from '../../date';
 import { DEMOKONTO_SKYDDAT, PUBLICERADE_DEMOKODER } from '../../demo';
 import { ROLE_LABEL, type Role } from '../../roles';
+import { NIVÅORD } from '../../unit-names';
 import { db } from '..';
 import { environment } from '../client';
 import { eraseCheckInsForUsers, erasePersonalData } from '../retention';
@@ -442,7 +443,8 @@ export async function moveUser(
   if (!allowed.includes(target.kind as UnitKind)) {
     return {
       ok: false,
-      error: `${ROLE_LABEL[user.role as Role]} kan inte placeras på ${KIND_LABEL[target.kind as UnitKind].toLowerCase()}snivå.`,
+      // Ordet ur NIVÅORD, inte byggt av sorten: se kommentaren där.
+      error: `${ROLE_LABEL[user.role as Role]} kan inte placeras på ${NIVÅORD[target.kind as UnitKind]}.`,
     };
   }
 

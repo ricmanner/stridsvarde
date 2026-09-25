@@ -129,7 +129,7 @@ export default async function AdminPage({
           )}
           {retention.oldest && (
             <p className="mt-1 text-xs text-slate-500">
-              Äldsta uppgift i databasen: {fullDateLabel(retention.oldest)}.
+              Äldsta uppgiften i databasen: {fullDateLabel(retention.oldest)}.
             </p>
           )}
           {!retention.enabled && (

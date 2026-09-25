@@ -9,6 +9,8 @@
  * föreslog Pluton 10, och en nyskapad tom pluton föreslog Grupp 4.
  */
 
+import type { UnitKind } from './db/queries/admin';
+
 export type ChildKind = 'kompani' | 'pluton' | 'grupp';
 
 function format(kind: ChildKind, n: number): string {
@@ -41,4 +43,34 @@ export function suggestChildName(kind: ChildKind, siblingNames: readonly string[
   while (taget.has(format(kind, n).toLocaleLowerCase('sv-SE'))) n++;
 
   return format(kind, n);
+}
+
+/**
+ * Ordet för en nivå: "kompaninivå", inte "kompanisnivå".
+ *
+ * Orden stod tidigare inte någonstans — de byggdes av enhetens sort plus
+ * "snivå" där de behövdes. Det blir rätt för bataljon och pluton och fel för
+ * de andra två: svenskan tar inget foge-s i kompaninivå eller gruppnivå, lika
+ * lite som i kompanichef eller gruppchef.
+ *
+ * Följden var att appen motsade sig själv. Kompanichefens egen vy hade
+ * rubriken "Kompaninivå" medan adminvyn skrev "kompanisnivå" om samma enhet.
+ * Därför hämtar båda numera ordet härifrån — en stavning som bara finns på
+ * ett ställe kan inte glida isär.
+ *
+ * Typen importeras bara som typ, så den här filen förblir klientsäker:
+ * `import type` finns inte kvar efter kompileringen och drar alltså inte in
+ * någon serverkod.
+ */
+export const NIVÅORD: Record<UnitKind, string> = {
+  bataljon: 'bataljonsnivå',
+  kompani: 'kompaninivå',
+  pluton: 'plutonsnivå',
+  grupp: 'gruppnivå',
+};
+
+/** Samma ord med versal, som rubrik: "Kompaninivå". */
+export function nivåRubrik(sort: UnitKind): string {
+  const ord = NIVÅORD[sort];
+  return ord.charAt(0).toUpperCase() + ord.slice(1);
 }
