@@ -9,7 +9,7 @@ export const CATEGORIES: Array<{
   { key: 'fysisk',  label: 'Fysisk form',      icon: 'Activity',  question: 'Hur mår din kropp idag?' },
   { key: 'psykisk', label: 'Psykiskt mående',   icon: 'Brain',     question: 'Hur mår du mentalt?' },
   { key: 'social',  label: 'Social trivsel',    icon: 'Users',     question: 'Hur trivs du i gruppen?' },
-  { key: 'somn',    label: 'Sömn',              icon: 'Moon',      question: 'Hur sov du igår natt?' },
+  { key: 'somn',    label: 'Sömn',              icon: 'Moon',      question: 'Hur sov du i natt?' },
   { key: 'kost',    label: 'Kost och näring',   icon: 'Utensils',  question: 'Hur äter du under tjänsten?' },
   { key: 'energi',  label: 'Energinivå',        icon: 'Zap',       question: 'Hur är din energi just nu?' },
 ];

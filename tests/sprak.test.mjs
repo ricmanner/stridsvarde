@@ -144,3 +144,39 @@ test('adminvyns antal böjs med antal(), inte med ett fast plural', () => {
     assert.match(kod, /antal\(/, `${fil} ska använda antal() ur lib/format.ts`);
   }
 });
+
+/*
+ * Resten av böjningsfelen i gränssnittet.
+ *
+ * Tre av dem är obestämd form där svenskan kräver bestämd, och ett är ett
+ * verb som saknade sitt s: framflyttningen kör inte, den körs.
+ */
+test('böjningen stämmer i den värnpliktiges vy och i incheckningen', async () => {
+  const { CATEGORIES } = await import('../src/lib/data.ts');
+
+  const somn = CATEGORIES.find((c) => c.key === 'somn');
+  assert.equal(somn.question, 'Hur sov du i natt?', 'natten som gick är "i natt", inte "igår natt"');
+  for (const c of CATEGORIES) {
+    assert.ok(!/igår natt/.test(c.question), `${c.key} säger fortfarande "igår natt"`);
+  }
+
+  const vy = readFileSync('src/app/soldat/dashboard/DashboardClient.tsx', 'utf8');
+  assert.ok(!/>Senaste värde</.test(vy), 'efter en superlativ står substantivet i bestämd form');
+  assert.match(vy, />Senaste värdet</, 'Senaste värdet');
+});
+
+test('statussidan säger att framflyttningen körs, inte att den kör', async () => {
+  const { beskrivNattkorning } = await import('../src/lib/db/demo-timeline.ts');
+
+  const aldrig = beskrivNattkorning({ hemlighetSatt: true, senaste: null });
+  assert.match(aldrig.text, /har inte körts/, 'framflyttningen körs av klockan, den kör inte själv');
+  assert.ok(!/har inte kört ännu/.test(aldrig.text));
+});
+
+test('nattkörningens egen rad böjer dagarna efter talet', async () => {
+  const kod = readFileSync('src/lib/db/demo-timeline.ts', 'utf8');
+  assert.ok(
+    !/\$\{dagar\} dagar fram/.test(kod),
+    'en natt som flyttar en dag loggade "historiken flyttad 1 dagar fram" — och raden visas på statussidan',
+  );
+});

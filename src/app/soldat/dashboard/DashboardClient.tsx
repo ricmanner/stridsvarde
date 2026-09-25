@@ -207,7 +207,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
                 <div className="mb-4 rounded-md border border-slate-200 bg-white px-4 pb-4 pt-5">
                   <div className="mb-4 flex gap-5">
                     <div>
-                      <p className={NYCKELTALSETIKETT}>Senaste värde</p>
+                      <p className={NYCKELTALSETIKETT}>Senaste värdet</p>
                       <span className="text-xl font-bold text-slate-900">{svar.length > 0 ? formatScore(svar[svar.length - 1].score) : ''}</span>
                     </div>
                     <div>

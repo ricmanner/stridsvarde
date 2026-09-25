@@ -221,7 +221,7 @@ test('statussidan skiljer en klocka som går från en som stannat', async () => 
   // normala avstånd mellan två körningar är knappt 25 timmar.
   const igar = beskrivNattkorning({
     hemlighetSatt: true,
-    senaste: { tid: timmarSedan(24), detalj: 'historiken flyttad 1 dagar fram' },
+    senaste: { tid: timmarSedan(24), detalj: 'historiken flyttad 1 dag fram' },
   });
   assert.equal(igar.varning, false, 'ett dygn sedan är precis som det ska vara');
   assert.match(igar.text, /flyttad/, 'vad körningen gjorde ska stå kvar');

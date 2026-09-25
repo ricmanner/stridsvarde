@@ -246,7 +246,10 @@ export async function antecknaAutomatiskKorning(dagar: number): Promise<void> {
   await db.insert(auditLog).values({
     actorUserId: null,
     action: AUTOMATISK_KORNING,
-    detail: dagar === 0 ? 'inget att flytta' : `historiken flyttad ${dagar} dagar fram`,
+    detail:
+      dagar === 0
+        ? 'inget att flytta'
+        : `historiken flyttad ${antal(dagar, 'dag', 'dagar')} fram`,
     createdAt: new Date().toISOString(),
   });
 }
@@ -310,7 +313,7 @@ export function beskrivNattkorning(läge: {
     return {
       varning: true,
       text:
-        'Den automatiska framflyttningen har inte kört ännu. Är den nyss ' +
+        'Den automatiska framflyttningen har inte körts ännu. Är den nyss ' +
         'driftsatt är det väntat — kontrollera igen efter natten.',
     };
   }
