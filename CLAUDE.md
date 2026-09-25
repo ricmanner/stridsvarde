@@ -29,12 +29,24 @@ commit-texten, som skrivs för nästa utvecklare.
   visat sig vid en verklig körning.
 - **Vid design- eller avvägningsfrågor: lägg fram alternativ med för och emot,
   och en rekommendation.** Besluta inte åt honom.
+- **Säg vad något är värt.** Han frågar ofta hur viktigt något är. Svara med en
+  jämförelse mot det andra som står på listan, och **säg när något inte är värt
+  att göra** — det svaret är lika användbart som ett förslag.
+- **Håll en liten rättning liten.** Vill den växa till en omskrivning: säg det
+  först och låt honom välja den lilla. En stavningsrättning som blev en
+  refaktorisering kostade en halv session utan att någon bett om det.
+- **Bygg så att det går att stänga av igen, och skriv ner hur.** Han frågar om
+  nytt arbete går att ta bort. Prova återställningen på en egen gren innan du
+  påstår att den fungerar, och lägg vägen tillbaka i `NÄSTA-STEG.md` — även det
+  som ligger utanför förrådet, som en hemlighet i Vercel.
 - **Ta emot invändningar.** Han har flera gånger haft rätt mot ett förslag —
   backa då hellre än att försvara det.
 - **Föreslå inte det som redan är gjort.** Läs `NÄSTA-STEG.md` först — och
   **titta i `underlag/`** innan du skriver något som ska läsas av andra
   (meddelande till gruppen, manus, juryfrågor). Det har två gånger varit nära
-  att en andra version skrivits bredvid en befintlig som var bättre.
+  att en andra version skrivits bredvid en befintlig som var bättre. Ber han om
+  synpunkter på en text han själv skrivit: **kontrollera sakuppgifterna mot
+  koden** — det är där värdet ligger, inte i språket.
 
 ## Gränser som inte får överskridas
 
@@ -64,6 +76,10 @@ commit-texten, som skrivs för nästa utvecklare.
 - **Skriv kommentarer som förklarar varför**, särskilt när en lösning ser
   omständlig ut. Koden är full av sådana — de finns där för att spara nästa
   person felsökningstid.
+- **Gör en filändring per kommando.** Buntas flera `assert`-skyddade
+  ersättningar i ett skript avbryts allt före skrivningen när en av dem inte
+  matchar, och de andra tappas tyst. Det kostade tre omtag av samma rättning
+  den 25 september.
 - Svenska i kod, kommentarer, gränssnitt och tester. Engelska i commit-texter.
 
 ## Under hackathonet
@@ -161,6 +177,10 @@ Går den inte att läsa utan behörighet finns felet i klartext här:
 curl -s "https://api.github.com/repos/ricmanner/stridsvarde/commits/$(git rev-parse HEAD)/check-runs"
 # ta id:t för "webblasare" och hämta /check-runs/<id>/annotations
 ```
+
+Utöver koden ligger fem miljövariabler och hemligheten `CRON_SECRET` i Vercel,
+satta enbart för produktion. `CRON_SECRET` driver nattkörningen som håller
+demodatan aktuell — beskriven i `NÄSTA-STEG.md`, inklusive hur den stängs av.
 
 ## Databasen
 

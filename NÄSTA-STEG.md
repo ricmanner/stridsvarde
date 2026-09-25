@@ -3,7 +3,7 @@
 Kort överlämning mellan arbetspass. `README.md` beskriver appen, `CLAUDE.md`
 reglerna som styr arbetet — den här filen säger bara **var vi står just nu**.
 
-Senast uppdaterad: 24 september 2026.
+Senast uppdaterad: 25 september 2026.
 
 ## Läget
 
@@ -14,18 +14,38 @@ P1G1-kontona öppnades på nytt (kontrollerat: P1G1-01, som var förbrukad under
 gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
-Allt är pushat, GitHubs kontroller är gröna och demon står i visningsskick.
-150 enhetstester och 25 webbläsartester.
+**Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
+är gröna, demon är driftsatt och står i visningsskick. 153 enhetstester och 25
+webbläsartester, plus typkontroll, lint och bygge.
 
-**En sak att inte lita på:** den schemalagda kontrollen i molnet kunde INTE
-läsa demon. Miljöns nätverksregler nekar `fm-psvi-v2.vercel.app`, så den
-rapporterade att den inte kunde svara — korrekt beteende, men den duger inte
-som väktare förrän domänen tillåts i miljöns inställningar. Kontrollen gjordes
-i stället härifrån. Vill man ha den automatisk måste domänen läggas till.
+Nästa uppgift står under "Att ta härnäst". Punkterna 1–4 där är föreslagna och
+**medvetet uppskjutna av Richard den 25 september** — inte avfärdade. Ordningen
+mellan dem är en rekommendation, inte hans beslut.
+
+Att den schemalagda molnkontrollen inte kunde läsa demon står under
+återvändsgränderna.
 
 Richard har skickat länken till en liten grupp kollegor för att testa. Han
 skrev ett eget meddelande till dem; underlaget finns i
 `underlag/meddelande-till-gruppen.md`.
+
+### Gjort den 25 september
+
+- **Språket i adminvyn rättat, och regeln som gjorde det fel borttagen.**
+  Nivåordet byggdes av enhetens sort plus "snivå" — rätt för bataljon och
+  pluton, fel för de andra två. Adminvyn skrev "kompanisnivå" om samma enhet
+  som kompanichefens egen vy kallade "Kompaninivå". Orden ligger nu i `NIVÅORD`
+  i `lib/unit-names.ts`, och **befälsvyernas tre rubriker hämtas därifrån**, så
+  stavningen finns på ett ställe och kan inte glida isär igen. Ett test vägrar
+  kod som bygger ordet med "snivå".
+
+  Fem texter till: komma före "och" i raderingsrutans uppräkning (nu
+  `uppräkning()` i `lib/format.ts`), "rätten att bli raderad" → **rätten till
+  radering** (GDPR:s egen term), en grupps raderingsruta lovade underenheter
+  som en grupp aldrig kan ha, "äldsta uppgift" → "äldsta uppgiften", och
+  "Skapa och generera koder" som sa samma sak två gånger.
+
+- **Nattkörningen bevisad** — se Läget ovan.
 
 ### Gjort den 20–24 september
 
@@ -209,7 +229,30 @@ fram demodatan och återställa demon.
    framför en publik och ska inte behöva veta vad "flytta fram" betyder.
    Frågan är din.
 
-2. **Resten av nätverksfelen.** Incheckningen är klar, men den var bara den
+2. **Låt "Återställ demon" ge en demo som är visningsklar.** Seeden skapar inga
+   notiser, och alla grupper är lika stora med hög svarsfrekvens. Följden är att
+   två saker demon ska visa upp inte finns efter en återställning: en öppen
+   samtalsbegäran, som manuset pekar på, och en enhet där det står "Underlag
+   saknas", som `underlag/juryfragor.md` kallar den bästa demonstrationen av
+   integriteten. Låt seeden skapa en liten enhet — säg en spaningsgrupp med tre
+   värnpliktiga — och en samtalsbegäran. En till två timmar med tester. Den här
+   ger mest inför hackathonet, eftersom den tar bort pyssel just före en
+   visning.
+
+3. **Låt den som mår dåligt nå nästa nivå samma dag.** Den som ber sitt
+   plutonsbefäl om samtal på morgonen kan inte be igen samma dag via appen —
+   kvittot har ersatt båda knapparna (`aktivSamtalsbegaran()`, medvetet så).
+   Stödlinjernas nummer står kvar, och det är det verkliga skyddsnätet, men
+   appens egen väg uppåt är stängd resten av dygnet. Rekommendation: behåll
+   kvittot men låt knappen till den ANDRA nivån stå kvar. Ungefär en timme. Det
+   är en avvägning om hur appen beter sig mot någon som mår dåligt, så beslutet
+   är Richards.
+
+4. **Skavank i incheckningen.** Ändrar man ett svar från sammanfattningen måste
+   man klicka "Nästa" genom de återstående frågorna för att komma tillbaka. Att
+   gå direkt till sammanfattningen är några rader. En halvtimme, ingen brådska.
+
+5. **Resten av nätverksfelen.** Incheckningen är klar, men den var bara den
    första av flera skrivvägar. Utan tidsgräns står ännu inloggningen
    (`actions/auth.ts`), samtalsbegäran, och administratörens åtgärder: skapa
    och radera enheter, utfärda koder.
@@ -224,7 +267,7 @@ fram demodatan och återställa demon.
    databas som just visat sig hänga. Incheckningen går runt det genom att
    logga i `after()`, alltså efter att svaret gått iväg. En egen kort
    tidsgräns inuti `logError` vore en bättre lösning för hela appen.
-3. **De två besluten inför skarp drift**, som är verksamhetens och inte
+6. **De två besluten inför skarp drift**, som är verksamhetens och inte
    utvecklarens: lagringstid (`RETENTION_DAYS`) och säkerhetskopior av
    Turso-databasen. Underlag finns skrivet — fråga Richard efter det.
    Säkerhetskopiorna är den mer akuta av de två: appens egen kopiering fungerar
@@ -235,7 +278,7 @@ fram demodatan och återställa demon.
    alltså inte om det är påslaget utan vilken plan kontot har, och i vilken
    region databasen ligger. Värt att veta i förväg: en återställning skapar en
    **ny** databas, så adressen i Vercel måste pekas om efteråt.
-4. **Designfrågor som väntar på ett samtal**, inte på kod: reglaget i
+7. **Designfrågor som väntar på ett samtal**, inte på kod: reglaget i
    incheckningen börjar på 5, så den som bara trycker "Nästa" skickar in sex
    femmor som ser ut som svar. Att tvinga fram en rörelse straffar den som
    verkligen menar 5 — Richard har avfärdat både det och att hoppa över frågor.
@@ -352,6 +395,16 @@ koden direkt vid första start, innan du gör något annat.**
 ## Återvändsgränder — prova inte om igen
 
 Sådant som såg ut som förbättringar och inte var det. Varje rad kostade tid.
+
+- **En schemalagd kontroll i molnet kan inte läsa demon.** Den 25 september
+  ställdes en routine in som skulle logga in på den driftsatta demon och
+  rapportera om nattkörningen gått igång. Den startade i tid men kom aldrig
+  fram: molnmiljöns nätverksregler nekar `fm-psvi-v2.vercel.app`. Den
+  rapporterade att den inte kunde svara i stället för att gissa — rätt
+  beteende, men värdelöst som väktare. Ska en sådan kontroll fungera måste
+  domänen läggas till bland tillåtna i miljöns inställningar, vilket är en
+  inställning hos Richard och inte i koden. Under tiden: läs själv den enda
+  meningen under "Demodata" på `/status`.
 
 - **En schemalagd körning möts av proxyn, inte av sin rutt.** Proxyn skickar
   varje adress utan sessionskaka vidare till inloggningen, och en klocka har
