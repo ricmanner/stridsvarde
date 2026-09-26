@@ -15,7 +15,7 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 186 enhetstester och 32
+är gröna, demon är driftsatt och står i visningsskick. 187 enhetstester och 32
 webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
 och bygge.
 
@@ -62,6 +62,24 @@ Följden för arbetet: det finns ingen återkoppling utifrån att väga listan m
 och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 26 september
+
+- **Periodväljaren står en gång, överst i sammanfattningen.** Den stod inne
+  i varje flik, under sammanfattningen, men räknade om talen ovanför sig.
+  Richard frågade vad "eget snitt" gällde — svaret stod i en knapp han inte
+  kopplat till raden. Nu: *PERIOD 7d 14d 21d* till höger om nivånamnet, före
+  flikarna, en gång i stället för tre. Rubrikerna i flikarna behåller "över
+  14 dagar", så att en skärmdump säger vad den visar, och på papper står
+  perioden i text eftersom väljaren inte skrivs ut. Väljaren är en namngiven
+  grupp med den valda perioden märkt för skärmläsare.
+
+  Prövat i 320, 390, 700 och 1100 px: fliken står kvar när perioden byts, och
+  sidan rullar aldrig i sidled. **En skärmdump direkt efter ett byte kan visa
+  fel knapp mörk** — knapparna tonar om på 0,15 sekunder. Sidans markering är
+  rätt hela tiden; ta bilden en sekund senare.
+
+  **Så tar du bort den igen:** `git revert --no-edit b222024`. Prövat den 26
+  september på en egen gren: `src` och testerna blir identiska med läget före,
+  och de 186 tester som fanns då är gröna.
 
 - **Befälsvyns sammanfattning är en stapel över hela enheten.** Tre
   fristående tal ("● 1 Grön ● 22 Gula ● 1 Röd") bröts var för sig i
