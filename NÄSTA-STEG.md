@@ -47,9 +47,14 @@ nytt namn. Den går att radera när som helst; kör sedan `git worktree prune` i
 `~/Code/Stridvärde app` så försvinner registreringen. Vägen tillbaka, om något
 skulle fattas: ta filerna ur den gamla mappen, den är orörd.
 
-Richard har skickat länken till en liten grupp kollegor för att testa. Han
-skrev ett eget meddelande till dem; underlaget finns i
-`underlag/meddelande-till-gruppen.md`.
+**Ingen kollega har provat demon än.** Den här filen påstod motsatsen, vilket
+var fel. Richard var på väg att skicka länken den 25 september, men höll igen
+när grammatikgenomgången visade hur många språkfel som fanns — han skickar den
+först när han är mycket nöjd med appen. Meddelandet till gruppen ligger färdigt
+i `underlag/meddelande-till-gruppen.md` och väntar bara på att skickas.
+
+Följden för arbetet: det finns ingen återkoppling utifrån att väga listan mot,
+och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 26 september
 
