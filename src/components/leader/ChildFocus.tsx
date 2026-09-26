@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Check } from 'lucide-react';
 import {
   Line,
@@ -33,6 +33,7 @@ import StatusBandLegend from '@/components/charts/StatusBandLegend';
 import type { ChildComparison, ChildUnitSummary, SeriesPoint } from '@/lib/db/queries/aggregates';
 import { CATEGORIES, type Category } from '@/lib/data';
 import { formatScore } from '@/lib/format';
+import { jämförelsebeskrivning, profilbeskrivning } from '@/lib/graftext';
 import type { Guarded } from '@/lib/privacy';
 
 /**
@@ -69,6 +70,15 @@ export default function ChildFocus({
   const lagst = [...synliga].sort((a, b) => (a.overall ?? 0) - (b.overall ?? 0))[0];
   const [valdId, setValdId] = useState<number | undefined>(lagst?.id);
   const [aktiva, setAktiva] = useState<Set<Category>>(new Set(CATEGORIES.map((c) => c.key)));
+  /*
+   * Egna id:n för de två grafbeskrivningarna. Komponenten kan finnas i flera
+   * exemplar på en sida, så id:na får inte vara fasta strängar.
+   *
+   * Står här bland de andra krokarna, före den tidiga returen nedan: en krok
+   * efter en retur körs inte varje gång komponenten ritas, och då hamnar
+   * Reacts krokordning ur led. Lagt fel en gång — eslint fångade det.
+   */
+  const idPrefix = useId();
 
   const vald = synliga.find((c) => c.id === valdId) ?? lagst;
   if (!vald) return null;
@@ -142,7 +152,13 @@ export default function ChildFocus({
             <span className="text-xs font-semibold text-slate-800">Över tid</span>
             {nyckel}
           </div>
-          <div role="img" aria-label={`${vald.name} mot hela enheten över tid`}>
+          {/* Beskrivningen ligger utanför role="img" — innehåll inuti en bild
+              göms för skärmläsaren. Se ScoreTrendChart för hela skälet. */}
+          <div
+            role="img"
+            aria-label={`${vald.name} mot hela enheten över tid`}
+            aria-describedby={`${idPrefix}-tid`}
+          >
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={tidslinje} margin={{ top: 8, right: 14, left: 0, bottom: 0 }}>
                 {BANDS.map((b) => (
@@ -178,6 +194,14 @@ export default function ChildFocus({
               </LineChart>
             </ResponsiveContainer>
           </div>
+          <p id={`${idPrefix}-tid`} className="sr-only">
+            {jämförelsebeskrivning(
+              vald.name,
+              tidslinje.map((r) => ({ key: r.key, label: r.label, value: r.vald })),
+              'Hela enheten',
+              tidslinje.map((r) => ({ key: r.key, label: r.label, value: r.snitt })),
+            )}
+          </p>
           <div className="mt-1 px-1">
             <StatusBandLegend />
           </div>
@@ -210,7 +234,11 @@ export default function ChildFocus({
             })}
           </div>
 
-          <div role="img" aria-label={`Profil för ${vald.name} mot hela enheten`}>
+          <div
+            role="img"
+            aria-label={`Profil för ${vald.name} mot hela enheten`}
+            aria-describedby={`${idPrefix}-profil`}
+          >
             <ResponsiveContainer width="100%" height={250}>
               <RadarChart data={profil} outerRadius="72%">
                 <PolarGrid stroke={GRID} />
@@ -236,6 +264,9 @@ export default function ChildFocus({
               </RadarChart>
             </ResponsiveContainer>
           </div>
+          <p id={`${idPrefix}-profil`} className="sr-only">
+            {profilbeskrivning(vald.name, 'hela enheten', profil)}
+          </p>
         </div>
       </div>
     </div>

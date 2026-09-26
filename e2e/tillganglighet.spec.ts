@@ -108,3 +108,27 @@ test('adminvyn och rapporten', async ({ page }) => {
   await page.goto('/rapport');
   expect.soft(await granska(page, 'rapport')).toEqual([]);
 });
+
+/**
+ * Graferna ska berätta vad de visar.
+ *
+ * Kontrollerar det en skärmläsare faktiskt får: etiketten säger vad grafen är,
+ * beskrivningen vad den visar. Läses ur tillgänglighetsträdet, inte ur koden —
+ * en beskrivning som inte kopplas ihop med grafen finns inte för den som
+ * lyssnar, hur rätt den än står i filen.
+ */
+test('graferna säger vad de visar, inte bara vad de heter', async ({ page }) => {
+  await loggaIn(page, KODER.varnpliktigKlar);
+
+  const egenGraf = page.getByRole('img', { name: /Ditt mående/ });
+  await expect(egenGraf).toBeVisible();
+  await expect(egenGraf, 'grafen beskriver inte sina egna tal').toHaveAccessibleDescription(
+    /Senaste värdet \d/,
+  );
+
+  // Och de sex små: varje kategori har sin egen beskrivning.
+  await page.getByRole('tab', { name: 'Historik' }).click();
+  const somn = page.getByRole('img', { name: /Sömn/ });
+  await expect(somn).toBeVisible();
+  await expect(somn).toHaveAccessibleDescription(/Senaste värdet \d|Inget underlag/);
+});

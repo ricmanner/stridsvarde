@@ -118,3 +118,34 @@ test('sammanfattningens rader går att nå med tangentbord', () => {
     'ingen klickbar div kvar i sammanfattningen',
   );
 });
+
+/*
+ * Graferna ska peka på sin beskrivning.
+ *
+ * Alla sex grafer var märkta role="img" med en etikett som sa vad de HETER —
+ * "Ditt mående de senaste fjorton dagarna" — och inget om innehållet. Den som
+ * lyssnar fick veta att det FINNS en graf, och inget mer. Texten byggs i
+ * lib/graftext.ts, som prövas i graftext.test.mjs; här kontrolleras bara att
+ * varje graf faktiskt pekar på en.
+ *
+ * Innehåll inuti ett element med role="img" göms för skärmläsaren, så
+ * beskrivningen kan inte ligga där inne. Den ligger i ett eget stycke intill,
+ * och grafen pekar på den med aria-describedby.
+ */
+test('varje graf pekar på sin beskrivning', () => {
+  for (const fil of ['charts/ScoreTrendChart.tsx', 'leader/ChildFocus.tsx']) {
+    const kod = readFileSync(path.join(KOMPONENTER, fil), 'utf8')
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
+    const antalGrafer = (kod.match(/role="img"/g) ?? []).length;
+    const antalBeskrivna = (kod.match(/aria-describedby=/g) ?? []).length;
+
+    assert.ok(antalGrafer > 0, `${fil}: ingen graf hittad`);
+    assert.equal(
+      antalBeskrivna,
+      antalGrafer,
+      `${fil}: ${antalGrafer} grafer men ${antalBeskrivna} beskrivningar`,
+    );
+  }
+});

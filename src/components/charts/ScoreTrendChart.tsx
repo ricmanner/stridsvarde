@@ -1,9 +1,11 @@
 'use client';
 
+import { useId } from 'react';
 import { Line, LineChart, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { getStatus, statusLabel } from '@/lib/data';
 import { formatScore } from '@/lib/format';
+import { seriebeskrivning } from '@/lib/graftext';
 
 import {
   AXIS_TICK,
@@ -50,8 +52,20 @@ export default function ScoreTrendChart({
   const labels = new Map(data.map((d) => [d.key, d.label]));
   const sista = data.findLastIndex((d) => d.value !== null);
 
+  /*
+   * Beskrivningen ligger UTANFÖR role="img", inte inuti.
+   *
+   * Ett element med role="img" räknas som en bild, och dess innehåll göms
+   * därför för skärmläsaren. En dold text inuti grafen hade alltså inte lästs
+   * upp alls. Den ligger i stället som ett eget stycke intill, och grafen pekar
+   * på den med aria-describedby: etiketten säger vad grafen är, beskrivningen
+   * vad den visar.
+   */
+  const beskrivningId = useId();
+
   return (
-    <div role="img" aria-label={ariaLabel}>
+    <>
+    <div role="img" aria-label={ariaLabel} aria-describedby={beskrivningId}>
       <ResponsiveContainer width="100%" height={height}>
         <LineChart data={data} margin={{ top: 8, right: 14, left: 0, bottom: 0 }}>
           {BANDS.map((b) => (
@@ -125,5 +139,9 @@ export default function ScoreTrendChart({
         </LineChart>
       </ResponsiveContainer>
     </div>
+    <p id={beskrivningId} className="sr-only">
+      {seriebeskrivning(data)}
+    </p>
+    </>
   );
 }
