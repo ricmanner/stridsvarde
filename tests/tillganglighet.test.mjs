@@ -149,3 +149,28 @@ test('varje graf pekar på sin beskrivning', () => {
     );
   }
 });
+
+/*
+ * Periodväljaren står ovanför allt den styr — en gång.
+ *
+ * Den stod inne i varje flik, under sammanfattningen, och ändrade ändå
+ * talen ovanför sig: "24 värnpliktiga · eget snitt" räknades om när man
+ * tryckte på en knapp längre ned. Richard frågade vad snittet gällde, och
+ * svaret stod i en kontroll han inte kopplade till raden.
+ *
+ * Nu står den en gång, i sammanfattningen, före flikarna. Som enda väljare
+ * för hela sidan ska den också gå att förstå utan att se den: en namngiven
+ * grupp, och den valda perioden märkt.
+ */
+test('periodväljaren står en gång, ovanför flikarna, och säger vilken som är vald', () => {
+  const kod = readFileSync(path.join(KOMPONENTER, 'leader', 'LeaderDashboard.tsx'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+
+  const anrop = [...kod.matchAll(/<PeriodPicker\b/g)];
+  assert.equal(anrop.length, 1, `periodväljaren står ${anrop.length} gånger`);
+  assert.ok(anrop[0].index < kod.indexOf('<Tabs'), 'periodväljaren står under det den styr');
+
+  assert.match(kod, /role="group"[^>]*aria-label="Period"/, 'väljaren är ingen namngiven grupp');
+  assert.match(kod, /aria-current=\{current === d/, 'den valda perioden är inte märkt');
+});

@@ -86,11 +86,26 @@ export default function LeaderDashboard({
     <div className="flex flex-1 flex-col bg-slate-50">
       {/* ── Sammanfattningsrad ── */}
       <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+        {/*
+          Perioden väljs här, ovanför allt den styr. Den stod förut inne i
+          varje flik och räknade om talen ovanför sig — se testet i
+          tests/tillganglighet.test.mjs.
+        */}
+        <div className="mx-auto mb-3 flex max-w-5xl items-center justify-between gap-3">
+          <p className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
+            {levelLabel}
+            {/* Väljaren skrivs inte ut, så på papper står perioden i text. */}
+            <span className="hidden print:inline"> · {period} dagar</span>
+          </p>
+          <div className="no-print flex items-center gap-2">
+            <span aria-hidden className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
+              Period
+            </span>
+            <PeriodPicker current={period} pathname={pathname} />
+          </div>
+        </div>
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-5 gap-y-3">
           <div>
-            <p className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
-              {levelLabel} · {period} dagar
-            </p>
             <div className="flex items-baseline gap-2">
               {overall !== null ? (
                 <>
@@ -155,15 +170,8 @@ export default function LeaderDashboard({
         {/* ── ÖVERSIKT ── */}
         {tab === 'overview' && (
           <Panel id="overview">
-            {/*
-              Väljaren stod bara på de två andra flikarna, trots att rubriken
-              här är den första som nämner en period. Den som läste "över 7
-              dagar" hade ingenstans att ändra det.
-            */}
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <SL inline>Kategorier — snitt och fördelning över {period} dagar</SL>
-              <PeriodPicker current={period} pathname={pathname} />
-            </div>
+            {/* Perioden står kvar i rubriken, så att en skärmdump säger vad den visar. */}
+            <SL>Kategorier — snitt och fördelning över {period} dagar</SL>
             {cats.ok && dist.ok ? (
               <div className="mb-4 overflow-hidden rounded-md border border-slate-200 bg-white">
                 {CATEGORIES.map((cat, i) => {
@@ -256,10 +264,7 @@ export default function LeaderDashboard({
         {/* ── TRENDER ── */}
         {tab === 'trends' && (
           <Panel id="trends">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <SL inline>Kategoritrender — {period} dagar</SL>
-              <PeriodPicker current={period} pathname={pathname} />
-            </div>
+            <SL>Kategoritrender — {period} dagar</SL>
 
             <div className="mb-6">
               <CategoryTrendGrid
@@ -321,10 +326,7 @@ export default function LeaderDashboard({
         {/* ── JÄMFÖRELSE ── */}
         {tab === 'compare' && (
           <Panel id="compare">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <SL inline>Jämförelse mellan {childLabel} — {period} dagar</SL>
-              <PeriodPicker current={period} pathname={pathname} />
-            </div>
+            <SL>Jämförelse mellan {childLabel} — {period} dagar</SL>
 
             {visibleChildren.length === 0 ? (
               <Suppressed
@@ -490,9 +492,9 @@ function Preliminary({ children }: { children: React.ReactNode }) {
   return <p className="mt-1.5 text-etikett leading-relaxed text-slate-500">{children}</p>;
 }
 
-function SL({ children, inline = false }: { children: React.ReactNode; inline?: boolean }) {
+function SL({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className={`text-etikett font-bold uppercase tracking-[0.1em] text-slate-500 ${inline ? '' : 'mb-2'}`}>
+    <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
       {children}
     </h2>
   );
@@ -534,12 +536,15 @@ function Väntan() {
  */
 function PeriodPicker({ current, pathname }: { current: Period; pathname: string }) {
   return (
-    <div className="no-print flex gap-1">
+    // Den enda väljaren för hela sidan: namngiven, och den valda märkt, så att
+    // den som lyssnar hör vilken period talen gäller.
+    <div role="group" aria-label="Period" className="flex gap-1">
       {ALLOWED_PERIODS.map(d => (
         <Link
           key={d}
           href={`${pathname}?period=${d}`}
           scroll={false}
+          aria-current={current === d ? 'true' : undefined}
           className={`rounded border-[1.5px] px-2.5 py-1 text-etikett font-bold transition-colors ${
             current === d
               ? 'border-slate-900 bg-slate-900 text-white'
