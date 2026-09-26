@@ -396,3 +396,26 @@ test('fördelningen under varje kategori säger att den räknar svar', async () 
   assert.match(kod, /statusSvar\('green', d\.green\)/, 'fördelningsraden säger inte vad den räknar');
   assert.ok(!/statusOrd\('green', d\.green\)/.test(kod), 'fördelningsraden använder personordet');
 });
+
+/*
+ * Riktningen säger vad den jämför.
+ *
+ * "Stigande" jämför snittet av de tre senaste rapporterna mot de tre före
+ * (ownTrend). Ögat läser i stället kurvans sista streck, och de två kan gå åt
+ * olika håll: 4, 5, 6 och sedan 8, 8, 6 är stigande trots att sista punkten
+ * föll. Utan förklaring ser det ut som att appen säger emot sin egen kurva.
+ *
+ * Med färre än sex rapporter finns inte tre mot tre att jämföra, och då får
+ * förklaringen inte påstå det.
+ */
+test('riktningen på egen sida säger vad den jämför', async () => {
+  const { trendJamforelse } = await import('../src/lib/own-trend.ts');
+
+  assert.equal(trendJamforelse(6), 'De tre senaste rapporterna mot de tre före');
+  assert.equal(trendJamforelse(14), 'De tre senaste rapporterna mot de tre före');
+  assert.equal(trendJamforelse(5), null, 'tre mot två är inte tre mot tre');
+  assert.equal(trendJamforelse(3), null);
+
+  const vy = synligText('src/app/soldat/dashboard/DashboardClient.tsx');
+  assert.match(vy, /trendJamforelse\(svar\.length\)/, 'riktningen visas utan att säga vad den jämför');
+});

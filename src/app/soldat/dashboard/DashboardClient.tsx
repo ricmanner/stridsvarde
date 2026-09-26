@@ -10,7 +10,7 @@ import StatusBandLegend from '@/components/charts/StatusBandLegend';
 import StatusBadge from '@/components/StatusBadge';
 import Tabs, { Panel } from '@/components/Tabs';
 import { CATEGORIES, type Category, getStatus, statusColor, avgScore } from '@/lib/data';
-import { ownTrend } from '@/lib/own-trend';
+import { ownTrend, trendJamforelse } from '@/lib/own-trend';
 import { getSoldierTips } from '@/lib/advice';
 import SupportBlock from './SupportBlock';
 import { shortLabel } from '@/lib/date';
@@ -44,6 +44,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
 
   const svar = chartData.filter((d): d is typeof d & { score: number; scores: Record<Category, number> } => d.scores !== null);
   const trend = ownTrend(svar.map(d => d.scores));
+  const jamforelse = trendJamforelse(svar.length);
 
   /*
    * Bara de två sämsta korten syns med en gång.
@@ -206,7 +207,8 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
                 <SectionHeader label="Trend — 14 dagar" />
                 <div className="mb-4 rounded-md border border-slate-200 bg-white px-4 pb-4 pt-5">
                   <div className="mb-4 flex gap-5">
-                    <div>
+                    {/* Förklaringen under riktningen ska brytas, inte den här etiketten. */}
+                    <div className="shrink-0">
                       <p className={NYCKELTALSETIKETT}>Senaste värdet</p>
                       <span className="text-xl font-bold text-slate-900">{svar.length > 0 ? formatScore(svar[svar.length - 1].score) : ''}</span>
                     </div>
@@ -226,6 +228,8 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
                           {trend === 'up' ? 'Stigande' : trend === 'down' ? 'Sjunkande' : 'Stabil'}
                         </span>
                       </div>
+                      {/* Annars kan ordet se ut att säga emot kurvan — se trendJamforelse(). */}
+                      {jamforelse && <p className="mt-0.5 text-etikett text-slate-500">{jamforelse}</p>}
                     </div>
                   </div>
                   <ScoreTrendChart

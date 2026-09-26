@@ -28,3 +28,18 @@ export function ownTrend(checkIns: Array<Record<Category, number>>): Trend {
   if (diff < -0.3) return 'down';
   return 'neutral';
 }
+
+/**
+ * Vad riktningen jämför, i klartext under ordet.
+ *
+ * Ögat läser kurvans sista streck, riktningen läser sex rapporter: 4, 5, 6
+ * och sedan 8, 8, 6 är "Stigande" trots att sista punkten föll. Utan den här
+ * raden såg det ut som att sidan sa emot sin egen kurva.
+ *
+ * Först vid sex rapporter finns tre mot tre. Med fem jämför ownTrend tre mot
+ * två, och under det ingenting alls — då skulle texten påstå något som inte
+ * hände, så den utelämnas.
+ */
+export function trendJamforelse(antalRapporter: number): string | null {
+  return antalRapporter >= 6 ? 'De tre senaste rapporterna mot de tre före' : null;
+}
