@@ -11,7 +11,16 @@ import Tabs, { Panel } from '@/components/Tabs';
 import ChildFocus from '@/components/leader/ChildFocus';
 import ComparisonGrid from '@/components/leader/ComparisonGrid';
 import Suppressed from '@/components/leader/Suppressed';
-import { CATEGORIES, getStatus, statusOrd, statusSvar, type Status } from '@/lib/data';
+import {
+  CATEGORIES,
+  getStatus,
+  personfordelning,
+  statusColor,
+  statusOrd,
+  statusSvar,
+  type Personfordelning,
+  type Status,
+} from '@/lib/data';
 import type { ChildComparison, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
 import { ALLOWED_PERIODS, type Period } from '@/lib/privacy';
 import { ordformer, type ChildKind } from '@/lib/unit-names';
@@ -98,16 +107,19 @@ export default function LeaderDashboard({
 
           <div className="hidden h-9 w-px bg-slate-200 sm:block" />
 
+          {/*
+            Undanhållen fördelning ger bara antalet värnpliktiga — inte heller
+            hur många som saknar svar, se personfordelning().
+          */}
           {overview.soldierStatus.ok ? (
             <>
-              {/* "1 Grön", inte "1 Gröna" — se statusOrd() i lib/data.ts. */}
-              <Stat n={overview.soldierStatus.data.green} status="green" color="#059669" />
-              <Stat n={overview.soldierStatus.data.yellow} status="yellow" color="#D97706" />
-              <Stat n={overview.soldierStatus.data.red} status="red" color="#DC2626" />
+              <Fordelning f={personfordelning(overview.soldierStatus.data, overview.eligible)} />
+              {/* Först från lg: mellan sm och lg bryts det som följer till nästa rad, och då står strecket ensamt. */}
+              <div className="hidden h-9 w-px bg-slate-200 lg:block" />
             </>
-          ) : null}
-
-          <span className="text-xs text-slate-500">{overview.eligible} värnpliktiga</span>
+          ) : (
+            <span className="text-xs text-slate-500">{overview.eligible} värnpliktiga</span>
+          )}
           <span className="text-xs text-slate-500">
             {procent(overview.today.pct)} svarat idag ({overview.today.responders}/{overview.eligible})
           </span>
@@ -410,15 +422,56 @@ export default function LeaderDashboard({
   );
 }
 
-function Stat({ n, status, color }: { n: number; status: Status; color: string }) {
-  // Ordet böjs efter talet och får versal här, eftersom det står som etikett.
-  const ord = statusOrd(status, n);
+/*
+ * Textfärgerna är statusTextColor() som klasser, samma som fördelningen under
+ * varje kategori: talen är text och behöver 4,5:1, stapeln bara 3:1.
+ */
+const FORDELNING_TEXT: Record<Status, string> = {
+  green: 'text-emerald-700',
+  yellow: 'text-amber-700',
+  red: 'text-red-700',
+};
+
+/**
+ * Hela enheten som en stapel, efter var och ens eget snitt.
+ *
+ * Ersätter tre fristående tal ("● 1 Grön ● 22 Gula ● 1 Röd"). De bröts var för
+ * sig i telefonen, så att röd hamnade ensam på raden under, och de sa varken
+ * vad de räknade eller hur stor del av enheten de var. Stapeln har samma form
+ * som den under varje kategori, så sidan läses på ett sätt.
+ *
+ * De som inte svarat under perioden är grå: grått är "ingen uppgift", inte en
+ * status. Stapeln är dold för skärmläsare — talen under säger samma sak i text.
+ */
+function Fordelning({ f }: { f: Personfordelning }) {
+  const statusar: Status[] = ['green', 'yellow', 'red'];
 
   return (
-    <div className="flex items-center gap-1.5">
-      <span className="size-2 rounded-full" style={{ background: color }} />
-      <span className="text-base font-bold tabular-nums text-slate-900">{n}</span>
-      <span className="text-xs text-slate-500">{ord.charAt(0).toUpperCase() + ord.slice(1)}</span>
+    <div className="w-full sm:w-72">
+      <p className="mb-1.5 text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
+        {f.total} värnpliktiga · eget snitt
+      </p>
+      <div className="mb-1.5 flex h-2 overflow-hidden rounded-full" aria-hidden>
+        {statusar.map((s) => (
+          <div key={s} style={{ width: `${(f[s] / f.total) * 100}%`, background: statusColor(s) }} />
+        ))}
+        {/* slate-300: neutral, så att den inte läses som en fjärde status */}
+        <div style={{ width: `${(f.utanSvar / f.total) * 100}%`, background: '#CBD5E1' }} />
+      </div>
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        {statusar.map((s) => (
+          <span key={s}>
+            <span className={`text-base font-bold tabular-nums ${FORDELNING_TEXT[s]}`}>{f[s]}</span>{' '}
+            <span className="text-xs text-slate-500">{statusOrd(s, f[s])}</span>
+          </span>
+        ))}
+        {f.utanSvar > 0 && (
+          <span>
+            <span className="text-base font-bold tabular-nums text-slate-700">{f.utanSvar}</span>{' '}
+            <span className="text-xs text-slate-500">utan svar</span>
+          </span>
+        )}
+      </div>
     </div>
   );
 }

@@ -95,8 +95,8 @@ export function statusBg(s: Status): string {
  * en enda röd värnpliktig är inget undantagsfall; det är den raden ett befäl
  * tittar på först.
  *
- * Versalen är anroparens sak. Raden överst skriver "Grön", fördelningen
- * "grön", och orden ska inte finnas i två uppsättningar för det.
+ * Versalen är anroparens sak — orden ska inte finnas i två uppsättningar för
+ * att en rubrik någon gång vill ha stor bokstav.
  */
 const STATUSORD: Record<Status, { ental: string; neutrum: string; flertal: string }> = {
   green: { ental: 'grön', neutrum: 'grönt', flertal: 'gröna' },
@@ -120,6 +120,28 @@ export function statusOrd(s: Status, antal: number): string {
  */
 export function statusSvar(s: Status, antal: number): string {
   return `${antal === 1 ? STATUSORD[s].neutrum : STATUSORD[s].flertal} svar`;
+}
+
+export interface Personfordelning extends Record<Status, number> {
+  utanSvar: number;
+  total: number;
+}
+
+/**
+ * Hela enheten, fördelad efter var och ens eget snitt — plus dem som inte svarat.
+ *
+ * Grön/gul/röd räknar bara den som svarat under perioden. Utan en egen del för
+ * resten ser en pluton där hälften tystnat lika frisk ut som en där alla
+ * svarat, och "40 värnpliktiga" står bredvid tal som tillsammans blir 24.
+ *
+ * Anroparen visar det här bara när fördelningen själv får visas: är
+ * soldierStatus undanhållen ska antalet utan svar också vara det, annars blir
+ * det en väg runt k-anonymiteten.
+ */
+export function personfordelning(status: Record<Status, number>, eligible: number): Personfordelning {
+  const svarat = status.green + status.yellow + status.red;
+  const total = Math.max(eligible, svarat);
+  return { ...status, utanSvar: total - svarat, total };
 }
 
 export function statusLabel(s: Status): string {

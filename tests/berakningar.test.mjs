@@ -400,3 +400,31 @@ test('riktningen på egen sida vänder vid 0,3 — räknat för hand', async () 
   // För få svar att jämföra: alltid stabil, hur stor skillnaden än är.
   assert.equal(ownTrend([dag(2), dag(9), dag(9)]), 'neutral');
 });
+
+/*
+ * Stapeln överst i befälsvyn räcker till hela enheten.
+ *
+ * Grön/gul/röd räknar bara den som svarat under perioden. Lokalt stod
+ * "40 värnpliktiga" bredvid tal som tillsammans blev 24, och en pluton där
+ * hälften tystnat såg lika frisk ut som en där alla svarat. De som saknas får
+ * en egen, grå del — "utan svar" — så att stapeln alltid är hela enheten.
+ */
+test('fördelningen överst räknar in dem som inte svarat', async () => {
+  const { personfordelning } = await import('../src/lib/data.ts');
+
+  assert.deepEqual(personfordelning({ green: 1, yellow: 22, red: 1 }, 24), {
+    green: 1, yellow: 22, red: 1, utanSvar: 0, total: 24,
+  });
+  assert.deepEqual(personfordelning({ green: 1, yellow: 22, red: 1 }, 40), {
+    green: 1, yellow: 22, red: 1, utanSvar: 16, total: 40,
+  });
+  // Går aldrig under noll, även om antalet skulle hinna ändras mellan frågorna.
+  assert.equal(personfordelning({ green: 3, yellow: 2, red: 0 }, 4).utanSvar, 0);
+  assert.equal(personfordelning({ green: 3, yellow: 2, red: 0 }, 4).total, 5);
+
+  const { readFileSync } = await import('node:fs');
+  const vy = readFileSync('src/components/leader/LeaderDashboard.tsx', 'utf8');
+  assert.match(vy, /personfordelning\(/, 'befälsvyn räknar inte in dem som inte svarat');
+  assert.match(vy, /utan svar/);
+  assert.match(vy, /värnpliktiga · eget snitt/, 'stapeln säger inte vad den räknar');
+});
