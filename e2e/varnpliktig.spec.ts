@@ -101,5 +101,5 @@ test('låga värden ger stödkontakter, inte bara en siffra', async ({ page }) =
   expect(text, 'krislinjerna ska finnas när psykiskt mående är rött').toContain('självmordslinjen');
 
   // Och möjligheten att be befälet höra av sig.
-  await expect(page.getByRole('button', { name: /plutonsbefäl/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /plutonchefen/i })).toBeVisible();
 });

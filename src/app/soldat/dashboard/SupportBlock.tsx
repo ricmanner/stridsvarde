@@ -106,7 +106,7 @@ export default function SupportBlock({
               disabled={pending}
               className="flex-1 rounded-md bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:bg-slate-300"
             >
-              {pending ? 'Skickar…' : 'Mitt plutonsbefäl'}
+              {pending ? 'Skickar…' : 'Plutonchefen'}
             </button>
             <button
               type="submit"

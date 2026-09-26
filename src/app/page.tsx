@@ -52,9 +52,7 @@ export default async function LoginPage({
           <LoginForm expired={utgangen === '1'} aterstalld={aterstalld === '1'} />
 
           <p className="mt-8 text-center text-xs leading-relaxed text-slate-500">
-            Din kod tillhandahålls av ditt befäl.
-            <br />
-            Kontakta plutonsbefälet om du tappat bort den.
+            Kontakta plutonchefen om du tappat bort den.
           </p>
 
           {demoCodes && (

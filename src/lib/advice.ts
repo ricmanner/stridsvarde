@@ -1,4 +1,4 @@
-import { type Category, getStatus, type Status } from './data';
+import { CATEGORIES, type Category, getStatus, type Status } from './data';
 
 /*
  * Vad ett värde BETYDER — inte vad man ska göra åt det.
@@ -81,14 +81,17 @@ export interface SoldierTip {
   tips: string[];
 }
 
-const catLabel: Record<Category, string> = {
-  fysisk: 'Fysisk hälsa',
-  psykisk: 'Psykisk hälsa',
-  social: 'Social hälsa',
-  somn: 'Sömn',
-  kost: 'Kost',
-  energi: 'Energi',
-};
+/**
+ * Kategorinamnen kommer ur CATEGORIES, inte ur en egen lista.
+ *
+ * Här stod tidigare en andra uppsättning — "Fysisk hälsa" mot frågans "Fysisk
+ * form", "Kost" mot "Kost och näring". Tipskortet och frågan det handlade om
+ * hette alltså olika på samma sida, och ett nytt namn på en kategori hade
+ * behövt ändras på två ställen för att inte glida isär.
+ */
+const catLabel = Object.fromEntries(
+  CATEGORIES.map((c) => [c.key, c.label]),
+) as Record<Category, string>;
 
 /**
  * Ordning när flera kategorier har samma värde.

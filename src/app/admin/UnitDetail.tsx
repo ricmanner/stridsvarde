@@ -316,7 +316,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
             <p className="mt-2 text-sm text-emerald-700">Enheten heter nu {namnState.renamed}.</p>
           )}
           <p className="mt-2 text-xs text-slate-500">
-            Namnet är det enda som ändras. Underenheter, personer och rapporter påverkas inte.
+            Namnet är det enda som ändras. Underenheter, personer och incheckningar påverkas inte.
           </p>
         </section>
 
@@ -540,7 +540,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                           fraga={`Ta bort ${m.label} permanent?`}
                           forklaring={
                             <>
-                              <p>Kontot och personens alla rapporter raderas. Det går inte att ångra.</p>
+                              <p>Kontot och personens alla incheckningar raderas. Det går inte att ångra.</p>
                               <p className="mt-1.5">
                                 Ska uppgifterna finnas kvar — välj <strong>Spärra</strong> i stället.
                               </p>
@@ -569,7 +569,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
             <p className="mt-2 text-sm text-slate-600">
               {deleteState.deleted.label} borttagen
               {deleteState.deleted.erased > 0 &&
-                ` — ${antal(deleteState.deleted.erased, 'rapport raderad', 'rapporter raderade')}`}
+                ` — ${antal(deleteState.deleted.erased, 'incheckning raderad', 'incheckningar raderade')}`}
               .
             </p>
           )}
@@ -682,12 +682,12 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                     </p>
                   </>
                 }
-                bekraftaText="Radera svaren"
+                bekraftaText="Radera incheckningarna"
                 disabled={erasing}
                 className="flex cursor-pointer items-center gap-1.5 rounded-md border-[1.5px] border-red-300 px-3.5 py-2 text-sm font-semibold text-red-700 hover:border-red-600 hover:bg-red-100 disabled:opacity-50"
               >
                 <Trash2 size={14} aria-hidden />
-                {erasing ? 'Raderar…' : 'Radera svaren'}
+                {erasing ? 'Raderar…' : 'Radera incheckningarna'}
               </BekraftaKnapp>
             </form>
             {eraseState.error && <p role="alert" className="mt-2 text-sm text-red-700">{eraseState.error}</p>}

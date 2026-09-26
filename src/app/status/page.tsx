@@ -122,9 +122,13 @@ export default async function StatusPage({
             <Row label="Värnpliktiga" value={status.counts.soldiers} />
             <Row label="Incheckningar" value={status.counts.checkIns} hint="verklig historik i databasen" />
             <Row
-              label="Foreign keys"
+              label="Referensintegritet"
               value={status.foreignKeys ? 'PÅ' : 'AV'}
-              hint={status.foreignKeys ? undefined : 'Varning: referensintegritet är inte aktiv'}
+              hint={
+                status.foreignKeys
+                  ? undefined
+                  : 'Varning: databasen kontrollerar inte kopplingarna mellan tabellerna'
+              }
             />
           </dl>
 

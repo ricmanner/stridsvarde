@@ -264,7 +264,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
                 />
               </div>
               <p className="mt-2 text-xs text-slate-500">
-                {freq.pct >= 70 ? 'Bra närvaro — fortsätt så.' : freq.pct >= 40 ? 'Försök checka in dagligen.' : 'Lägre närvaro — befälet ser inga data.'}
+                {freq.pct >= 70 ? 'Bra närvaro — fortsätt så.' : freq.pct >= 40 ? 'Försök checka in dagligen.' : 'Lägre närvaro — befälet ser ingen data.'}
               </p>
             </div>
 

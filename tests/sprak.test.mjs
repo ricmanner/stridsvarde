@@ -224,3 +224,66 @@ test('råden till den värnpliktige använder förbandets ord', async () => {
     }
   }
 });
+
+/** Filens text utan kommentarer — det är bara det som visas som granskas. */
+function synligText(fil) {
+  return readFileSync(fil, 'utf8')
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\/\/.*$/gm, '');
+}
+
+/*
+ * Samma sak, samma ord.
+ *
+ * Inget av det här är ett fel i sig — det är appen som säger olika om samma
+ * sak på olika ställen, vilket är värre framför någon som inte känner
+ * systemet.
+ */
+test('rollen heter plutonchef, som i lib/roles.ts', () => {
+  for (const fil of ['src/app/page.tsx', 'src/app/soldat/dashboard/SupportBlock.tsx']) {
+    assert.ok(!/plutonsbefäl/.test(synligText(fil)), `${fil} säger plutonsbefäl`);
+  }
+});
+
+test('de som rapporterar heter värnpliktiga, inte soldater', () => {
+  const kod = synligText('src/lib/db/queries/admin.ts');
+  assert.ok(!/Soldater placeras/.test(kod), 'felmeddelandet säger Soldater');
+});
+
+test('data räknas som ett ord, inte flera', () => {
+  // Fem ställen säger "sammanställd data" och "all data är påhittad". Ett sa
+  // "befälet ser inga data" — samma ord, andra numerus.
+  const kod = synligText('src/app/soldat/dashboard/DashboardClient.tsx');
+  assert.ok(!/inga data/.test(kod), '"inga data" mot "ingen data" på fem andra ställen');
+});
+
+test('gränssnittet är på svenska, också på statussidan', () => {
+  const kod = synligText('src/app/status/page.tsx');
+  assert.ok(!/Foreign keys/.test(kod), 'appens enda engelska etikett');
+});
+
+test('adminvyn kallar det en värnpliktig lämnar in för incheckning', () => {
+  /*
+   * Två rutor intill varandra sa "alla deras rapporter" och "samtliga
+   * incheckningar" om exakt samma uppgifter. Adminvyn använder nu ett ord,
+   * samma som statussidan räknar. Den värnpliktiges egen vy får fortsätta
+   * säga rapport om dagens rapportering — där är det hennes eget ord.
+   */
+  for (const fil of ['src/app/admin/UnitDetail.tsx', 'src/app/admin/UnitDeleteSection.tsx']) {
+    assert.ok(!/rapport/i.test(synligText(fil)), `${fil} säger fortfarande rapport`);
+  }
+});
+
+test('en kategori har ett namn, hämtat ur CATEGORIES', async () => {
+  const { CATEGORIES } = await import('../src/lib/data.ts');
+  const { getSoldierTips } = await import('../src/lib/advice.ts');
+
+  // Lågt på allt: då ger varje kategori ett kort, och alla titlar går att läsa.
+  const lagt = { fysisk: 2, psykisk: 2, social: 2, somn: 2, kost: 2, energi: 2 };
+  const titlar = new Map(getSoldierTips(lagt).map((t) => [t.category, t.title]));
+
+  for (const cat of CATEGORIES) {
+    assert.equal(titlar.get(cat.key), cat.label, `${cat.key}: tipskortet ska heta som frågan`);
+  }
+});

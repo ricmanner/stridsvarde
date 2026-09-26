@@ -268,7 +268,7 @@ export async function createUsers(
   // Bara mellanslag är ingen benämning — då blev namnet "    09".
   const grund = prefix || 'Värnpliktig';
   if (role === 'soldat' && unit.kind !== 'grupp' && unit.kind !== 'pluton') {
-    return { ok: false, error: 'Soldater placeras i en grupp eller pluton.' };
+    return { ok: false, error: 'Värnpliktiga placeras i en grupp eller pluton.' };
   }
 
   // Fortsätt numreringen efter de som redan finns i enheten.

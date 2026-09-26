@@ -55,9 +55,9 @@ export default function UnitDeleteSection({
                 trädet. Texten var densamma för alla nivåer och lovade därför
                 något som inte kunde finnas. */}
             {unitKind === 'grupp'
-              ? `Tar bort ${unitName} med alla personer i den och deras rapporter.`
+              ? `Tar bort ${unitName} med alla personer i den och deras incheckningar.`
               : `Tar bort ${unitName} med allt som ligger under ${ordformer(unitKind).pronomen}: ` +
-                'underenheter, personer och deras rapporter.'}
+                'underenheter, personer och deras incheckningar.'}
           </p>
           <button
             type="button"
@@ -130,7 +130,7 @@ function DeleteForm({
   const delar = [
     preview.subunits > 0 && antal(preview.subunits, 'underenhet', 'underenheter'),
     preview.people > 0 && antal(preview.people, 'person', 'personer'),
-    preview.people > 0 && 'alla deras rapporter',
+    preview.people > 0 && 'alla deras incheckningar',
   ].filter((d): d is string => Boolean(d));
 
   return (
