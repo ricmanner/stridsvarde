@@ -15,8 +15,8 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 172 enhetstester och 30
-webbläsartester — 25 i datorbredd och 5 i telefonbredd — plus typkontroll, lint
+är gröna, demon är driftsatt och står i visningsskick. 182 enhetstester och 32
+webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
 och bygge.
 
 Hela språkgenomgången är avklarad: paket A och B den 25 september, C och D den
@@ -58,6 +58,37 @@ Följden för arbetet: det finns ingen återkoppling utifrån att väga listan m
 och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 26 september
+
+- **Graferna berättar vad de visar, inte bara vad de heter.** Alla sex var
+  märkta `role="img"` med en etikett som sa namnet — "Ditt mående de senaste
+  fjorton dagarna" — och ingenting om innehållet. Den som lyssnade fick veta att
+  det FINNS en graf, och fick gå vidare.
+
+  `lib/graftext.ts` bygger texten ur samma data som grafen ritar: senaste värdet
+  med datum, ytterligheterna med sina, och antalet dagar utan svar. Ingen
+  riktning och inget omdöme — båda står redan som text intill grafen, och två
+  påståenden om samma sak är precis så de börjar säga emot varandra.
+
+  Tre avgöranden i den, vart och ett med ett test: **datum i stället för
+  veckodag** (över fjorton dagar finns varje veckodag två gånger, så "lägst på
+  tisdag" pekar på två dagar), **ytterligheter bara när de tillför något** — och
+  ligger man just nu på sin ytterlighet sägs det rakt ut: *"Senaste värdet 5,5
+  den 26/9, periodens högsta. Lägst 4,2 den 15/9."* Före putsningen stod samma
+  tal och samma dag två gånger — samt att **ett undanhållet snitt förblir
+  undanhållet**, aldrig en nolla.
+
+  **Beskrivningen ligger UTANFÖR `role="img"`.** Innehåll inuti ett element med
+  den rollen göms för skärmläsaren, så en dold text där inne hade aldrig lästs
+  upp. Den ligger som ett eget stycke intill, och grafen pekar på den med
+  `aria-describedby`. Avläst ur tillgänglighetsträdet i en riktig körning, i
+  båda bredderna.
+
+  eslint fångade en `useId()` som låg efter en tidig retur — en villkorlig krok,
+  alltså Reacts krokordning ur led — innan den hann ställa till något.
+
+  **Så tar du bort det igen:** `git revert --no-edit 74edcf2`. Prövat den 26
+  september på en egen gren: reverten går igenom, `lib/graftext.ts` och dess test
+  försvinner, och de 172 tester som fanns innan är gröna.
 
 - **Granskningarna körs nu i två bredder, och tre rullningsbara ytor har
   tangentbordsåtkomst.** `playwright.config.ts` hade ett enda projekt i
@@ -444,14 +475,15 @@ fram demodatan och återställa demon.
    verkligen menar 5 — Richard har avfärdat både det och att hoppa över frågor.
    Frågan är öppen.
 
-Utanför listan, när tillfälle ges — två saker om tillgängligheten, och var
-gränsen för vad vi vet faktiskt går:
+Utanför listan — tillgängligheten, och var gränsen för vad vi vet faktiskt går.
+Två av punkterna som stod här är åtgärdade den 26 september: granskningarna
+körs nu även i telefonbredd, och graferna beskriver sitt innehåll. Kvar står:
 
-- **Axe är grön på sex vyer, men bara i datorbredd.** `playwright.config.ts`
-  har ett enda projekt, `devices['Desktop Chrome']`, och ingen testfil sätter
-  egen fönsterstorlek. Mobilen är prövad för hand. Att lägga till telefonbredd
-  i kontrollerna är en rimlig uppgift — men räkna med att den hittar fel som
-  då ska rättas, så ta den inte strax före en visning.
+- **Ingen människa med skärmläsare har provat appen.** Ett verktyg fångar bara
+  ungefär en tredjedel av kraven. Resten — om texterna går att följa i en
+  uppläsning, om ordningen är logisk, om grafbeskrivningarna faktiskt hjälper —
+  kräver någon som använder skärmläsare varje dag. Det är den enskilt största
+  kvarvarande osäkerheten, och den går inte att lösa med kod.
 - **På en långsam telefon saknar sidan kortvarigt sin titel.** Vid en
   navigering inne i appen sätts dokumentets titel av webbläsaren efter att
   sidan bytts, inte av servern. Uppmätt med processorn bromsad tjugo gånger:
@@ -461,9 +493,18 @@ gränsen för vad vi vet faktiskt går:
   appen sätter, så det går inte att rätta här — men det hör hemma i en
   tillgänglighetsredogörelse, och det var det som fällde GitHubs kontroll den
   21 september.
-- **Ingen människa med skärmläsare har provat appen.** Ett verktyg fångar bara
-  ungefär en tredjedel av kraven, och graferna berättar i dag vad de heter men
-  inte vad de visar.
+- **Tillgänglighetsredogörelsen är inte skriven.** Lagen om tillgänglighet till
+  digital offentlig service kräver att en myndighet publicerar en: vad som
+  uppfyller kraven, vad som inte gör det, och hur man rapporterar brister. För
+  en prototyp är den inte skarp, men underlaget finns redan spritt i den här
+  filen — titelluckan ovan, granskningarna i två bredder, grafbeskrivningarna,
+  och att ingen människa med skärmläsare provat. En halvtimme att samla när
+  appen ska lämnas över, och ett rimligt svar om någon i juryn frågar.
+- **Grafernas beskrivning är en sammanfattning, inte en tabell.** Den säger
+  senaste värdet, ytterligheterna och antalet dagar utan svar. Vill man kunna
+  höra varje dags tal krävs en dold tabell intill grafen — mer att läsa upp,
+  men fullständigt. Ingen har bett om det; punkten står här för att valet ska
+  vara synligt.
 
 ## Före en visning
 
