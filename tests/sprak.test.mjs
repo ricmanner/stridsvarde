@@ -341,3 +341,32 @@ test('fliken heter Historik, och perioden är bestämd', () => {
   assert.match(vy, /etikett: 'Historik'/);
   assert.ok(!/— senaste 14 dagarna/.test(vy), 'de senaste 14 dagarna, som grafens egen text');
 });
+
+/*
+ * Färgorden böjs efter antalet.
+ *
+ * Befälsvyns sammanfattningsrad hade plural inskrivet — "● 1 Gröna ● 22 Gula
+ * ● 1 Röda" — och fördelningen under varje kategori likaså: "46 gröna, 96
+ * gula, 1 röda". Ettan är inget undantagsfall; en pluton med en enda röd
+ * värnpliktig är det vanliga, och det är just den raden ett befäl tittar på.
+ *
+ * Samma sort som de fyra pluralfelen den 26 september. De hittades genom att
+ * läsa JSX-texter; de här stod som `label="Gröna"` och gick därför igenom.
+ */
+test('färgorden i befälsvyn böjs efter antalet', async () => {
+  const { statusOrd } = await import('../src/lib/data.ts');
+
+  assert.equal(statusOrd('green', 1), 'grön');
+  assert.equal(statusOrd('green', 2), 'gröna');
+  assert.equal(statusOrd('yellow', 1), 'gul');
+  assert.equal(statusOrd('yellow', 7), 'gula');
+  assert.equal(statusOrd('red', 1), 'röd');
+  assert.equal(statusOrd('red', 3), 'röda');
+
+  // Noll tar plural på svenska: "0 röda", som i "0 uppgifter".
+  assert.equal(statusOrd('red', 0), 'röda');
+
+  const kod = synligText('src/components/leader/LeaderDashboard.tsx');
+  assert.ok(!/label="Gröna"/.test(kod), 'sammanfattningsraden har plural inskrivet');
+  assert.ok(!/>gröna</.test(kod), 'fördelningsraden har plural inskrivet');
+});

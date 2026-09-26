@@ -11,7 +11,7 @@ import Tabs, { Panel } from '@/components/Tabs';
 import ChildFocus from '@/components/leader/ChildFocus';
 import ComparisonGrid from '@/components/leader/ComparisonGrid';
 import Suppressed from '@/components/leader/Suppressed';
-import { CATEGORIES, getStatus } from '@/lib/data';
+import { CATEGORIES, getStatus, statusOrd, type Status } from '@/lib/data';
 import type { ChildComparison, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
 import { ALLOWED_PERIODS, type Period } from '@/lib/privacy';
 import { ordformer, type ChildKind } from '@/lib/unit-names';
@@ -100,9 +100,10 @@ export default function LeaderDashboard({
 
           {overview.soldierStatus.ok ? (
             <>
-              <Stat n={overview.soldierStatus.data.green} label="Gröna" color="#059669" />
-              <Stat n={overview.soldierStatus.data.yellow} label="Gula" color="#D97706" />
-              <Stat n={overview.soldierStatus.data.red} label="Röda" color="#DC2626" />
+              {/* "1 Grön", inte "1 Gröna" — se statusOrd() i lib/data.ts. */}
+              <Stat n={overview.soldierStatus.data.green} status="green" color="#059669" />
+              <Stat n={overview.soldierStatus.data.yellow} status="yellow" color="#D97706" />
+              <Stat n={overview.soldierStatus.data.red} status="red" color="#DC2626" />
             </>
           ) : null}
 
@@ -176,9 +177,9 @@ export default function LeaderDashboard({
                         <div style={{ width: `${(d.red / total) * 100}%`, background: '#DC2626' }} />
                       </div>
                       <div className="flex gap-3 text-etikett">
-                        <span className="font-semibold text-emerald-700">{d.green} <span className="font-normal text-slate-500">gröna</span></span>
-                        <span className="font-semibold text-amber-700">{d.yellow} <span className="font-normal text-slate-500">gula</span></span>
-                        <span className="font-semibold text-red-700">{d.red} <span className="font-normal text-slate-500">röda</span></span>
+                        <span className="font-semibold text-emerald-700">{d.green} <span className="font-normal text-slate-500">{statusOrd('green', d.green)}</span></span>
+                        <span className="font-semibold text-amber-700">{d.yellow} <span className="font-normal text-slate-500">{statusOrd('yellow', d.yellow)}</span></span>
+                        <span className="font-semibold text-red-700">{d.red} <span className="font-normal text-slate-500">{statusOrd('red', d.red)}</span></span>
                       </div>
                     </div>
                   );
@@ -409,12 +410,15 @@ export default function LeaderDashboard({
   );
 }
 
-function Stat({ n, label, color }: { n: number; label: string; color: string }) {
+function Stat({ n, status, color }: { n: number; status: Status; color: string }) {
+  // Ordet böjs efter talet och får versal här, eftersom det står som etikett.
+  const ord = statusOrd(status, n);
+
   return (
     <div className="flex items-center gap-1.5">
       <span className="size-2 rounded-full" style={{ background: color }} />
       <span className="text-base font-bold tabular-nums text-slate-900">{n}</span>
-      <span className="text-xs text-slate-500">{label}</span>
+      <span className="text-xs text-slate-500">{ord.charAt(0).toUpperCase() + ord.slice(1)}</span>
     </div>
   );
 }

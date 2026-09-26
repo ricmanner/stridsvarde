@@ -87,6 +87,28 @@ export function statusBg(s: Status): string {
   return s === 'green' ? '#ECFDF5' : s === 'yellow' ? '#FFFBEB' : '#FEF2F2';
 }
 
+/**
+ * Färgordet böjt efter antalet: "1 röd", "3 röda".
+ *
+ * Befälsvyn hade plural inskrivet på två ställen — sammanfattningsraden
+ * ("1 Gröna") och fördelningen under varje kategori ("1 röda"). En pluton med
+ * en enda röd värnpliktig är inget undantagsfall; det är den raden ett befäl
+ * tittar på först.
+ *
+ * Versalen är anroparens sak. Raden överst skriver "Grön", fördelningen
+ * "grön", och orden ska inte finnas i två uppsättningar för det.
+ */
+const STATUSORD: Record<Status, { ental: string; flertal: string }> = {
+  green: { ental: 'grön', flertal: 'gröna' },
+  yellow: { ental: 'gul', flertal: 'gula' },
+  red: { ental: 'röd', flertal: 'röda' },
+};
+
+export function statusOrd(s: Status, antal: number): string {
+  // Noll tar plural på svenska: "0 röda".
+  return antal === 1 ? STATUSORD[s].ental : STATUSORD[s].flertal;
+}
+
 export function statusLabel(s: Status): string {
   return s === 'green' ? 'GRÖN' : s === 'yellow' ? 'GUL' : 'RÖD';
 }
