@@ -180,12 +180,16 @@ export function generateSoldierAdvice(scores: Record<Category, number>): string 
    * lägsta gröna kategorin ut och kommenterades, så någon som mådde bra rakt
    * igenom fick en pekpinne om kosthållning utan att ha frågat. Beröm den som
    * sköter sig i stället — det är också vägledning.
+   *
+   * Men beröm bara det appen ser: dagens svar. Texten sa förut "Det är inte en
+   * slump utan resultatet av rutiner som fungerar" — också till den som haft
+   * rött i sömn i två veckor och nu har en enda bra dag.
    */
   if (status === 'green') {
     return (
-      'Du rapporterar bra värden i samtliga kategorier idag. Det är inte en ' +
-      'slump utan resultatet av rutiner som fungerar — sömn, mat och ' +
-      'återhämtning. Håll fast vid dem, särskilt när tempot går upp.'
+      'Du rapporterar bra värden i samtliga kategorier idag. Håll fast vid ' +
+      'det som fungerar för dig — sömn, mat och återhämtning — särskilt när ' +
+      'tempot går upp.'
     );
   }
 

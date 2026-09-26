@@ -139,6 +139,22 @@ test('den som mår bra får beröm, inte en pekpinne', async () => {
   );
 });
 
+/*
+ * Berömmet påstår inte mer än appen vet.
+ *
+ * Rådet bygger bara på dagens sex svar. Det sa ändå "Det är inte en slump
+ * utan resultatet av rutiner som fungerar" — också till den som haft rött i
+ * sömn i två veckor och nu har en enda bra dag. Då säger appen något om
+ * hennes vanor som den inte vet, och som kan vara fel.
+ */
+test('berömmet gäller dagen, inte vanor appen inte sett', async () => {
+  const { generateSoldierAdvice } = await import('../src/lib/advice.ts');
+
+  const text = generateSoldierAdvice({ fysisk: 8, psykisk: 8, social: 9, somn: 8, kost: 7, energi: 8 });
+  assert.ok(text.includes('idag'), 'berömmet ska säga att det gäller idag');
+  assert.ok(!/slump|resultatet av/.test(text), `påstår en orsak appen inte känner: "${text}"`);
+});
+
 test('sammanfattningen påstår aldrig ett annat antal än vad som visas', async () => {
   const { generateSoldierAdvice, getSoldierTips } = await import('../src/lib/advice.ts');
 
