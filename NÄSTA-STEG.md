@@ -15,8 +15,9 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 172 enhetstester och 25
-webbläsartester, plus typkontroll, lint och bygge.
+är gröna, demon är driftsatt och står i visningsskick. 172 enhetstester och 30
+webbläsartester — 25 i datorbredd och 5 i telefonbredd — plus typkontroll, lint
+och bygge.
 
 Hela språkgenomgången är avklarad: paket A och B den 25 september, C och D den
 26. Inget av den står kvar.
@@ -57,6 +58,37 @@ Följden för arbetet: det finns ingen återkoppling utifrån att väga listan m
 och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 26 september
+
+- **Granskningarna körs nu i två bredder, och tre rullningsbara ytor har
+  tangentbordsåtkomst.** `playwright.config.ts` hade ett enda projekt i
+  datorbredd; nu finns `telefon` på 390 px, och bara tillgänglighetsfilen körs
+  där. 30 webbläsartester: 25 i datorbredd, 5 i telefonbredd.
+
+  Axe hittade en brist i tre lägen och inget annat: i smal layout blir de breda
+  tabellerna smalare än sitt innehåll och får en egen vågrät rullning, som bara
+  gick att nå med finger eller mus (WCAG 2.1.1). "Svarsunderlag per dag" på
+  Trender, samt rutnätet och rangordningen på Jämförelse, är nu `role="region"`
+  med namn och `tabIndex={0}`.
+
+  **Varför det inte är en telefonfråga, trots att bristen syns i telefonbredd.**
+  Richard invände med rätta att en telefon inte har piltangenter. Uppmätt i
+  plutonchefens Trender-flik: vid 1280 px är ytan 974 px och innehållet 974 px,
+  alltså ingen inre rullning — i datorbredd var ingenting trasigt. Vid 427 px är
+  ytan 393 px och innehållet 420 px, och då finns rullningen. 427 px är vad ett
+  1280 px-fönster blir vid 300 % webbläsarzoom, så det är på en dator med
+  tangentbord som hindret uppstår, inte på en telefon. WCAG 1.4.10 kräver att
+  appen fungerar upp till 400 %. Det andra skälet gäller mobilen men inte
+  tangentbordet: en skärmläsare stegar mellan fokuserbara element, och en
+  namngiven yta går att hitta och får sitt namn uppläst.
+
+  **Priset, medvetet taget:** tre extra Tab-stopp i befälsvyn, även i datorbredd
+  där det inte finns något att rulla. Alternativet — ett Tab-stopp som dyker upp
+  bara när innehållet är för brett — kräver mätning i webbläsaren och går sönder
+  tyst. Ta inte bort `tabIndex` här utan att läsa det här stycket först.
+
+  **Granskningens påståenden är mjuka (`expect.soft`).** Filen granskar elva
+  vyer, och ett hårt påstående stannade vid första bristen — en per körning. Det
+  var så brist två och tre hittades: första körningen visade bara en.
 
 - **Språkgenomgångens paket C och D, alltså resten av den.** Två beslut var
   Richards, och han tog dem:
