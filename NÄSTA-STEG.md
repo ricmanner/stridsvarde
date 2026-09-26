@@ -3,7 +3,7 @@
 Kort överlämning mellan arbetspass. `README.md` beskriver appen, `CLAUDE.md`
 reglerna som styr arbetet — den här filen säger bara **var vi står just nu**.
 
-Senast uppdaterad: 25 september 2026.
+Senast uppdaterad: 26 september 2026.
 
 ## Läget
 
@@ -15,8 +15,11 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 162 enhetstester och 25
+är gröna, demon är driftsatt och står i visningsskick. 172 enhetstester och 25
 webbläsartester, plus typkontroll, lint och bygge.
+
+Hela språkgenomgången är avklarad: paket A och B den 25 september, C och D den
+26. Inget av den står kvar.
 
 Språkrättningarna nedan (paket A och B ur genomgången den 25 september) ligger
 ute sedan kvällen samma dag. Kontrollerat mot den driftsatta demon: rundturen
@@ -47,6 +50,57 @@ skulle fattas: ta filerna ur den gamla mappen, den är orörd.
 Richard har skickat länken till en liten grupp kollegor för att testa. Han
 skrev ett eget meddelande till dem; underlaget finns i
 `underlag/meddelande-till-gruppen.md`.
+
+### Gjort den 26 september
+
+- **Språkgenomgångens paket C och D, alltså resten av den.** Två beslut var
+  Richards, och han tog dem:
+
+  **Ordet för det en värnpliktig lämnar in.** Adminvyn sa "alla deras
+  rapporter" i en ruta och "samtliga incheckningar" i rutan intill, om samma
+  rader. Adminvyn säger nu **incheckning** genomgående — samma ord som
+  statussidan räknar — medan den värnpliktiges egen vy får behålla *rapport*
+  om dagens rapportering. Det är hennes ord om sin egen dag, och Richard valde
+  medvetet att inte byta det. Alternativet, ett enda ord i hela appen, låg på
+  bordet och avfärdades som inte värt de fyrtio texterna. **Föreslå det inte
+  igen utan att fråga.**
+
+  **Kategorinamnen.** Tipskorten hade en egen uppsättning — "Fysisk hälsa" mot
+  frågans "Fysisk form", "Kost" mot "Kost och näring". `catLabel` i
+  `lib/advice.ts` hämtas nu ur `CATEGORIES`, så en kategori har ett namn och
+  kan inte glida isär.
+
+  Fyra andra ställen sa olika om samma sak: *plutonsbefälet* och knappen *Mitt
+  plutonsbefäl* (intill "Kompanichefen") → **plutonchefen**, som rollen heter i
+  `lib/roles.ts`; *Soldater placeras i en grupp* → **Värnpliktiga**; *befälet
+  ser inga data* → **ingen data**, som på de fem andra ställena; och **Foreign
+  keys** på statussidan, appens enda engelska etikett → *Referensintegritet*.
+  Inloggningssidan sa dessutom "Din kod tillhandahålls av ditt befäl" direkt
+  under "Ange koden du fått av ditt befäl" — samma sak två gånger, en av dem på
+  myndighetssvenska.
+
+  **Skrivreglerna (D).** Procenttecknet får mellanslag före sig, vilket appen
+  gjorde på två ställen av sex; `procent()` i `lib/format.ts` gör det nu för
+  alla. Formatmallar skriver det fortfarande ihop, för där är det en enhet.
+  Små tal med bokstäver ("Besvara sex frågor", "minst tre ordentliga mål"),
+  minuterna utskrivna, *kl 14* → **klockan 14**, *p.g.a.* → **på grund av**,
+  och *innan sänggående* → **före sänggåendet** — innan binder en sats, före
+  tar ett substantiv. Fliken **Historia** blev *Historik*, "senaste 14
+  dagarna" fick sitt **de**, demokodrutan låter inte längre en kod rapportera,
+  och enhetsträdet skriver **vpl** och **bef** utan punkt.
+
+  Prövat i en riktig körning, inte bara i test: inloggningssidan,
+  incheckningens intro och framstegsrad, tipskortens rubriker, fliken
+  Historik, svarsfrekvensen, adminvyns fyra texter, statussidan och
+  plutonchefens sammanfattningsrad.
+
+  **Ett ord står kvar med flit:** *svar*, i "Tidigare svar räknas in i den nya
+  enhetens statistik" och i fotnoten om att administratören inte läser någons
+  svar. Där betyder det de sex talen, inte raden de ligger på.
+
+  **Så tar du bort allt igen:** `git revert --no-edit 5bb2db6 e11dbaf`. Prövat
+  den 26 september på en egen gren: reverten går igenom utan krockar, `src` blir
+  identisk med läget före paket C, och de 162 tester som fanns då är gröna.
 
 ### Gjort den 25 september
 
@@ -347,36 +401,7 @@ fram demodatan och återställa demon.
    alltså inte om det är påslaget utan vilken plan kontot har, och i vilken
    region databasen ligger. Värt att veta i förväg: en återställning skapar en
    **ny** databas, så adressen i Vercel måste pekas om efteråt.
-7. **Resten av språkgenomgången — paket C och D.** Ur genomgången den 25
-   september, uppskjutna av Richard, inte avfärdade. Ingenting här är ett rent
-   fel; det är samma sak sagd på två sätt, och skrivregler.
-
-   **C, ungefär en timme.** Rollen heter *Plutonchef* i `lib/roles.ts`, men
-   inloggningssidan säger "plutonsbefälet" och stödblockets knapp "Mitt
-   plutonsbefäl" — intill knappen "Kompanichefen". Ett felmeddelande i
-   `queries/admin.ts` säger "Soldater placeras i en grupp eller pluton" där
-   appen annars alltid säger *värnpliktiga*. Fem ställen säger "sammanställd
-   data" och ett "befälet ser inga data". `/status` har appens enda engelska
-   etikett, **Foreign keys**. Två frågor är Richards och inte kodens: vilket
-   ord som ska gälla för det en värnpliktig lämnar in — *rapport*,
-   *incheckning* eller *svar*, som alla tre används om samma sak i
-   adminvyn — och om kategorierna ska heta samma i incheckningen som på
-   tipskorten ("Fysisk form" mot "Fysisk hälsa", "Kost och näring" mot "Kost").
-   **Obs:** orden *plutonsbefäl* och *Historia* står i webbläsartesterna och
-   måste ändras i samma commit.
-
-   **D, ungefär en halvtimme.** Procenttecknet skrivs "78%" på fyra ställen och
-   "78 %" på två (utskriftsrapporten och larmtexten); svensk regel är
-   mellanslag. Små tal med bokstäver: "Besvara 6 frågor", "ungefär 2 minuter",
-   "minst 3 ordentliga mål". "kl 14" → kl. 14, "p.g.a. schema" → på grund av
-   schemat, "innan sänggående" och "innan läggdags" → **före** (innan binder en
-   sats, före ett substantiv). Fliken **Historia** på den värnpliktiges sida bör
-   heta *Historik*. Inloggningssidan säger samma sak två gånger ("Ange koden du
-   fått av ditt befäl" och "Din kod tillhandahålls av ditt befäl"), och
-   demokodrutan låter en kod rapportera: "Har den koden redan rapporterat
-   idag". I enhetsträdet står "vpl." och "bef." med punkt, som FM skriver utan.
-
-8. **Designfrågor som väntar på ett samtal**, inte på kod: reglaget i
+7. **Designfrågor som väntar på ett samtal**, inte på kod: reglaget i
    incheckningen börjar på 5, så den som bara trycker "Nästa" skickar in sex
    femmor som ser ut som svar. Att tvinga fram en rörelse straffar den som
    verkligen menar 5 — Richard har avfärdat både det och att hoppa över frågor.
