@@ -98,15 +98,28 @@ export function statusBg(s: Status): string {
  * Versalen är anroparens sak. Raden överst skriver "Grön", fördelningen
  * "grön", och orden ska inte finnas i två uppsättningar för det.
  */
-const STATUSORD: Record<Status, { ental: string; flertal: string }> = {
-  green: { ental: 'grön', flertal: 'gröna' },
-  yellow: { ental: 'gul', flertal: 'gula' },
-  red: { ental: 'röd', flertal: 'röda' },
+const STATUSORD: Record<Status, { ental: string; neutrum: string; flertal: string }> = {
+  green: { ental: 'grön', neutrum: 'grönt', flertal: 'gröna' },
+  yellow: { ental: 'gul', neutrum: 'gult', flertal: 'gula' },
+  red: { ental: 'röd', neutrum: 'rött', flertal: 'röda' },
 };
 
 export function statusOrd(s: Status, antal: number): string {
   // Noll tar plural på svenska: "0 röda".
   return antal === 1 ? STATUSORD[s].ental : STATUSORD[s].flertal;
+}
+
+/**
+ * Färgordet med "svar" efter: "1 grönt svar", "60 röda svar".
+ *
+ * Befälsvyn räknar två saker med samma färgord. Raden överst räknar personer,
+ * var och en en gång efter sitt eget snitt; fördelningen under varje kategori
+ * räknar svar, och en person svarar upp till en gång om dagen. Utan ordet
+ * stod "60 röda" under Sömn i en pluton på 40, med "1 Röd" överst på samma
+ * skärm — båda rätt, men ingen kunde se att de räknade olika saker.
+ */
+export function statusSvar(s: Status, antal: number): string {
+  return `${antal === 1 ? STATUSORD[s].neutrum : STATUSORD[s].flertal} svar`;
 }
 
 export function statusLabel(s: Status): string {

@@ -11,7 +11,7 @@ import Tabs, { Panel } from '@/components/Tabs';
 import ChildFocus from '@/components/leader/ChildFocus';
 import ComparisonGrid from '@/components/leader/ComparisonGrid';
 import Suppressed from '@/components/leader/Suppressed';
-import { CATEGORIES, getStatus, statusOrd, type Status } from '@/lib/data';
+import { CATEGORIES, getStatus, statusOrd, statusSvar, type Status } from '@/lib/data';
 import type { ChildComparison, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
 import { ALLOWED_PERIODS, type Period } from '@/lib/privacy';
 import { ordformer, type ChildKind } from '@/lib/unit-names';
@@ -177,9 +177,9 @@ export default function LeaderDashboard({
                         <div style={{ width: `${(d.red / total) * 100}%`, background: '#DC2626' }} />
                       </div>
                       <div className="flex gap-3 text-etikett">
-                        <span className="font-semibold text-emerald-700">{d.green} <span className="font-normal text-slate-500">{statusOrd('green', d.green)}</span></span>
-                        <span className="font-semibold text-amber-700">{d.yellow} <span className="font-normal text-slate-500">{statusOrd('yellow', d.yellow)}</span></span>
-                        <span className="font-semibold text-red-700">{d.red} <span className="font-normal text-slate-500">{statusOrd('red', d.red)}</span></span>
+                        <span className="font-semibold text-emerald-700">{d.green} <span className="font-normal text-slate-500">{statusSvar('green', d.green)}</span></span>
+                        <span className="font-semibold text-amber-700">{d.yellow} <span className="font-normal text-slate-500">{statusSvar('yellow', d.yellow)}</span></span>
+                        <span className="font-semibold text-red-700">{d.red} <span className="font-normal text-slate-500">{statusSvar('red', d.red)}</span></span>
                       </div>
                     </div>
                   );

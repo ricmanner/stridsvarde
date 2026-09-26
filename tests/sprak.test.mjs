@@ -370,3 +370,29 @@ test('färgorden i befälsvyn böjs efter antalet', async () => {
   assert.ok(!/label="Gröna"/.test(kod), 'sammanfattningsraden har plural inskrivet');
   assert.ok(!/>gröna</.test(kod), 'fördelningsraden har plural inskrivet');
 });
+
+/*
+ * Fördelningen under varje kategori säger att den räknar svar.
+ *
+ * Raden överst räknar personer — var och en en gång, efter sitt eget snitt.
+ * Raden under varje kategori räknar svar, och samma person svarar upp till
+ * sju gånger på sju dagar. Utan ordet stod "60 röda" under Sömn i en pluton
+ * på 40, och "1 Röd" överst på samma skärm. Talen var rätta; läsaren kunde
+ * inte veta att de räknade olika saker.
+ *
+ * "Svar" är neutrum: ett grönt svar, två gröna svar.
+ */
+test('fördelningen under varje kategori säger att den räknar svar', async () => {
+  const { statusSvar } = await import('../src/lib/data.ts');
+
+  assert.equal(statusSvar('green', 1), 'grönt svar');
+  assert.equal(statusSvar('green', 32), 'gröna svar');
+  assert.equal(statusSvar('yellow', 1), 'gult svar');
+  assert.equal(statusSvar('yellow', 60), 'gula svar');
+  assert.equal(statusSvar('red', 1), 'rött svar');
+  assert.equal(statusSvar('red', 0), 'röda svar');
+
+  const kod = synligText('src/components/leader/LeaderDashboard.tsx');
+  assert.match(kod, /statusSvar\('green', d\.green\)/, 'fördelningsraden säger inte vad den räknar');
+  assert.ok(!/statusOrd\('green', d\.green\)/.test(kod), 'fördelningsraden använder personordet');
+});
