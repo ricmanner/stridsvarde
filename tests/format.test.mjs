@@ -57,3 +57,18 @@ test('ett antal böjer både substantivet och participet efter talet', async () 
   assert.equal(antal(0, 'uppgift', 'uppgifter'), '0 uppgifter');
   assert.equal(antal(2, 'underenhet', 'underenheter'), '2 underenheter');
 });
+
+/*
+ * Procenttecknet har ett mellanslag före sig.
+ *
+ * Svensk skrivregel, och appen följde den på två ställen av sex:
+ * utskriftsrapporten och larmtexten skrev "78 %", medan befälsvyn, den
+ * värnpliktiges vy och incheckningens framstegsrad skrev "78%".
+ */
+test('procent skrivs med mellanslag före tecknet', async () => {
+  const { procent } = await import('../src/lib/format.ts');
+
+  assert.equal(procent(78), '78 %');
+  assert.equal(procent(0), '0 %');
+  assert.equal(procent(100), '100 %');
+});

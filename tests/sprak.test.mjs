@@ -287,3 +287,57 @@ test('en kategori har ett namn, hämtat ur CATEGORIES', async () => {
     assert.equal(titlar.get(cat.key), cat.label, `${cat.key}: tipskortet ska heta som frågan`);
   }
 });
+
+test('alla procenttal går genom procent() i lib/format.ts', () => {
+  const fall = [
+    ['src/app/soldat/CheckinWizard.tsx', /\* 100\)\}%/],
+    ['src/app/soldat/dashboard/DashboardClient.tsx', /value=\{`\$\{freq\.pct\}%`\}/],
+    ['src/components/leader/LeaderDashboard.tsx', /today\.pct\}%/],
+    ['src/app/rapport/page.tsx', /pct\} %/],
+  ];
+
+  for (const [fil, hopklistrat] of fall) {
+    const kod = synligText(fil);
+    assert.ok(!hopklistrat.test(kod), `${fil} skriver procenttecknet för hand`);
+    assert.match(kod, /procent\(/, `${fil} ska använda procent()`);
+  }
+
+  // Tabellen i befälsvyn räknar fram sin egen andel och hade samma fel.
+  assert.ok(
+    !/: 0\}%/.test(synligText('src/components/leader/LeaderDashboard.tsx')),
+    'tabellcellen skriver procenttecknet för hand',
+  );
+});
+
+/*
+ * Skrivregler i det som visas.
+ *
+ * Små tal skrivs med bokstäver i löpande text, förkortningar undviks när
+ * ordet är kort ändå, och "innan" binder en sats medan "före" tar ett
+ * substantiv: före sänggåendet, inte innan sänggående.
+ */
+test('skrivreglerna följs i råden och i incheckningen', () => {
+  const rad = synligText('src/lib/advice.ts');
+  assert.ok(!/\bkl \d/.test(rad), 'klockan skrivs ut');
+  assert.ok(!/p\.g\.a\./.test(rad), 'skriv "på grund av"');
+  assert.ok(!/innan sänggående|innan läggdags/.test(rad), '"före" tar ett substantiv');
+  assert.ok(!/\b\d+ min\b/.test(rad), 'minuter skrivs ut');
+  assert.ok(!/minst 3 |Ta 2 |Sätt av 10 /.test(rad), 'små tal med bokstäver');
+
+  const inch = synligText('src/app/soldat/CheckinWizard.tsx');
+  assert.ok(!/Besvara 6 frågor|ungefär 2 minuter/.test(inch), 'små tal med bokstäver');
+
+  const login = synligText('src/app/page.tsx');
+  assert.ok(!/koden redan rapporterat/.test(login), 'en kod rapporterar inte, en människa gör det');
+
+  const trad = synligText('src/app/admin/UnitTree.tsx');
+  assert.ok(!/vpl\.|bef\./.test(trad), 'vpl och bef skrivs utan punkt');
+});
+
+test('fliken heter Historik, och perioden är bestämd', () => {
+  const vy = synligText('src/app/soldat/dashboard/DashboardClient.tsx');
+
+  assert.ok(!/etikett: 'Historia'/.test(vy), 'Historia är ett skolämne');
+  assert.match(vy, /etikett: 'Historik'/);
+  assert.ok(!/— senaste 14 dagarna/.test(vy), 'de senaste 14 dagarna, som grafens egen text');
+});

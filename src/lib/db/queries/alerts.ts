@@ -8,7 +8,7 @@ import { db } from '..';
 import { minResponders } from '../client';
 import { notifications } from '../schema';
 import { getUnitOverview } from './aggregates';
-import { formatScore } from '../../format';
+import { formatScore, procent } from '../../format';
 
 /*
  * Automatiska larm till befäl.
@@ -197,7 +197,7 @@ export async function evaluateAlerts(soldierUnitId: number): Promise<void> {
         kind: 'low_response',
         serviceDate: igår,
         title: `Låg svarsfrekvens i ${node.unitName}`,
-        body: `Igår rapporterade ${rate.responders} av ${rate.eligible} (${rate.pct} %). Utan underlag går läget inte att bedöma.`,
+        body: `Igår rapporterade ${rate.responders} av ${rate.eligible} (${procent(rate.pct)}). Utan underlag går läget inte att bedöma.`,
       });
     }
   }

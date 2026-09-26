@@ -15,7 +15,7 @@ import { CATEGORIES, getStatus } from '@/lib/data';
 import type { ChildComparison, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
 import { ALLOWED_PERIODS, type Period } from '@/lib/privacy';
 import { ordformer, type ChildKind } from '@/lib/unit-names';
-import { formatScore } from '@/lib/format';
+import { formatScore, procent } from '@/lib/format';
 
 const FLIKAR = [
   { id: 'overview', etikett: 'Översikt' },
@@ -108,7 +108,7 @@ export default function LeaderDashboard({
 
           <span className="text-xs text-slate-500">{overview.eligible} värnpliktiga</span>
           <span className="text-xs text-slate-500">
-            {overview.today.pct}% svarat idag ({overview.today.responders}/{overview.eligible})
+            {procent(overview.today.pct)} svarat idag ({overview.today.responders}/{overview.eligible})
           </span>
 
           {alerts.length > 0 && (
@@ -276,7 +276,7 @@ export default function LeaderDashboard({
                         {p.responders}/{p.eligible}
                       </td>
                       <td className="px-4 py-2.5 text-center text-xs tabular-nums text-slate-500">
-                        {p.eligible ? Math.round((p.responders / p.eligible) * 100) : 0}%
+                        {procent(p.eligible ? Math.round((p.responders / p.eligible) * 100) : 0)}
                       </td>
                       <td className="px-4 py-2.5 text-right text-xs font-bold tabular-nums text-slate-900">
                         {p.overall !== null ? formatScore(p.overall) : (

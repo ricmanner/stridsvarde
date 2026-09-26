@@ -75,7 +75,7 @@ test('den värnpliktiges återkoppling, båda flikarna', async ({ page }) => {
   await loggaIn(page, KODER.varnpliktigKlar);
   expect(await granska(page, 'översikt')).toEqual([]);
 
-  await page.getByRole('tab', { name: 'Historia' }).click();
+  await page.getByRole('tab', { name: 'Historik' }).click();
   expect(await granska(page, 'historia')).toEqual([]);
 });
 

@@ -7,7 +7,7 @@ import CategoryIcon from '@/components/CategoryIcon';
 import ScoreSlider from '@/components/ScoreSlider';
 import { CATEGORIES, type Category, getStatus, statusBg, statusLabel, statusTextColor } from '@/lib/data';
 import { submitCheckIn, type CheckInState } from '@/app/actions/checkin';
-import { formatScore } from '@/lib/format';
+import { formatScore, procent } from '@/lib/format';
 import { TIDSGRÄNS_KLIENT_MS } from '@/lib/tidsgrans';
 
 const EMPTY: Record<Category, number> = { fysisk: 5, psykisk: 5, social: 5, somn: 5, kost: 5, energi: 5 };
@@ -183,7 +183,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             <p className="text-sm leading-relaxed text-slate-500">
               {editing
                 ? 'Dina tidigare svar är förifyllda. Ändra det som blivit fel — den gamla rapporten skrivs över.'
-                : 'Besvara 6 frågor om ditt mående. Tar ungefär 2 minuter. Ditt befäl ser bara sammanställd data för hela gruppen.'}
+                : 'Besvara sex frågor om ditt mående. Tar ungefär två minuter. Ditt befäl ser bara sammanställd data för hela gruppen.'}
             </p>
           </div>
 
@@ -230,7 +230,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             <span className="text-xs font-semibold text-slate-500">
               Fråga {step} av {CATEGORIES.length}
             </span>
-            <span className="text-xs text-slate-500">{Math.round(andel * 100)}%</span>
+            <span className="text-xs text-slate-500">{procent(Math.round(andel * 100))}</span>
           </div>
           {/* Framstegsraden var ren grafik; nu berättar den var man är. */}
           <div

@@ -61,7 +61,7 @@ test('den som redan rapporterat skickas till sin återkoppling', async ({ page }
 
   // Båda flikarna ska rendera. Historikfliken ritar sex grafer, och det är
   // där ett saknat värde tidigare kunde fälla hela vyn.
-  await page.getByRole('tab', { name: 'Historia' }).click();
+  await page.getByRole('tab', { name: 'Historik' }).click();
   await expect(page.getByRole('tabpanel')).toBeVisible();
   const text = await synligText(page);
   expect(text).toContain('din närvaro');
@@ -76,7 +76,7 @@ test('flikarna går att stega med piltangenter', async ({ page }) => {
 
   await oversikt.focus();
   await page.keyboard.press('ArrowRight');
-  await expect(page.getByRole('tab', { name: 'Historia' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('tab', { name: 'Historik' })).toHaveAttribute('aria-selected', 'true');
 
   await page.keyboard.press('Home');
   await expect(oversikt).toHaveAttribute('aria-selected', 'true');

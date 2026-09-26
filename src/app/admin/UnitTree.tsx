@@ -134,8 +134,8 @@ export default function UnitTree({
                     isSelected ? 'text-slate-300' : 'text-slate-500'
                   }`}
                 >
-                  {node.totalSoldiers > 0 && `${node.totalSoldiers} vpl.`}
-                  {node.leaders > 0 && ` · ${node.leaders} bef.`}
+                  {node.totalSoldiers > 0 && `${node.totalSoldiers} vpl`}
+                  {node.leaders > 0 && ` · ${node.leaders} bef`}
                 </span>
               </span>
             </a>

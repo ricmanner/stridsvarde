@@ -82,9 +82,9 @@ export default async function LoginPage({
               <p className="mt-3 border-t border-slate-200 pt-3 text-etikett leading-relaxed text-slate-600">
                 Vill du prova själva incheckningen, använd en kod i serien{' '}
                 <span className="font-mono text-slate-700">P1G1-01</span> till{' '}
-                <span className="font-mono text-slate-700">P1G1-08</span>. Har den
-                koden redan rapporterat idag visas översikten i stället — ta då
-                nästa kod i ordningen.
+                <span className="font-mono text-slate-700">P1G1-08</span>. Har koden
+                redan använts idag visas översikten i stället — ta då nästa kod
+                i ordningen.
               </p>
             </div>
           )}

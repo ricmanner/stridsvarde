@@ -23,6 +23,21 @@ export function formatScore(n: number): string {
 }
 
 /**
+ * Ett procenttal som det skrivs på svenska: mellanslag före tecknet.
+ *
+ * Regeln följdes på två ställen av sex. Utskriftsrapporten och larmtexten
+ * skrev "78 %", medan befälsvyn, den värnpliktiges vy och incheckningens
+ * framstegsrad skrev "78%" — samma tal, två sätt, ibland på samma skärm.
+ * Tecknet sätts därför på ett ställe.
+ *
+ * Gäller text. I formatmallar är procent en enhet och skrivs ihop, som
+ * `width: 82%`.
+ */
+export function procent(n: number): string {
+  return `${n} %`;
+}
+
+/**
  * Ett antal med orden böjda efter talet.
  *
  * Fyra ställen satte ihop en siffra med ett plural och lät participet stå

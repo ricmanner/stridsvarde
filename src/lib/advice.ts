@@ -41,13 +41,13 @@ const categoryContext: Record<Category, { yellow: string; red: string }> = {
 // Short, specific action tips for the tip cards
 const actionTips: Record<Category, Record<Status, string[]>> = {
   fysisk: {
-    green: ['Stretcha 5–10 min efter varje pass', 'Drick 2–3 liter vatten om dagen'],
-    yellow: ['Sänk intensiteten i nästa träningspass', 'Gör 5 min rörlighetsträning i kväll', 'Välj vila framför extra rep om du är osäker'],
+    green: ['Stretcha 5–10 minuter efter varje pass', 'Drick 2–3 liter vatten om dagen'],
+    yellow: ['Sänk intensiteten i nästa träningspass', 'Gör fem minuters rörlighetsträning i kväll', 'Välj vila framför extra rep om du är osäker'],
     red: ['Vila från tung belastning idag', 'Kontakta kompaniets sjukvårdare', 'Informera din gruppchef om besvären'],
   },
   psykisk: {
-    green: ['Ta 2 min djupandning om stressen ökar', 'Håll kontakten med kamrater — det skyddar'],
-    yellow: ['Prata med en kamrat du litar på idag', 'Fysisk aktivitet hjälper mot stress — ta en promenad', 'Sätt av 10 min tid för dig själv i kväll'],
+    green: ['Ta två minuters djupandning om stressen ökar', 'Håll kontakten med kamrater — det skyddar'],
+    yellow: ['Prata med en kamrat du litar på idag', 'Fysisk aktivitet hjälper mot stress — ta en promenad', 'Sätt av tio minuter för dig själv i kväll'],
     red: ['Prata med ditt befäl eller en kurator idag', 'Du behöver inte berätta allt — bara att du behöver stöd', 'Kontakta krisstöd om det känns akut'],
   },
   social: {
@@ -56,18 +56,18 @@ const actionTips: Record<Category, Record<Status, string[]>> = {
     red: ['Berätta för ditt befäl hur du har det', 'Det är befälets ansvar att säkerställa trivsel — du gör rätt som säger till', 'Välj en person du litar på och prata'],
   },
   somn: {
-    green: ['Undvik skärmar 30 min innan sänggående', 'Håll samma sovtider även på lediga dagar'],
-    yellow: ['Inget koffein efter kl 14', 'Mörklägg logementet så mycket som möjligt', 'Sätt undan mobilen en timme innan läggdags'],
+    green: ['Undvik skärmar 30 minuter före sänggåendet', 'Håll samma sovtider även på lediga dagar'],
+    yellow: ['Inget koffein efter klockan 14', 'Mörklägg logementet så mycket som möjligt', 'Sätt undan mobilen en timme före läggdags'],
     red: ['Informera ditt befäl om sömnproblemen', 'Undvik koffein helt de närmaste dagarna', 'Be om hjälp med eventuella störningar i sovmiljön'],
   },
   kost: {
-    green: ['Ät inom 30 min efter träning för snabbare återhämtning', 'Variera kostens sammansättning under dagen'],
-    yellow: ['Hoppa inte över frukost — det kostar för mycket senare', 'Ät minst 3 ordentliga mål om dagen', 'Ha alltid ett litet mellanmål tillgängligt'],
-    red: ['Berätta för ditt befäl om kostproblemen', 'Ät vad du kan, när du kan — något är bättre än inget', 'Kontrollera att du inte missar måltider p.g.a. schema'],
+    green: ['Ät inom 30 minuter efter träning för snabbare återhämtning', 'Variera kostens sammansättning under dagen'],
+    yellow: ['Hoppa inte över frukost — det kostar för mycket senare', 'Ät minst tre ordentliga mål om dagen', 'Ha alltid ett litet mellanmål tillgängligt'],
+    red: ['Berätta för ditt befäl om kostproblemen', 'Ät vad du kan, när du kan — något är bättre än inget', 'Kontrollera att du inte missar måltider på grund av schemat'],
   },
   energi: {
     green: ['Håll koll på vätskeintaget under hela dagen', 'Kort promenad i friska luften ökar energin snabbt'],
-    yellow: ['Drick ett stort glas vatten nu', 'Ät ett litet mellanmål inom nästa timme', 'Ta en 5–10 min promenad utomhus'],
+    yellow: ['Drick ett stort glas vatten nu', 'Ät ett litet mellanmål inom nästa timme', 'Ta en promenad på 5–10 minuter utomhus'],
     red: ['Vila — tvinga inte kroppen idag', 'Berätta för din gruppchef om du mår dåligt', 'Ät och drick regelbundet även om du inte är hungrig'],
   },
 };

@@ -14,7 +14,7 @@ import { ownTrend } from '@/lib/own-trend';
 import { getSoldierTips } from '@/lib/advice';
 import SupportBlock from './SupportBlock';
 import { shortLabel } from '@/lib/date';
-import { formatScore } from '@/lib/format';
+import { formatScore, procent } from '@/lib/format';
 
 export interface DashboardProps {
   scores: Record<Category, number>;
@@ -28,7 +28,7 @@ export interface DashboardProps {
 
 const FLIKAR = [
   { id: 'overview', etikett: 'Översikt' },
-  { id: 'history', etikett: 'Historia' },
+  { id: 'history', etikett: 'Historik' },
 ] as const;
 
 /** Den lilla versala etiketten över ett tal, som i incheckningen. */
@@ -98,7 +98,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
               />
               <MetricCard
                 label="Svarsfrekvens (14 dagar)"
-                value={`${freq.pct}%`}
+                value={procent(freq.pct)}
                 sub={<span className="text-xs text-slate-500">{freq.checkedIn} av {freq.total} dagar</span>}
               />
             </div>
@@ -245,7 +245,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
 
         {tab === 'history' && (
           <Panel id="history">
-            <SectionHeader label="Din närvaro — senaste 14 dagarna" />
+            <SectionHeader label="Din närvaro — de senaste 14 dagarna" />
             <div className="mb-4 rounded-md border border-slate-200 bg-white p-5">
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-xs text-slate-500">Registrerade incheckningar</span>

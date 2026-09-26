@@ -12,7 +12,7 @@ import {
 } from '@/lib/db/queries/aggregates';
 import { parsePeriod } from '@/lib/privacy';
 import { homeFor } from '@/lib/roles';
-import { formatScore } from '@/lib/format';
+import { formatScore, procent } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -91,7 +91,7 @@ export default async function RapportPage({
         {cats.ok && overall !== null ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Box label="Samlat mående" value={formatScore(overall)} sub={statusLabel(getStatus(overall))} />
-            <Box label="Svarat idag" value={`${overview.today.pct} %`} sub={`${overview.today.responders} av ${overview.eligible}`} />
+            <Box label="Svarat idag" value={procent(overview.today.pct)} sub={`${overview.today.responders} av ${overview.eligible}`} />
             {overview.soldierStatus.ok && (
               <>
                 <Box label="Gröna värnpliktiga" value={String(overview.soldierStatus.data.green)} />
