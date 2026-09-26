@@ -15,7 +15,7 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 185 enhetstester och 32
+är gröna, demon är driftsatt och står i visningsskick. 186 enhetstester och 32
 webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
 och bygge.
 
@@ -62,6 +62,31 @@ Följden för arbetet: det finns ingen återkoppling utifrån att väga listan m
 och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 26 september
+
+- **Befälsvyns sammanfattning är en stapel över hela enheten.** Tre
+  fristående tal ("● 1 Grön ● 22 Gula ● 1 Röd") bröts var för sig i
+  telefonen, så att röd hamnade ensam på raden under. Richard såg det, och
+  valde efter tre skisser den genomarbetade varianten framför den minsta
+  rättningen ("bättre att det blir så bra som möjligt nu").
+
+  Nu: rubriken *40 värnpliktiga · eget snitt*, en stapel av samma form som
+  den under varje kategori, och talen under i textfärg. **De som inte svarat
+  under perioden är en grå del, "utan svar"** — förut räknades de inte alls,
+  så en pluton där hälften tystnat såg lika frisk ut som en där alla svarat.
+  Grått är "ingen uppgift", ingen fjärde status. Antalet utan svar visas bara
+  när fördelningen själv får visas, så det kan inte bli en väg runt
+  k-anonymiteten (`personfordelning()` i `lib/data.ts`).
+
+  Prövat som pluton-, kompani- och bataljonschef i 320, 390, 700, 1024 och
+  1100 px. Lokalt syns "16 utan svar" på alla nivåer — det är personer som
+  webbläsartesterna skapat. I demon har alla svarat, så där syns ingen grå del.
+
+  **Valt bort:** en prick per person (216 prickar för en bataljon, och ser ut
+  att visa individer), cirkeldiagram, och rött först i ordningen.
+
+  **Så tar du bort den igen:** `git revert --no-edit 184777d`. Prövat den 26
+  september på en egen gren: `src` och testerna blir identiska med läget före,
+  och de 185 tester som fanns då är gröna.
 
 - **Två av fynden ur genomgången: talen säger vad de räknar.** Båda var
   Richards beslut, och han tog dem på principen att ett tal ska säga vad det
