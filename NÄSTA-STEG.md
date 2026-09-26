@@ -15,7 +15,7 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 187 enhetstester och 32
+är gröna, demon är driftsatt och står i visningsskick. 189 enhetstester och 32
 webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
 och bygge.
 
@@ -62,6 +62,29 @@ Följden för arbetet: det finns ingen återkoppling utifrån att väga listan m
 och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 26 september
+
+- **Berömmet till den värnpliktige påstår inte längre något om vanor.** Den
+  som hade allt grönt fick höra *"Det är inte en slump utan resultatet av
+  rutiner som fungerar"* — också efter två veckor av röd sömn och en enda bra
+  dag, eftersom rådet bara bygger på dagens svar. Nu berömmer texten dagen
+  och uppmanar att hålla fast vid det som fungerar. **Rådet sparas med
+  incheckningen**, så en redan inskickad rapport behåller sin gamla text;
+  den nya gäller från nästa incheckning eller rättelse.
+
+- **Jämförelsens kolumnrubriker säger hela kategorinamnet** — FYSISK FORM,
+  PSYKISKT MÅENDE — på två rader, i lika breda kolumner. Inga korta namn: en
+  kategori har ett namn, enligt språkgenomgången.
+
+  **Så tar du bort båda igen:** `git revert --no-edit 5acdf49 4aaec0d`.
+  Prövat den 26 september på en egen gren: `src` och testerna blir identiska
+  med läget före, och de 187 tester som fanns då är gröna.
+
+- **Vercel missade en push.** `71cfc87` nådde GitHub, som körde sina
+  kontroller, men Vercel startade aldrig något bygge — ingen störning hos
+  Vercel, långt under taket för antal byggen. En tom commit (`ec15ab0`)
+  väckte den, och byggdes på 30 sekunder. Samtidigt föll `natverksfel.spec.ts`
+  hos GitHub och passerade vid omkörningen: samma kända nyckfullhet som under
+  återvändsgränderna, inte ett fel i koden.
 
 - **Periodväljaren står en gång, överst i sammanfattningen.** Den stod inne
   i varje flik, under sammanfattningen, men räknade om talen ovanför sig.
@@ -500,14 +523,30 @@ fram demodatan och återställa demon.
    - **Reglaget står på 5 och är märkt GUL innan man rört det.** Appen har satt
      en färg på den som ännu inte svarat. Samma fråga som punkt 8, men det är
      så den märks för en förstagångsbesökare.
-   - **Kolumnrubrikerna i jämförelsen:** FYSISK, PSYKISKT, SOCIAL, SÖMN, KOST,
-     ENERGINIVÅ — fem avhuggna ord och ett helt, eftersom rubriken tas som
-     första ordet i kategorinamnet. Liten rättning.
    - **I telefonen syns inte vilken roll man är inloggad som.** Rollen visas
      först från `sm:` och uppåt. Den som provar fem koder i rad tappar bort
      sig. Liten rättning.
    - **Sex tryck tillbaka till sammanfattningen** efter en enda ändring —
      uppmätt, se punkt 5.
+
+   Ur designgenomgången samma kväll (telefonbredd, värnpliktig och
+   plutonchef; adminvyn och `/status` inte granskade):
+
+   - **Samma varning står fyra gånger i befälsvyn:** den gula notisen
+     "kritisk nivå", märket "2 kategorier i rött", rutan Tröskelvärden och
+     Befälsrådet. I telefonen trycker notiserna ner sammanfattningen en halv
+     skärm. Störst för intrycket; ett beslut om vilken som står kvar.
+   - **Rangordningen av grupper** ställer upp dem från bäst till sämst, vilket
+     kan bjuda in till tävling eller skuld. En fråga till befäl och
+     fysioterapeuter, inte en rättning. I telefonen skärs kolumnen Röda av.
+   - **Kurvorna i Trender slutar före sista dagen** utan förklaring vid
+     grafen — dagar med för få svar lämnas tomma, men det står bara i
+     tabellen under.
+   - **Stjärndiagrammet ("Profil") i Jämförelse står kvar med flit.** Det är
+     svårläst och tabellen ovanför visar samma tal, och Richard håller med om
+     det — men en fysioterapeut föreslog det på hackathonet i våras, och det
+     var hans idé. Låt det vara tills vidare. Dess axlar och växlingsknappar
+     tar fortfarande första ordet i kategorinamnet ("Fysisk", "Psykiskt").
 
 2. **De åtta demokontona går inte att öppna mitt på dagen.** Ett beslut, inte
    ett fel: incheckningen är det första man vill visa, och kontona tar slut
