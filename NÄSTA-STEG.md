@@ -15,7 +15,7 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 189 enhetstester och 32
+är gröna, demon är driftsatt och står i visningsskick. 191 enhetstester och 32
 webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
 och bygge.
 
@@ -62,6 +62,37 @@ Följden för arbetet: det finns ingen återkoppling utifrån att väga listan m
 och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 26 september
+
+- **Förbanden heter som Försvarsmakten skriver dem: 1. kompaniet, 1.
+  plutonen, 1. gruppen.** Demon hade "1. Kompaniet" men "Pluton 1–9" och
+  "Grupp 1–3", med plutonerna numrerade över hela bataljonen — 3. kompaniet
+  hade Pluton 7, 8 och 9. Källan är Försvarsmaktens beslut *FAL-A — Fasta
+  anropssignaler för lägre förband inom armén*, FM2019-26245:1, 22 april
+  2020: "1. komp", "1. plut/1. komp", "1. grp/1. plut" — ordningstal med
+  punkt före ordet, och varje förband numrerat inom sitt närmast högre.
+  **Bestämd form och små bokstäver är vår tolkning**, inte beslutets; lätt
+  att ändra om någon på hackathonet säger annat.
+
+  **Koderna är orörda.** BEF-P4 och P4G1-01 räknas fortfarande över hela
+  bataljonen — den plutonen heter nu 1. plutonen i 2. kompaniet. Seeden
+  håller isär namnet (inom kompaniet) och kodnumret (över bataljonen).
+  Adminvyn föreslår namn i den nya formen och läser fortfarande den gamla.
+  `underlag/juryfragor.md` uppdaterad ("3. gruppen, sömn"); manuset och
+  `genomgang.html` lämnade, på Richards begäran.
+
+  **Den delade demon får de nya namnen först efter "Återställ demon"** på
+  `/status` — namnen ligger i databasen, inte i koden. Återställningen loggar
+  ut, bygger om allt och behåller koderna.
+
+  **Så tar du bort det igen:** `git revert --no-edit fdb67f1`, pusha, och
+  tryck sedan "Återställ demon" igen så att de gamla namnen kommer tillbaka.
+  Prövat den 26 september på en egen gren: `src`, testerna och e2e blir
+  identiska med läget före, och de 189 tester som fanns då är gröna.
+
+  **Lokalt:** den lokala databasen återställdes med samma funktion från ett
+  engångsskript. Det måste läsa `.env` och `.env.local` som
+  `scripts/db-setup.mjs` gör — första försöket gjorde inte det, koderna
+  hashades med fel peppar och ingen kunde logga in.
 
 - **Berömmet till den värnpliktige påstår inte längre något om vanor.** Den
   som hade allt grönt fick höra *"Det är inte en slump utan resultatet av
