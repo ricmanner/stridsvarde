@@ -4,7 +4,7 @@ Klistras in som det är. Länken sist, så den inte öppnas innan texten lästs.
 
 ---
 
-Hej! Här kommer en uppdatering på hälsoappen, med en kort genomgång i video.
+Hej! Här kommer en uppdatering på hälsoappen.
 
 Kort om vad som hänt sedan i våras: det ni såg då var en skiss. Den såg ut som
 en app men det fanns ingenting bakom — siffrorna var påhittade och ingenting
