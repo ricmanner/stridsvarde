@@ -542,6 +542,17 @@ fram demodatan och återställa demon.
    - **Kurvorna i Trender slutar före sista dagen** utan förklaring vid
      grafen — dagar med för få svar lämnas tomma, men det står bara i
      tabellen under.
+   - **Fråga till hackathonet: finns det värnpliktiga i plutonen som inte hör
+     till en grupp?** Appen låter administratören placera värnpliktiga direkt
+     i en pluton, och jämförelsen visar dem då på en egen rad, "Direkt i
+     enheten · utan grupp" (`ca525c6`, 16 september). Att det ska gå var
+     Claudes antagande — plutonsledningen, en sjukvårdare — inte något
+     Försvarsmakten sagt. Demon har ingen sådan placering, så raden syns
+     aldrig där. Svarar befälen "alla sitter i en grupp" eller
+     "plutonsledningen": tillåt bara grupper och låt administratören skapa en
+     grupp som heter så (ungefär en halvtimme, ingen databasändring). Ta
+     **inte** bort raden utan att också stänga placeringen — då går delarna
+     inte längre ihop med helheten, vilket var felet som rättades.
    - **Stjärndiagrammet ("Profil") i Jämförelse står kvar med flit.** Det är
      svårläst och tabellen ovanför visar samma tal, och Richard håller med om
      det — men en fysioterapeut föreslog det på hackathonet i våras, och det
