@@ -12,12 +12,22 @@ on:
   pull_request:
     branches: [v2-produktion]
 
+# Maskinen är fastlåst, inte "senaste".
+#
+# GitHub låter ubuntu-latest bli Ubuntu 26 från den 19 oktober 2026. Ett byte
+# av maskin ändrar webbläsare, systembibliotek och tempo, och webbläsartesterna
+# här har fallit på just tempo två gånger. Att det sker av sig självt, kanske
+# dagarna före en visning, är det vi undviker — med en fast version väljer vi
+# själva när vi tar bytet, och vi kan köra det en gång och se att det håller.
+#
+# Höj till ubuntu-26.04 när det finns tid att titta på resultatet. Den här
+# raden är inte tänkt att stå kvar för alltid.
 jobs:
   kontroll:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: npm
@@ -38,10 +48,10 @@ jobs:
   # webbläsare, medan typer, lint och enhetstester svarar på under en minut.
   # Delade de jobb skulle det snabba beskedet fastna bakom det långsamma.
   webblasare:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: npm
@@ -54,7 +64,7 @@ jobs:
           CI: 'true'
       - name: Spara spår vid fel
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-rapport
           path: |
