@@ -15,15 +15,16 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 183 enhetstester och 32
+är gröna, demon är driftsatt och står i visningsskick. 185 enhetstester och 32
 webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
 och bygge.
 
 **Nästa uppgift är inte vald.** Under "Att ta härnäst" ligger punkterna, och
 punkt 1 — fynden ur genomgången den 26 september — är den enda som kommer ur
-att någon faktiskt tittat på appen med nya ögon. Två av dem kräver ett beslut
-av Richard, inte kod. Fråga honom innan du börjar bygga; ordningen i listan är
-ett förslag, inte hans beslut.
+att någon faktiskt tittat på appen med nya ögon. De två som var beslut är
+tagna och gjorda; kvar står reglaget (en designfråga) och tre små rättningar.
+Fråga honom innan du börjar bygga; ordningen i listan är ett förslag, inte
+hans beslut.
 
 **Det här är gjort och behöver inte föreslås igen:**
 
@@ -61,6 +62,29 @@ Följden för arbetet: det finns ingen återkoppling utifrån att väga listan m
 och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 26 september
+
+- **Två av fynden ur genomgången: talen säger vad de räknar.** Båda var
+  Richards beslut, och han tog dem på principen att ett tal ska säga vad det
+  räknar — inte på någon regel från Försvarsmakten, eftersom ingen sådan är
+  känd.
+
+  **Befälsvyns fördelning säger "svar".** Raden överst räknar personer, raden
+  under varje kategori räknar svar, med samma färgord. Lokalt stod "60 röda"
+  under Sömn i en pluton på 40, med "1 Röd" överst. Nu: *60 röda svar*, *1
+  grönt svar* (`statusSvar()` i `lib/data.ts` — svar är neutrum). Raden överst
+  är orörd; att den skulle säga "värnpliktiga" diskuterades men gjordes inte.
+
+  **Riktningen på den värnpliktiges sida säger vad den jämför.** Under
+  "Stigande" står nu *De tre senaste rapporterna mot de tre före*
+  (`trendJamforelse()` i `lib/own-trend.ts`). Raden visas först vid sex
+  rapporter, eftersom färre inte ger tre mot tre. Värdekolumnen intill är låst
+  i bredd, annars bröts "Senaste värdet" på två rader i telefonen.
+
+  Båda prövade i en riktig körning, före och efter, i telefon- och datorbredd.
+
+  **Så tar du bort dem igen:** `git revert --no-edit e2ad976 c85073b`. Prövat
+  den 26 september på en egen gren: `src` och testerna blir identiska med
+  läget före, och de 183 tester som fanns då är gröna.
 
 - **Appen genomgången med nya ögon, och ett pluralfel rättat.** Genomgången
   gjordes mot den driftsatta demon, som en kollega gör: telefon först, sedan
@@ -426,19 +450,10 @@ fram demodatan och återställa demon.
 
 1. **Fynden ur genomgången den 26 september.** Appen gicks igenom som en
    kollega gör — telefon först, sedan dator, som alla fyra rollerna — mot den
-   driftsatta demon. Ett fel rättades direkt ("1 Gröna" → "1 Grön"). Resten
-   ligger kvar, och de två första är beslut, inte rättningar:
+   driftsatta demon. Ett fel rättades direkt ("1 Gröna" → "1 Grön"), och
+   de två besluten — "svar" i fördelningen och vad riktningen jämför — är
+   tagna och gjorda (se "Gjort den 26 september"). Resten ligger kvar:
 
-   - **Samma färgord räknar två olika saker på samma skärm.** Överst i
-     befälsvyn: *67 Gröna, 146 Gula, 3 Röda* — summan blir 216, alltså
-     **personer**. I kategorilistan: *46 gröna, 96 gula, 1 röd* — summan blir
-     143 för en pluton på 24, alltså **svar**. Utskriftsrapporten säger "Gröna
-     värnpliktiga"; vyn säger bara "Gröna". Beslut: ska kategorilistan säga
-     "svar", eller räcker sammanhanget?
-   - **"Riktning: Stigande" kan stå bredvid en kurva vars sista punkt föll.**
-     Riktningen jämför snittet av de tre senaste incheckningarna mot de tre
-     innan (`lib/own-trend.ts`) — alltså korrekt, men ordet säger inte över
-     vad. Beslut: räcker det att skriva ut jämförelsen i etiketten?
    - **Reglaget står på 5 och är märkt GUL innan man rört det.** Appen har satt
      en färg på den som ännu inte svarat. Samma fråga som punkt 8, men det är
      så den märks för en förstagångsbesökare.
