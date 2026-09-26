@@ -408,6 +408,20 @@ test('fördelningen under varje kategori säger att den räknar svar', async () 
  * Med färre än sex rapporter finns inte tre mot tre att jämföra, och då får
  * förklaringen inte påstå det.
  */
+/*
+ * Jämförelsens kolumnrubriker säger hela kategorinamnet.
+ *
+ * Rubriken togs som första ordet i namnet: FYSISK, PSYKISKT, SOCIAL, SÖMN,
+ * KOST, ENERGINIVÅ — fem avhuggna ord och ett helt. Korta namn vore en andra
+ * uppsättning som kan glida isär från CATEGORIES; språkgenomgången bestämde
+ * att en kategori har ett namn. Hela namnet får gå på två rader.
+ */
+test('jämförelsens kolumnrubriker säger hela kategorinamnet', () => {
+  const kod = synligText('src/components/leader/ComparisonGrid.tsx');
+  assert.ok(!/label\.split\(/.test(kod), 'rubriken hugger av kategorinamnet');
+  assert.match(kod, /\{c\.label\}/);
+});
+
 test('riktningen på egen sida säger vad den jämför', async () => {
   const { trendJamforelse } = await import('../src/lib/own-trend.ts');
 

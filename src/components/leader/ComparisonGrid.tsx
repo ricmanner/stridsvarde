@@ -42,12 +42,14 @@ export default function ComparisonGrid({
         <table className="w-full min-w-[640px] border-separate border-spacing-0 text-left">
           <thead>
             <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
-              <th className="px-4 py-2.5 font-bold">Enhet</th>
-              <th className="px-2 py-2.5 text-center font-bold">Svar</th>
-              <th className="px-1.5 py-2.5 text-center font-bold">Snitt</th>
+              <th className="px-4 py-2.5 align-bottom font-bold">Enhet</th>
+              <th className="px-2 py-2.5 text-center align-bottom font-bold">Svar</th>
+              <th className="px-1.5 py-2.5 text-center align-bottom font-bold">Snitt</th>
               {CATEGORIES.map((c) => (
-                <th key={c.key} className="px-1.5 py-2.5 text-center font-bold">
-                  {c.label.split(' ')[0]}
+                // Hela namnet, även om det tar två rader — se testet i sprak.test.mjs.
+                // Lika breda, annars blev SÖMN smal och PSYKISKT MÅENDE bred.
+                <th key={c.key} className="w-24 px-1.5 py-2.5 text-center align-bottom font-bold">
+                  {c.label}
                 </th>
               ))}
             </tr>
