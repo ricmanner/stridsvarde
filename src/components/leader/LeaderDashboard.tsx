@@ -258,7 +258,19 @@ export default function LeaderDashboard({
             </div>
 
             <SL>Svarsunderlag per dag</SL>
-            <div className="mb-4 overflow-x-auto rounded-md border border-slate-200 bg-white">
+            {/*
+              Rullningsbar yta = tangentbordsåtkomst. I telefonbredd blir
+              tabellen bredare än skärmen och får en egen vågrät rullning; utan
+              tabIndex går den bara att rulla med finger eller mus, vilket axe
+              underkänner (WCAG 2.1.1). Rollen och namnet gör dessutom att en
+              skärmläsare kan hoppa till den.
+            */}
+            <div
+              tabIndex={0}
+              role="region"
+              aria-label="Svarsunderlag per dag"
+              className="mb-4 overflow-x-auto rounded-md border border-slate-200 bg-white"
+            >
               <table className="w-full min-w-[420px] text-left">
                 <thead className="bg-slate-50">
                   <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
@@ -325,7 +337,13 @@ export default function LeaderDashboard({
                 </div>
 
                 <SL>Rangordning</SL>
-                <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
+                {/* Samma sak som tabellen på Trender — se kommentaren där. */}
+                <div
+                  tabIndex={0}
+                  role="region"
+                  aria-label="Rangordning"
+                  className="overflow-x-auto rounded-md border border-slate-200 bg-white"
+                >
                   <table className="w-full min-w-[480px] text-left">
                     <thead className="bg-slate-50">
                       <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">

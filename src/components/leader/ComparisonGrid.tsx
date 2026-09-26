@@ -28,7 +28,17 @@ export default function ComparisonGrid({
 
   return (
     <div>
-      <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
+      {/*
+        Rullningsbar yta = tangentbordsåtkomst. Rutnätet är bredare än en
+        telefonskärm och rullar vågrätt; utan tabIndex går det bara att rulla
+        med finger eller mus (WCAG 2.1.1, uppmätt av axe i 390 px).
+      */}
+      <div
+        tabIndex={0}
+        role="region"
+        aria-label={`Jämförelse mellan ${childLabel}`}
+        className="overflow-x-auto rounded-md border border-slate-200 bg-white"
+      >
         <table className="w-full min-w-[640px] border-separate border-spacing-0 text-left">
           <thead>
             <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">

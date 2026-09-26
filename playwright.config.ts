@@ -48,7 +48,31 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'dator', use: { ...devices['Desktop Chrome'] } }],
+  /*
+   * Två bredder, inte en.
+   *
+   * Granskningarna kördes bara i datorbredd, medan de värnpliktiga checkar in i
+   * telefonen. Mobilen var prövad för hand, med ögat — inte av axe, som mäter
+   * kontrast, etiketter och rubrikordning i den bredd som faktiskt visas.
+   *
+   * 390 px är bredden på en vanlig telefon (iPhone 12–16) och samma bredd som
+   * de manuella kontrollerna använde. Ingen enhetsemulering: vi byter fönster­
+   * storlek, inte webbläsare. Det som skiljer i den här appen är brytpunkterna
+   * i formatmallen, och de följer bredden. Touch och pekdon hör till kravnivå
+   * AAA, som lagen inte kräver.
+   *
+   * Bara tillgänglighetsfilen körs i telefonbredd. De övriga testerna klickar
+   * på sådant som medvetet ser annorlunda ut i mobilen — adminvyns träd är
+   * hopfällt där — och skulle falla på layout i stället för att mäta något.
+   */
+  projects: [
+    { name: 'dator', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'telefon',
+      testMatch: /tillganglighet\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 } },
+    },
+  ],
   webServer: {
     // Bygget körs mot samma databas som testerna, och seedas först.
     command: `rm -f "${DB}" "${DB}-wal" "${DB}-shm" && npm run db:setup && npm run build && npx next start -p ${PORT}`,

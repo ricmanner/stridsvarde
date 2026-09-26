@@ -12,6 +12,14 @@ import { KODER, loggaIn, oppnaIncheckning } from './hjalp';
  * kontrast, etiketter, rubrikordning, landmärken.
  */
 
+/*
+ * Påståendena nedan är mjuka (`expect.soft`) med flit.
+ *
+ * Ett hårt påstående stannar testet vid första vyn som brister, och då syns
+ * resten inte förrän den är rättad — en brist per körning, i en fil som
+ * granskar elva vyer. Mjuka påståenden låter körningen gå vidare och listar
+ * allt på slutet. Testet faller ändå, vilket är hela poängen.
+ */
 async function granska(page: Page, vad: string) {
   /*
    * Låt sidan bli färdig först — och "färdig" betyder inte det man först tror.
@@ -52,15 +60,15 @@ async function granska(page: Page, vad: string) {
 
 test('inloggningen', async ({ page }) => {
   await page.goto('/');
-  expect(await granska(page, 'inloggning')).toEqual([]);
+  expect.soft(await granska(page, 'inloggning')).toEqual([]);
 });
 
 test('incheckningen, alla steg', async ({ page }) => {
   await loggaIn(page, 'P1G1-03');
-  expect(await granska(page, 'start')).toEqual([]);
+  expect.soft(await granska(page, 'start')).toEqual([]);
 
   await oppnaIncheckning(page);
-  expect(await granska(page, 'fråga 1')).toEqual([]);
+  expect.soft(await granska(page, 'fråga 1')).toEqual([]);
 
   const reglage = page.locator('input[type="range"]');
   await reglage.focus();
@@ -68,35 +76,35 @@ test('incheckningen, alla steg', async ({ page }) => {
   for (let i = 1; i <= 6; i++) {
     await page.getByRole('button', { name: i === 6 ? 'Sammanfattning' : 'Nästa' }).click();
   }
-  expect(await granska(page, 'sammanfattning')).toEqual([]);
+  expect.soft(await granska(page, 'sammanfattning')).toEqual([]);
 });
 
 test('den värnpliktiges återkoppling, båda flikarna', async ({ page }) => {
   await loggaIn(page, KODER.varnpliktigKlar);
-  expect(await granska(page, 'översikt')).toEqual([]);
+  expect.soft(await granska(page, 'översikt')).toEqual([]);
 
   await page.getByRole('tab', { name: 'Historik' }).click();
-  expect(await granska(page, 'historia')).toEqual([]);
+  expect.soft(await granska(page, 'historia')).toEqual([]);
 });
 
 test('befälsvyn, alla tre flikarna', async ({ page }) => {
   await loggaIn(page, KODER.plutonchef);
-  expect(await granska(page, 'översikt')).toEqual([]);
+  expect.soft(await granska(page, 'översikt')).toEqual([]);
 
   for (const flik of ['Trender', 'Jämförelse']) {
     await page.getByRole('tab', { name: flik }).click();
-    expect(await granska(page, flik.toLowerCase())).toEqual([]);
+    expect.soft(await granska(page, flik.toLowerCase())).toEqual([]);
   }
 });
 
 test('adminvyn och rapporten', async ({ page }) => {
   await loggaIn(page, KODER.admin);
-  expect(await granska(page, 'admin')).toEqual([]);
+  expect.soft(await granska(page, 'admin')).toEqual([]);
 
   await page.goto('/status');
-  expect(await granska(page, 'status')).toEqual([]);
+  expect.soft(await granska(page, 'status')).toEqual([]);
 
   await loggaIn(page, KODER.plutonchef);
   await page.goto('/rapport');
-  expect(await granska(page, 'rapport')).toEqual([]);
+  expect.soft(await granska(page, 'rapport')).toEqual([]);
 });
