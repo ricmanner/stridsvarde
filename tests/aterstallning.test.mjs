@@ -56,6 +56,46 @@ test('återställningen bygger upp demon igen, oavsett vad som hänt med den', a
       assert.ok((await n('SELECT count(*) n FROM check_ins')) > 1000, 'rapporterna saknas');
     });
 
+    /*
+     * Förbanden heter som Försvarsmakten skriver dem: siffra med punkt före
+     * ordet, numrerade inom sitt närmast högre förband (FAL-A, FM2019-26245:1:
+     * "1. plut/1. komp", "1. grp/1. plut"). Demon hade "Pluton 1–9" räknat
+     * över hela bataljonen, så 3. kompaniet hade Pluton 7, 8 och 9.
+     *
+     * Koderna rörs inte: BEF-P4 är fortfarande plutonchef för bataljonens
+     * fjärde pluton, som nu heter 1. plutonen i 2. kompaniet.
+     */
+    await t.test('förbanden heter och numreras som i Försvarsmakten', async () => {
+      const namn = async (sql, args = []) =>
+        (await client.execute({ sql, args })).rows.map((r) => String(r.name));
+      const barn = (kind, foralder) =>
+        namn(
+          `SELECT u.name FROM units u JOIN units p ON p.id = u.parent_id
+            WHERE u.kind = ? AND p.name = ? ORDER BY u.name`,
+          [kind, foralder],
+        );
+
+      assert.deepEqual(
+        await namn(`SELECT name FROM units WHERE kind = 'kompani' ORDER BY name`),
+        ['1. kompaniet', '2. kompaniet', '3. kompaniet'],
+      );
+      for (const kompani of ['1. kompaniet', '2. kompaniet', '3. kompaniet']) {
+        assert.deepEqual(await barn('pluton', kompani), ['1. plutonen', '2. plutonen', '3. plutonen'], kompani);
+      }
+      const grupper = await namn(`SELECT DISTINCT name FROM units WHERE kind = 'grupp' ORDER BY name`);
+      assert.deepEqual(grupper, ['1. gruppen', '2. gruppen', '3. gruppen']);
+
+      const [p4] = (
+        await client.execute({
+          sql: `SELECT u.name AS pluton, k.name AS kompani FROM users b
+                  JOIN units u ON u.id = b.unit_id JOIN units k ON k.id = u.parent_id
+                 WHERE b.code_hash = ?`,
+          args: [hashCode('BEF-P4')],
+        })
+      ).rows;
+      assert.equal(`${p4.pluton}/${p4.kompani}`, '1. plutonen/2. kompaniet');
+    });
+
     await t.test('en raderad enhet kommer tillbaka', async () => {
       const fore = await n('SELECT count(*) n FROM units');
 

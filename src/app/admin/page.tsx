@@ -71,7 +71,7 @@ export default async function AdminPage({
    */
   const byId = new Map(tree.map((n) => [n.id, n]));
 
-  /** Hela vägen ned, så att två "Grupp 1" går att skilja åt. */
+  /** Hela vägen ned, så att två "1. gruppen" går att skilja åt. */
   const pathOf = (node: TreeNode): string => {
     const delar = [node.name];
     for (let id = node.parentId; id !== null; ) {

@@ -31,28 +31,42 @@ function seedFrom(s: string): number {
 
 const CATS: Category[] = ['fysisk', 'psykisk', 'social', 'somn', 'kost', 'energi'];
 
-/**
- * Per-pluton utgångsläge per kategori. Pluton 1 har medvetet dålig sömn och
- * kost så att demon berättar samma historia som prototypen gjorde, och så att
- * tröskelvärdeslarmen faktiskt utlöses någonstans.
+/*
+ * Plutonerna har två nummer, och de får inte blandas ihop.
+ *
+ * NAMNET räknas inom kompaniet — 1. plutonen finns i varje kompani — som
+ * Försvarsmakten numrerar ("1. plut/1. komp", FAL-A, FM2019-26245:1). Demon
+ * hade tidigare "Pluton 1–9" räknat över hela bataljonen, så 3. kompaniet
+ * hade Pluton 7, 8 och 9.
+ *
+ * NUMRET nedan räknas över hela bataljonen, och bara koderna och profilerna
+ * använder det: BEF-P4 och P4G1-01 hör till bataljonens fjärde pluton, som
+ * heter 1. plutonen i 2. kompaniet. Koderna står på inloggningssidan och i
+ * testerna, och är koder — inte namn — så de ändras inte.
  */
-const PLUTON_PROFILE: Record<string, Partial<Record<Category, number>>> = {
-  'Pluton 1': { somn: 3.4, kost: 3.8, energi: 4.2 },
-  'Pluton 2': { psykisk: 4.4, social: 4.8 },
-  'Pluton 7': { fysisk: 4.6, energi: 4.5 },
+
+/**
+ * Per-pluton utgångsläge per kategori. Pluton 1 (1. plutonen, 1. kompaniet)
+ * har medvetet dålig sömn och kost så att demon berättar samma historia som
+ * prototypen gjorde, och så att tröskelvärdeslarmen faktiskt utlöses någonstans.
+ */
+const PLUTON_PROFILE: Record<number, Partial<Record<Category, number>>> = {
+  1: { somn: 3.4, kost: 3.8, energi: 4.2 },
+  2: { psykisk: 4.4, social: 4.8 },
+  7: { fysisk: 4.6, energi: 4.5 },
 };
 
-const PLUTON_BASE: Record<string, number> = {
-  'Pluton 1': 6.4, 'Pluton 2': 5.2, 'Pluton 3': 7.0,
-  'Pluton 4': 6.6, 'Pluton 5': 7.4, 'Pluton 6': 6.1,
-  'Pluton 7': 5.6, 'Pluton 8': 6.8, 'Pluton 9': 7.1,
+const PLUTON_BASE: Record<number, number> = {
+  1: 6.4, 2: 5.2, 3: 7.0,
+  4: 6.6, 5: 7.4, 6: 6.1,
+  7: 5.6, 8: 6.8, 9: 7.1,
 };
 
-const KOMPANI_PLUTONER: Record<string, string[]> = {
-  '1. Kompaniet': ['Pluton 1', 'Pluton 2', 'Pluton 3'],
-  '2. Kompaniet': ['Pluton 4', 'Pluton 5', 'Pluton 6'],
-  '3. Kompaniet': ['Pluton 7', 'Pluton 8', 'Pluton 9'],
-};
+const KOMPANIER: ReadonlyArray<{ namn: string; plutoner: readonly number[] }> = [
+  { namn: '1. kompaniet', plutoner: [1, 2, 3] },
+  { namn: '2. kompaniet', plutoner: [4, 5, 6] },
+  { namn: '3. kompaniet', plutoner: [7, 8, 9] },
+];
 
 const GRUPPER_PER_PLUTON = 3;
 const SOLDATER_PER_GRUPP = 8;
@@ -246,11 +260,11 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
     createdAt: ts,
   });
 
-  type SoldierRow = { id: number; plutonName: string; code: string };
+  type SoldierRow = { id: number; plutonNr: number; code: string };
   const soldiers: SoldierRow[] = [];
 
   let kompaniNr = 0;
-  for (const [kompaniNamn, plutonNamn] of Object.entries(KOMPANI_PLUTONER)) {
+  for (const { namn: kompaniNamn, plutoner } of KOMPANIER) {
     kompaniNr++;
 
     const [kompani] = await tx
@@ -267,8 +281,9 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
       createdAt: ts,
     });
 
-    for (const pNamn of plutonNamn) {
-      const plutonNr = Number(pNamn.split(' ')[1]);
+    for (const [plats, plutonNr] of plutoner.entries()) {
+      // Namnet inom kompaniet, numret över bataljonen — se KOMPANIER.
+      const pNamn = `${plats + 1}. plutonen`;
 
       const [pluton] = await tx
         .insert(units)
@@ -287,7 +302,7 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
       for (let g = 1; g <= GRUPPER_PER_PLUTON; g++) {
         const [grupp] = await tx
           .insert(units)
-          .values({ name: `Grupp ${g}`, kind: 'grupp', parentId: pluton.id, createdAt: ts })
+          .values({ name: `${g}. gruppen`, kind: 'grupp', parentId: pluton.id, createdAt: ts })
           .returning({ id: units.id });
 
         // Koden hålls utanför raden — den ska aldrig kunna råka skrivas till
@@ -314,7 +329,7 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
           .returning({ id: users.id });
 
         inserted.forEach((u, i) => {
-          soldiers.push({ id: u.id, plutonName: pNamn, code: rows[i].code });
+          soldiers.push({ id: u.id, plutonNr, code: rows[i].code });
         });
       }
     }
@@ -325,8 +340,8 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
 
   for (const soldier of soldiers) {
     const rnd = mulberry32(seedFrom(soldier.code));
-    const base = PLUTON_BASE[soldier.plutonName] ?? 6.5;
-    const profile = PLUTON_PROFILE[soldier.plutonName] ?? {};
+    const base = PLUTON_BASE[soldier.plutonNr] ?? 6.5;
+    const profile = PLUTON_PROFILE[soldier.plutonNr] ?? {};
     // Varje soldat har en egen personlig avvikelse som består över tid.
     const personal = (rnd() - 0.5) * 2.4;
 

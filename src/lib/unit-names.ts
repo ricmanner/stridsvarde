@@ -13,22 +13,29 @@ import type { UnitKind } from './db/queries/admin';
 
 export type ChildKind = 'kompani' | 'pluton' | 'grupp';
 
+/*
+ * Som Försvarsmakten skriver förband: siffra med punkt före ordet, numrerat
+ * inom närmast högre förband — "1. plut/1. komp", "1. grp/1. plut" (FAL-A,
+ * FM2019-26245:1, 2020-04-22). Bestämd form, som det sägs: "första plutonen".
+ * Appen skrev tidigare "Pluton 4" och "Grupp 1" men "1. Kompaniet".
+ */
+const ORD: Record<ChildKind, string> = { kompani: 'kompaniet', pluton: 'plutonen', grupp: 'gruppen' };
+
 function format(kind: ChildKind, n: number): string {
-  if (kind === 'kompani') return `${n}. Kompaniet`;
-  return `${kind === 'pluton' ? 'Pluton' : 'Grupp'} ${n}`;
+  return `${n}. ${ORD[kind]}`;
 }
 
 /**
  * Nästa nummer efter det högsta som redan finns bland syskonen.
  *
- * Utgår från syskonens namn, inte deras antal. Demon numrerar plutonerna över
- * hela bataljonen — 2. Kompaniet har Pluton 4, 5 och 6 — så "antal plus ett"
- * hade föreslagit Pluton 4 där, ett namn som redan finns. Nästa efter det
- * högsta ger Pluton 4 i ett kompani med 1–3, Pluton 7 i ett med 4–6, och
- * Pluton 1 eller Grupp 1 i en helt tom enhet.
+ * Utgår från syskonens namn, inte deras antal: har någon raderat 2. plutonen
+ * i ett kompani med tre, hade "antal plus ett" föreslagit 3. plutonen — ett
+ * namn som redan finns. Nästa efter det högsta ger 4. plutonen där, och
+ * 1. plutonen eller 1. gruppen i en helt tom enhet. Namn i det äldre
+ * skrivsättet ("Pluton 3") räknas också, eftersom bara siffran läses.
  *
  * Föreslår aldrig ett namn som redan är taget. Jämförelsen struntar i stora
- * och små bokstäver: "pluton 4" och "Pluton 4" är samma sak för den som läser
+ * och små bokstäver: "4. Plutonen" och "4. plutonen" är samma sak för den som läser
  * listan, även om databasen skulle godta båda.
  */
 export function suggestChildName(kind: ChildKind, siblingNames: readonly string[]): string {

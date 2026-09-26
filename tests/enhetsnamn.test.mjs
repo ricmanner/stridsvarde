@@ -13,28 +13,39 @@ test('nästa nummer efter det som redan finns under enheten', async () => {
   const { suggestChildName } = await import('../src/lib/unit-names.ts');
 
   // Fallen som rapporterades.
-  assert.equal(suggestChildName('pluton', ['Pluton 1', 'Pluton 2', 'Pluton 3']), 'Pluton 4');
-  assert.equal(suggestChildName('grupp', []), 'Grupp 1', 'en ny tom pluton börjar på Grupp 1');
+  assert.equal(suggestChildName('pluton', ['1. plutonen', '2. plutonen', '3. plutonen']), '4. plutonen');
+  assert.equal(suggestChildName('grupp', []), '1. gruppen', 'en ny tom pluton börjar på 1. gruppen');
 
-  assert.equal(suggestChildName('kompani', ['1. Kompaniet', '2. Kompaniet', '3. Kompaniet']), '4. Kompaniet');
-  assert.equal(suggestChildName('pluton', []), 'Pluton 1');
+  assert.equal(suggestChildName('kompani', ['1. kompaniet', '2. kompaniet', '3. kompaniet']), '4. kompaniet');
+  assert.equal(suggestChildName('pluton', []), '1. plutonen');
+});
+
+/*
+ * Namnen skrivs som Försvarsmakten skriver dem: siffra med punkt före ordet,
+ * "1. plut/1. komp" (FAL-A, FM2019-26245:1). Appen föreslog "Pluton 4" och
+ * "Grupp 1" medan kompanierna hette "1. Kompaniet" — två skrivsätt för samma
+ * sak. Bestämd form, som det sägs: "första plutonen".
+ */
+test('förslagen skrivs som Försvarsmakten skriver förband', async () => {
+  const { suggestChildName } = await import('../src/lib/unit-names.ts');
+
+  assert.equal(suggestChildName('kompani', []), '1. kompaniet');
+  assert.equal(suggestChildName('pluton', []), '1. plutonen');
+  assert.equal(suggestChildName('grupp', []), '1. gruppen');
 });
 
 test('föreslår aldrig ett namn som redan finns', async () => {
   const { suggestChildName } = await import('../src/lib/unit-names.ts');
 
-  /*
-   * Demon numrerar plutonerna över hela bataljonen: 2. Kompaniet har Pluton
-   * 4, 5 och 6. "Antal plus ett" hade föreslagit Pluton 4 där — som finns.
-   */
-  assert.equal(suggestChildName('pluton', ['Pluton 4', 'Pluton 5', 'Pluton 6']), 'Pluton 7');
-
   // Små bokstäver är samma namn för den som läser listan.
-  assert.equal(suggestChildName('pluton', ['Pluton 1', 'Pluton 2', 'Pluton 3', 'pluton 4']), 'Pluton 5');
+  assert.equal(suggestChildName('pluton', ['1. plutonen', '2. plutonen', '3. Plutonen']), '4. plutonen');
 
   // En lucka fylls inte; nästa efter det högsta.
-  assert.equal(suggestChildName('grupp', ['Grupp 1', 'Grupp 3']), 'Grupp 4');
+  assert.equal(suggestChildName('grupp', ['1. gruppen', '3. gruppen']), '4. gruppen');
 
   // Ett namn utan nummer räknas inte, men krockar inte heller.
-  assert.equal(suggestChildName('grupp', ['Sjukvårdsgrupp']), 'Grupp 1');
+  assert.equal(suggestChildName('grupp', ['Sjukvårdsgrupp']), '1. gruppen');
+
+  // Namn i det gamla skrivsättet räknas fortfarande: nästa efter Pluton 3.
+  assert.equal(suggestChildName('pluton', ['Pluton 1', 'Pluton 2', 'Pluton 3']), '4. plutonen');
 });
