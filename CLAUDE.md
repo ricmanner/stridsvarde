@@ -9,6 +9,11 @@ Läs `README.md` för arkitektur, kommandon och miljövariabler, och
 `NÄSTA-STEG.md` för var arbetet står just nu och vad som redan visat sig vara
 en återvändsgränd.
 
+**Gren: `v2-produktion`. Allt arbete sker här, i den här mappen
+(`~/Code/stridsvarde-v2`), som är ett eget förråd.** En push dit driftsätts av
+Vercel till <https://fm-psvi-v2.vercel.app> på 30–60 sekunder. Startas en
+session i någon annan mapp går pushen inte igenom — se Driftsättning nedan.
+
 ## Så vill Richard arbeta
 
 Han är **inte teknisk**. Förklara på enkel svenska: vad något betyder, vad det
@@ -39,8 +44,20 @@ commit-texten, som skrivs för nästa utvecklare.
   nytt arbete går att ta bort. Prova återställningen på en egen gren innan du
   påstår att den fungerar, och lägg vägen tillbaka i `NÄSTA-STEG.md` — även det
   som ligger utanför förrådet, som en hemlighet i Vercel.
-- **Ta emot invändningar.** Han har flera gånger haft rätt mot ett förslag —
-  backa då hellre än att försvara det.
+- **Ta emot invändningar — och mät om, försvara inte.** Han har flera gånger
+  haft rätt mot ett förslag. Går invändningen att pröva: pröva den, och lägg
+  fram talen. "En telefon har inga piltangenter" ledde till en mätning som
+  visade att felet gällde zoom på en dator, inte telefoner — och att
+  formuleringen var fel, inte rättningen.
+- **Vid en genomgång: lämna listan först, koden sedan.** Ber han om en
+  granskning vill han ha fynden med en värdering av vad var och en är värd, och
+  väljer själv vad som ska rättas. Han delar gärna arbetet i paket och tar ett
+  i taget.
+- **Skilj på vad som gör appen bättre och vad som gör en visning enklare.** Han
+  frågar rakt ut om något är "bara en liten struntsak". Svara lika rakt, och
+  säg vilket av de två det är.
+- **Radera ingenting som är hans utan att fråga** — mappar, filer, grenar. Han
+  behåller hellre något i onödan än ångrar en radering.
 - **Föreslå inte det som redan är gjort.** Läs `NÄSTA-STEG.md` först — och
   **titta i `underlag/`** innan du skriver något som ska läsas av andra
   (meddelande till gruppen, manus, juryfrågor). Det har två gånger varit nära
@@ -50,9 +67,11 @@ commit-texten, som skrivs för nästa utvecklare.
 
 ## Gränser som inte får överskridas
 
-- **Rör aldrig grenarna `main` eller `pilot`.** `main` är prototypen från i
-  våras och bygger den gamla demon på Netlify; `pilot` utvecklas separat. Allt
-  arbete sker på `v2-produktion`.
+- **Rör aldrig `main`.** Det är prototypen från hackathonet i våras, och den
+  bygger <https://fmpsvi.netlify.app> direkt ur GitHub. Den står kvar orörd med
+  flit: kollegor ska kunna jämföra den med v2. Förrådet har exakt två grenar —
+  `main` och `v2-produktion` — och allt arbete sker på den senare. (`pilot`
+  finns bara lokalt i den gamla mappen och pekar på samma commit som `main`.)
 - **Hälsodata aggregeras i SQL, aldrig i servern.** Enskilda incheckningar
   lämnar databasen bara till den som själv skrivit dem
   (`src/lib/db/queries/checkins.ts`). `queries/admin.ts` rör aldrig
@@ -157,6 +176,12 @@ Allt arbete sker på **`v2-produktion`**. En push dit driftsätts automatiskt av
 Vercel till <https://fm-psvi-v2.vercel.app> — ett bygge tar ungefär 30–60
 sekunder. GitHub kör samma kontroller, men först efter pushen, så kör dem
 själv innan.
+
+**Sessionen måste starta i den här mappen.** En push till ett förråd utanför
+sessionens arbetsmapp stoppas som otillåten publicering, och då måste Richard
+antingen tillåta den eller köra den själv — det kostade en omväg den 25
+september. I VS Code: Arkiv → Öppna mapp → `~/Code/stridsvarde-v2`. `/clear`
+byter inte mapp; det är mappen som är öppen som avgör.
 
 Kontrollera att rätt version ligger uppe med:
 

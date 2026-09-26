@@ -15,22 +15,25 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 182 enhetstester och 32
+är gröna, demon är driftsatt och står i visningsskick. 183 enhetstester och 32
 webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
 och bygge.
 
-Hela språkgenomgången är avklarad: paket A och B den 25 september, C och D den
-26. Inget av den står kvar.
+**Nästa uppgift är inte vald.** Under "Att ta härnäst" ligger punkterna, och
+punkt 1 — fynden ur genomgången den 26 september — är den enda som kommer ur
+att någon faktiskt tittat på appen med nya ögon. Två av dem kräver ett beslut
+av Richard, inte kod. Fråga honom innan du börjar bygga; ordningen i listan är
+ett förslag, inte hans beslut.
 
-Språkrättningarna nedan (paket A och B ur genomgången den 25 september) ligger
-ute sedan kvällen samma dag. Kontrollerat mot den driftsatta demon: rundturen
-går igenom som alla fem konton, och de två fel som var synliga för besökare —
-"Ny kompani under Bataljonen" och "Jämför en kompani med hela enheten" — står nu
-rätt.
+**Det här är gjort och behöver inte föreslås igen:**
 
-Nästa uppgift står under "Att ta härnäst". Punkterna 1–4 där är föreslagna och
-**medvetet uppskjutna av Richard den 25 september** — inte avfärdade. Ordningen
-mellan dem är en rekommendation, inte hans beslut.
+- Hela språkgenomgången, paket A–D, den 25–26 september. Inget av den står kvar.
+- Tillgängligheten: granskningarna körs i två bredder, och graferna beskriver
+  sitt innehåll för den som lyssnar.
+- Underhållet med datum: arbetsflödets actions höjda till v7 och maskinen
+  fastlåst till `ubuntu-24.04` före GitHubs byte den 19 oktober.
+- Mappen är ett eget förråd sedan den 25 september, inte längre en länkad
+  arbetskopia av förrådet i `~/Code/Stridvärde app`.
 
 Att den schemalagda molnkontrollen inte kunde läsa demon står under
 återvändsgränderna.
@@ -58,6 +61,25 @@ Följden för arbetet: det finns ingen återkoppling utifrån att väga listan m
 och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 26 september
+
+- **Appen genomgången med nya ögon, och ett pluralfel rättat.** Genomgången
+  gjordes mot den driftsatta demon, som en kollega gör: telefon först, sedan
+  dator, som värnpliktig, plutonchef, bataljonschef och administratör. Fynden
+  ligger som punkt 1 under "Att ta härnäst".
+
+  Ett av dem rättades direkt: befälsvyn hade plural inskrivet i
+  sammanfattningsraden ("● 1 **Gröna** ● 22 Gula ● 1 **Röda**") och i
+  fördelningen under varje kategori ("1 **röda**"). Orden ligger nu i
+  `statusOrd()` i `lib/data.ts`, och anroparen bestämmer versalen. Samma familj
+  som de fyra pluralfelen ovan — de hittades genom att läsa JSX-text, medan de
+  här stod som `label="Gröna"` och i en nästlad `span`.
+
+  **Meddelandet till gruppen lovade en video** som Richard beslutat att inte
+  spela in. Meningen är struken. Manuset och `underlag/genomgang.html` säger
+  fortfarande "plutonsbefäl" där appen säger "Plutonchefen" — medvetet lämnat,
+  eftersom Richard har sin egen kopia av manuset i ett annat program.
+
+  **Så tar du bort pluralrättningen igen:** `git revert --no-edit 4fa1c03`.
 
 - **Graferna berättar vad de visar, inte bara vad de heter.** Alla sex var
   märkta `role="img"` med en etikett som sa namnet — "Ditt mående de senaste
@@ -175,7 +197,7 @@ och **polering går före demoförberedelser** tills länken är ute.
 - **Grammatikgenomgång av hela gränssnittet, och hälften av den rättad.**
   All text i `src` lästes igenom — stavning, böjning, militärt språkbruk och
   skrivregler. Richard valde att ta paket A och B; C och D ligger kvar under
-  "Att ta härnäst" som punkt 7.
+  senare samma dag, så ingenting av genomgången står kvar.
 
   **Paket A — böjning (fem commitar, elva ställen).** Det största var att
   *kompani* är ett neutrum bland fyra enhetssorter, och att tre meningar byggdes
@@ -333,7 +355,7 @@ nätet, omdirigeringen och återkopplingssidans egna frågor.
   `plan.dagar` noll, och då returnerar `applyDemoTimeline()` direkt utan att
   öppna kontona — dessutom visas knappen inte alls, eftersom rutan då säger
   att demodatan är aktuell. Tar kontona slut mitt på dagen finns i dag bara
-  `Återställ demon`, som bygger om allt och loggar ut dig. Se punkt 1 under
+  `Återställ demon`, som bygger om allt och loggar ut dig. Se punkt 2 under
   "Att ta härnäst"; det upptäcktes av rundturen den 24 september, inte av
   ett test.
 
@@ -402,7 +424,34 @@ fram demodatan och återställa demon.
 
 ## Att ta härnäst
 
-1. **De åtta demokontona går inte att öppna mitt på dagen.** Ett beslut, inte
+1. **Fynden ur genomgången den 26 september.** Appen gicks igenom som en
+   kollega gör — telefon först, sedan dator, som alla fyra rollerna — mot den
+   driftsatta demon. Ett fel rättades direkt ("1 Gröna" → "1 Grön"). Resten
+   ligger kvar, och de två första är beslut, inte rättningar:
+
+   - **Samma färgord räknar två olika saker på samma skärm.** Överst i
+     befälsvyn: *67 Gröna, 146 Gula, 3 Röda* — summan blir 216, alltså
+     **personer**. I kategorilistan: *46 gröna, 96 gula, 1 röd* — summan blir
+     143 för en pluton på 24, alltså **svar**. Utskriftsrapporten säger "Gröna
+     värnpliktiga"; vyn säger bara "Gröna". Beslut: ska kategorilistan säga
+     "svar", eller räcker sammanhanget?
+   - **"Riktning: Stigande" kan stå bredvid en kurva vars sista punkt föll.**
+     Riktningen jämför snittet av de tre senaste incheckningarna mot de tre
+     innan (`lib/own-trend.ts`) — alltså korrekt, men ordet säger inte över
+     vad. Beslut: räcker det att skriva ut jämförelsen i etiketten?
+   - **Reglaget står på 5 och är märkt GUL innan man rört det.** Appen har satt
+     en färg på den som ännu inte svarat. Samma fråga som punkt 8, men det är
+     så den märks för en förstagångsbesökare.
+   - **Kolumnrubrikerna i jämförelsen:** FYSISK, PSYKISKT, SOCIAL, SÖMN, KOST,
+     ENERGINIVÅ — fem avhuggna ord och ett helt, eftersom rubriken tas som
+     första ordet i kategorinamnet. Liten rättning.
+   - **I telefonen syns inte vilken roll man är inloggad som.** Rollen visas
+     först från `sm:` och uppåt. Den som provar fem koder i rad tappar bort
+     sig. Liten rättning.
+   - **Sex tryck tillbaka till sammanfattningen** efter en enda ändring —
+     uppmätt, se punkt 5.
+
+2. **De åtta demokontona går inte att öppna mitt på dagen.** Ett beslut, inte
    ett fel: incheckningen är det första man vill visa, och kontona tar slut
    när flera provar. Tre vägar, med för och emot:
 
@@ -420,7 +469,7 @@ fram demodatan och återställa demon.
    framför en publik och ska inte behöva veta vad "flytta fram" betyder.
    Frågan är din.
 
-2. **Låt "Återställ demon" ge en demo som är visningsklar.** Seeden skapar inga
+3. **Låt "Återställ demon" ge en demo som är visningsklar.** Seeden skapar inga
    notiser, och alla grupper är lika stora med hög svarsfrekvens. Följden är att
    två saker demon ska visa upp inte finns efter en återställning: en öppen
    samtalsbegäran, som manuset pekar på, och en enhet där det står "Underlag
@@ -430,7 +479,7 @@ fram demodatan och återställa demon.
    ger mest inför hackathonet, eftersom den tar bort pyssel just före en
    visning.
 
-3. **Låt den som mår dåligt nå nästa nivå samma dag.** Den som ber sitt
+4. **Låt den som mår dåligt nå nästa nivå samma dag.** Den som ber sitt
    plutonsbefäl om samtal på morgonen kan inte be igen samma dag via appen —
    kvittot har ersatt båda knapparna (`aktivSamtalsbegaran()`, medvetet så).
    Stödlinjernas nummer står kvar, och det är det verkliga skyddsnätet, men
@@ -439,11 +488,11 @@ fram demodatan och återställa demon.
    är en avvägning om hur appen beter sig mot någon som mår dåligt, så beslutet
    är Richards.
 
-4. **Skavank i incheckningen.** Ändrar man ett svar från sammanfattningen måste
+5. **Skavank i incheckningen.** Ändrar man ett svar från sammanfattningen måste
    man klicka "Nästa" genom de återstående frågorna för att komma tillbaka. Att
    gå direkt till sammanfattningen är några rader. En halvtimme, ingen brådska.
 
-5. **Resten av nätverksfelen.** Incheckningen är klar, men den var bara den
+6. **Resten av nätverksfelen.** Incheckningen är klar, men den var bara den
    första av flera skrivvägar. Utan tidsgräns står ännu inloggningen
    (`actions/auth.ts`), samtalsbegäran, och administratörens åtgärder: skapa
    och radera enheter, utfärda koder.
@@ -458,7 +507,7 @@ fram demodatan och återställa demon.
    databas som just visat sig hänga. Incheckningen går runt det genom att
    logga i `after()`, alltså efter att svaret gått iväg. En egen kort
    tidsgräns inuti `logError` vore en bättre lösning för hela appen.
-6. **De två besluten inför skarp drift**, som är verksamhetens och inte
+7. **De två besluten inför skarp drift**, som är verksamhetens och inte
    utvecklarens: lagringstid (`RETENTION_DAYS`) och säkerhetskopior av
    Turso-databasen. Underlag finns skrivet — fråga Richard efter det.
    Säkerhetskopiorna är den mer akuta av de två: appens egen kopiering fungerar
@@ -469,7 +518,7 @@ fram demodatan och återställa demon.
    alltså inte om det är påslaget utan vilken plan kontot har, och i vilken
    region databasen ligger. Värt att veta i förväg: en återställning skapar en
    **ny** databas, så adressen i Vercel måste pekas om efteråt.
-7. **Designfrågor som väntar på ett samtal**, inte på kod: reglaget i
+8. **Designfrågor som väntar på ett samtal**, inte på kod: reglaget i
    incheckningen börjar på 5, så den som bara trycker "Nästa" skickar in sex
    femmor som ser ut som svar. Att tvinga fram en rörelse straffar den som
    verkligen menar 5 — Richard har avfärdat både det och att hoppa över frågor.
@@ -516,7 +565,7 @@ körs nu även i telefonbredd, och graferna beskriver sitt innehåll. Kvar står
   hunnit bli gammal. Nattkörningen gör det åt dig varje natt. Knappen syns
   bara när datan hunnit bli minst två dagar gammal — **tar de åtta lediga
   incheckningarna slut mitt under en visningsdag hjälper varken klockan
-  eller knappen**, utan bara `Återställ demon`. Se punkt 1 under "Att ta
+  eller knappen**, utan bara `Återställ demon`. Se punkt 2 under "Att ta
   härnäst". Den flyttar datum och rör inget annat, alltså behålls
   det någon lagt till i demon. Demodatan står still medan kalendern går: efter en
   vecka är befälsvyns förvalda period tom, efter tre veckor visar varje vy
@@ -596,6 +645,37 @@ koden direkt vid första start, innan du gör något annat.**
 ## Återvändsgränder — prova inte om igen
 
 Sådant som såg ut som förbättringar och inte var det. Varje rad kostade tid.
+
+- **Sätt aldrig ett reglages värde med `element.value` i webbläsaren.** React
+  har ett eget spår på värdet, och en tilldelning utifrån plus ett `input`-utskick
+  når inte fram — reglaget visar det nya talet medan appens tillstånd står kvar
+  på det gamla. Under genomgången den 26 september såg incheckningen därför ut
+  att tappa svar; felet låg i verktyget, inte i appen. Använd riktiga
+  tangenttryck (`Home` och piltangenter), som e2e-testerna gör. Ett klick på en
+  knapp går däremot fram som vanligt.
+- **Ett test som räknar förekomster i koden måste läsa bort kommentarerna.**
+  Kontrollen av att varje graf pekar på sin beskrivning räknade `role="img"` —
+  och fick tre träffar i en fil med en graf, eftersom kommentarerna förklarade
+  varför beskrivningen ligger utanför just `role="img"`.
+- **Ett påstående om procenttecknet får inte träffa formatmallen.** Kontrollen
+  förbjöd `${...}%` och föll på `width: ${pct}%`, där procent är en enhet och
+  ska skrivas ihop. Sikta på textfallet, inte på tecknet.
+- **`git worktree prune` städar inte en registrering vars sökväg är upptagen.**
+  När den gamla arbetskopian bytt namn och en ny mapp tagit dess plats tror git
+  att allt står rätt till. Kör `git worktree repair` i den flyttade mappen i
+  stället — då pekar registreringen på det nya namnet, och prune fungerar när
+  mappen väl raderas. `git worktree remove` ska inte användas här: den vill
+  radera katalogen på den sökväg som står i registreringen, alltså fel mapp.
+- **Låt inte alla webbläsartester köras i telefonbredd.** Bara
+  tillgänglighetsfilen gör det. De andra klickar på sådant som medvetet ser
+  annorlunda ut i mobilen — adminvyns träd är hopfällt där — och skulle falla på
+  layout i stället för att mäta något.
+- **En AI i ett annat verktyg kan påstå att den skapat en gren utan att ha
+  gjort det.** "Stridsvärde pilot" har fjorton commitar från den 14–15
+  september och ingen koppling till GitHub alls; grenen som sades ha skapats
+  finns inte. Kontrollera med `git remote -v` och `git ls-remote --heads`
+  innan något tas för givet — och notera att den linjen gjorde samma sak som
+  v2 gjorde om från grunden dagen därpå.
 
 - **En schemalagd kontroll i molnet kan inte läsa demon.** Den 25 september
   ställdes en routine in som skulle logga in på den driftsatta demon och
