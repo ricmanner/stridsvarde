@@ -94,6 +94,31 @@ test('återställningen bygger upp demon igen, oavsett vad som hänt med den', a
         })
       ).rows;
       assert.equal(`${p4.pluton}/${p4.kompani}`, '1. pluton/2. kompani');
+
+      /*
+       * Bataljonen följer samma regel ("1. komp i 1. bat" i FAL-A). Den hette
+       * "Bataljonen" — den enda som bröt mönstret.
+       */
+      assert.deepEqual(await namn(`SELECT name FROM units WHERE kind = 'bataljon'`), ['1. bataljon']);
+    });
+
+    /*
+     * Befälen heter sin roll, inte roll plus enhet. "Plutonchef 1. pluton"
+     * stod i sidhuvudet bredvid "1. pluton" — samma sak två gånger — och
+     * "Bataljonschef Bataljonen" i adminvyns förslag.
+     */
+    await t.test('befälen heter sin roll', async () => {
+      for (const [kod, benamning] of [
+        ['BEF-BAT', 'Bataljonschef'],
+        ['BEF-KP1', 'Kompanichef'],
+        ['BEF-P1', 'Plutonchef'],
+        ['BEF-P4', 'Plutonchef'],
+      ]) {
+        const [rad] = (
+          await client.execute({ sql: 'SELECT label FROM users WHERE code_hash = ?', args: [hashCode(kod)] })
+        ).rows;
+        assert.equal(rad.label, benamning, kod);
+      }
     });
 
     await t.test('en raderad enhet kommer tillbaka', async () => {

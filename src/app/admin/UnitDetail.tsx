@@ -144,7 +144,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
               <label className="flex flex-col gap-1">
                 <span className="text-etikett font-semibold text-slate-500">Befälets benämning</span>
                 <input
-                  name="labelPrefix" defaultValue={`${ROLE_LABEL[leaderRole]} ${unit.name}`}
+                  name="labelPrefix" defaultValue={ROLE_LABEL[leaderRole]}
                   maxLength={60} required
                   className="w-64 max-w-full rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
                 />
@@ -505,14 +505,9 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                         <input type="hidden" name="userId" value={m.id} />
                         <BekraftaKnapp
                           fraga={`Ge ${m.label} en ny kod?`}
-                          forklaring={
-                            <>
-                              <p>Den nuvarande koden slutar fungera direkt.</p>
-                              <p className="mt-1.5">
-                                Den nya visas en enda gång — lämna över den innan du stänger lappen.
-                              </p>
-                            </>
-                          }
+                          // Bara det som händer nu. Att koden visas en gång
+                          // säger kodlappen själv, med varning om man lämnar.
+                          forklaring={<p>Den nuvarande koden slutar fungera direkt.</p>}
                           bekraftaText="Utfärda ny kod"
                           className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-etikett font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 sm:py-1"
                         >

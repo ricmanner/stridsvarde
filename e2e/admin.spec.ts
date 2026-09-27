@@ -103,10 +103,25 @@ test('ny kod frågar först, och rutan gäller rätt person', async ({ page }) =
   const ruta = page.getByRole('dialog', { name: 'Ge Värnpliktig 02 en ny kod?' });
   await expect(ruta).toBeVisible();
   await expect(page.getByText(KODMONSTER), 'koden byttes innan någon bekräftat').toHaveCount(0);
+  // Kort: vad som händer nu. Att koden visas en gång säger lappen själv.
+  await expect(ruta).toContainText('Den nuvarande koden slutar fungera direkt.');
+  await expect(ruta).not.toContainText('en enda gång');
 
   await ruta.getByRole('button', { name: 'Avbryt' }).click();
   await expect(ruta).toBeHidden();
   await expect(page.getByText(KODMONSTER), 'Avbryt bytte koden ändå').toHaveCount(0);
+});
+
+/*
+ * Förslaget på ett nytt befäls benämning är rollen, inte roll plus enhet:
+ * "Bataljonschef Bataljonen" och "Kompanichef 1. kompani" sa enheten två
+ * gånger — den står redan i trädet och i sidhuvudet.
+ */
+test('ett nytt befäl föreslås heta sin roll', async ({ page }) => {
+  await expect(page.getByLabel('Befälets benämning')).toHaveValue('Bataljonschef');
+  await page.getByRole('link', { name: /1\. kompani/ }).first().click();
+  await expect(page).toHaveURL(/unit=\d+/);
+  await expect(page.getByLabel('Befälets benämning')).toHaveValue('Kompanichef');
 });
 
 test('demons publicerade konton går inte att förstöra', async ({ page }) => {

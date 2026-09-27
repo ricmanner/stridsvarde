@@ -224,7 +224,7 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
   // ── Enhetsträd ────────────────────────────────────────────────────────────
   const [bataljon] = await tx
     .insert(units)
-    .values({ name: 'Bataljonen', kind: 'bataljon', parentId: null, createdAt: ts })
+    .values({ name: '1. bataljon', kind: 'bataljon', parentId: null, createdAt: ts })
     .returning({ id: units.id });
 
   // Adminkontot behövs alltid, annars går det inte att komma igång.
@@ -274,7 +274,7 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
 
     await tx.insert(users).values({
       codeHash: hashCode(`BEF-KP${kompaniNr}`),
-      label: `Kompanichef ${kompaniNamn}`,
+      label: 'Kompanichef',
       role: 'kompani',
       unitId: kompani.id,
       active: true,
@@ -292,7 +292,7 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
 
       await tx.insert(users).values({
         codeHash: hashCode(`BEF-P${plutonNr}`),
-        label: `Plutonchef ${pNamn}`,
+        label: 'Plutonchef',
         role: 'pluton',
         unitId: pluton.id,
         active: true,

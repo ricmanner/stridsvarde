@@ -65,7 +65,7 @@ export interface UnitRenameState {
  * Byter namn på en enhet.
  *
  * Fanns inte förrän nu, och saknaden märktes först vid tanken på en
- * överlämning: den enhet som skapas vid första start heter "Bataljonen", och
+ * överlämning: den enhet som skapas vid första start heter "1. bataljon", och
  * utan det här går den inte att döpa om till förbandets riktiga namn utan att
  * gå direkt på databasen.
  */
