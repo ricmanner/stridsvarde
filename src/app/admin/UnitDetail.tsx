@@ -41,6 +41,8 @@ interface Props {
   moveTargets: MoveTarget[];
   /** Namnen på enhetens befintliga underenheter — för att föreslå nästa. */
   childNames: string[];
+  /** Vägen ovanför enheten, "1. bataljon › 1. kompani", eller null högst upp. */
+  overordnade: string | null;
 }
 
 /** Vilken roll som hör hemma på vilken nivå. */
@@ -58,7 +60,7 @@ const CHILD_KIND: Record<string, ChildKind | null> = {
   grupp: null,
 };
 
-export default function UnitDetail({ unit, members, currentUserId, moveTargets, childNames }: Props) {
+export default function UnitDetail({ unit, members, currentUserId, moveTargets, childNames, overordnade }: Props) {
   const [unitState, unitFormAction, creatingUnit] = useActionState<UnitState, FormData>(createUnitAction, {});
   const [namnState, namnFormAction, byterNamn] = useActionState<UnitRenameState, FormData>(renameUnitAction, {});
   const [codeState, codeFormAction, creatingUsers] = useActionState<CodeState, FormData>(createUsersAction, {});
@@ -111,9 +113,16 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
 
   return (
     <div>
-      <h2 className="no-print mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
-        {unit.kindLabel} · {unit.name}
-      </h2>
+      {/*
+        Vilken enhet, och var den sitter. Rubriken var en liten grå rad,
+        "GRUPP · 1. GRUPP" — och nio grupper heter så. Den som raderar en enhet
+        bekräftar genom att skriva namnet, så namnet ensamt räcker inte.
+      */}
+      <div className="no-print mb-4">
+        <p className="text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">{unit.kindLabel}</p>
+        <h2 className="text-xl font-bold text-slate-900">{unit.name}</h2>
+        {overordnade && <p className="text-xs text-slate-500">i {overordnade}</p>}
+      </div>
 
       {showCodes && fresh && (
         <CodeSheet
@@ -124,234 +133,12 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
       )}
 
       <div className="no-print flex flex-col gap-5">
-        {/* ── Lägg till personer ── */}
-        <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
-          <h3 className="mb-3 text-sm font-bold text-slate-900">Lägg till personer</h3>
-
-          {/*
-            Befäl först på de nivåer som har befäl.
-            En pluton består av grupper; de värnpliktiga hör hemma där, och
-            på plutonsnivå sitter plutonchef och annan personal. Tidigare låg
-            "Antal värnpliktiga: 8" överst även här, vilket gjorde det
-            lättare att lägga dem på fel ställe än på rätt.
-          */}
-          {leaderRole && (
-            <form action={codeFormAction} className="flex flex-wrap items-end gap-2">
-              <input type="hidden" name="unitId" value={unit.id} />
-              <input type="hidden" name="unitName" value={unit.name} />
-              <input type="hidden" name="role" value={leaderRole} />
-              <input type="hidden" name="count" value={1} />
-              <label className="flex flex-col gap-1">
-                <span className="text-etikett font-semibold text-slate-500">Befälets benämning</span>
-                <input
-                  name="labelPrefix" defaultValue={ROLE_LABEL[leaderRole]}
-                  maxLength={60} required
-                  className="w-64 max-w-full rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
-                />
-              </label>
-              <button
-                type="submit" disabled={creatingUsers}
-                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:bg-slate-300"
-              >
-                <Plus size={14} aria-hidden />
-                {creatingUsers ? 'Skapar…' : 'Lägg till befäl'}
-              </button>
-            </form>
-          )}
-
-          {isGrupp && (
-            <form action={codeFormAction} className="flex flex-wrap items-end gap-2">
-              <input type="hidden" name="unitId" value={unit.id} />
-              <input type="hidden" name="unitName" value={unit.name} />
-              <input type="hidden" name="role" value="soldat" />
-              <label className="flex flex-col gap-1">
-                <span className="text-etikett font-semibold text-slate-500">Antal värnpliktiga</span>
-                <input
-                  name="count" type="number" min={1} max={50} defaultValue={8} required
-                  className="w-24 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
-                />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-etikett font-semibold text-slate-500">Benämning</span>
-                <input
-                  name="labelPrefix" defaultValue="Värnpliktig" maxLength={30}
-                  className="w-36 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
-                />
-              </label>
-              <button
-                type="submit" disabled={creatingUsers}
-                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:bg-slate-300"
-              >
-                <Plus size={14} aria-hidden />
-                {creatingUsers ? 'Skapar…' : 'Skapa värnpliktiga och koder'}
-              </button>
-            </form>
-          )}
-
-          {/*
-            Fortfarande möjligt att lägga värnpliktiga direkt på plutonen —
-            någon som ännu inte tilldelats en grupp måste kunna rapportera —
-            men det är inte längre förstahandsvalet, och vad det innebär står
-            utskrivet. Aggregaten visar dem som "Direkt i enheten".
-          */}
-          {isPluton && (
-            <div className="mt-4 border-t border-slate-100 pt-4">
-              {!visaVpl ? (
-                <button
-                  type="button"
-                  onClick={() => setVisaVpl(true)}
-                  className="cursor-pointer text-xs font-semibold text-slate-500 underline underline-offset-2 hover:text-slate-900"
-                >
-                  Lägg till värnpliktiga direkt i plutonen
-                </button>
-              ) : (
-                <>
-                  {/*
-                    Bärnsten, inte grått och inte rött. Grå text säger "oviktigt",
-                    men det här är ett val med en följd. Rött är reserverat för
-                    det som inte går att ångra — radering — och skulle tappa sin
-                    tyngd om det användes för en upplysning.
-                  */}
-                  <div
-                    role="note"
-                    className="mb-3 flex gap-2.5 rounded-md border border-amber-300 bg-amber-50 px-3.5 py-3"
-                  >
-                    <Info size={16} className="mt-0.5 shrink-0 text-amber-700" aria-hidden />
-                    <div className="text-xs leading-relaxed text-amber-950">
-                      <p className="font-semibold">Värnpliktiga hör normalt hemma i en grupp.</p>
-                      <p className="mt-0.5">
-                        De du lägger till här hamnar utanför grupperna och visas som{' '}
-                        <strong>Direkt i enheten</strong> i befälets jämförelse. Använd det
-                        bara för den som ännu inte fått en grupp.
-                      </p>
-                    </div>
-                  </div>
-                  <form action={codeFormAction} className="flex flex-wrap items-end gap-2">
-                    <input type="hidden" name="unitId" value={unit.id} />
-                    <input type="hidden" name="unitName" value={unit.name} />
-                    <input type="hidden" name="role" value="soldat" />
-                    <label className="flex flex-col gap-1">
-                      <span className="text-etikett font-semibold text-slate-500">Antal</span>
-                      <input
-                        name="count" type="number" min={1} max={50} defaultValue={1} required
-                        className="w-20 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1">
-                      <span className="text-etikett font-semibold text-slate-500">Benämning</span>
-                      <input
-                        name="labelPrefix" defaultValue="Värnpliktig" maxLength={30}
-                        className="w-36 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
-                      />
-                    </label>
-                    <button
-                      type="submit" disabled={creatingUsers}
-                      className="flex cursor-pointer items-center gap-1.5 rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
-                    >
-                      <Plus size={14} aria-hidden />
-                      {creatingUsers ? 'Skapar…' : 'Skapa'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setVisaVpl(false)}
-                      className="cursor-pointer px-2 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
-                    >
-                      Avbryt
-                    </button>
-                  </form>
-                </>
-              )}
-            </div>
-          )}
-
-          {!canHoldSoldiers && (
-            <p className="mt-4 border-t border-slate-100 pt-4 text-xs text-slate-500">
-              {/* Ordet hämtas ur NIVÅORD. Byggt av sorten plus "snivå" blev det
-                  "kompanisnivå", medan kompanichefens egen vy heter
-                  "Kompaninivå" — appen motsade sig själv om samma enhet. */}
-              Värnpliktiga placeras i en grupp, inte direkt på {NIVÅORD[unit.kind]}.
-            </p>
-          )}
-
-          {codeState.error && <p role="alert" className="mt-3 text-sm text-red-700">{codeState.error}</p>}
-        </section>
-
-        {/* ── Byt namn på enheten ── */}
-        <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
-          {/* "Byt namn på enheten", inte på sorten: KIND_LABEL + "en" ger
-              "kompanien" i stället för "kompaniet". Ett neutrum bland tre
-              utrum är inte värt en böjningstabell. */}
-          <h3 className="mb-3 text-sm font-bold text-slate-900">Byt namn på enheten</h3>
-          <form action={namnFormAction} className="flex flex-wrap items-end gap-2">
-            <input type="hidden" name="unitId" value={unit.id} />
-            {/*
-              "Enhetens namn", inte bara "Namn": fältet för ny underenhet
-              längre ned heter också Namn, och två fält med samma etikett på
-              samma sida går inte att skilja åt för den som lyssnar sig
-              igenom formulären i stället för att se rubrikerna ovanför.
-            */}
-            <label className="flex flex-col gap-1">
-              <span className="text-etikett font-semibold text-slate-500">Enhetens namn</span>
-              {/*
-                Nyckeln tvingar fram ett nytt fält när namnet ändrats. Utan
-                den står det gamla värdet kvar i rutan efter ett lyckat byte,
-                eftersom defaultValue bara läses när fältet monteras.
-              */}
-              <input
-                key={unit.name}
-                name="name" required minLength={2} maxLength={60}
-                defaultValue={unit.name}
-                className="w-56 max-w-full rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
-              />
-            </label>
-            <button
-              type="submit" disabled={byterNamn}
-              className="cursor-pointer rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
-            >
-              {byterNamn ? 'Sparar…' : 'Spara namnet'}
-            </button>
-          </form>
-          {namnState.error && <p role="alert" className="mt-2 text-sm text-red-700">{namnState.error}</p>}
-          {namnState.renamed && !namnState.error && (
-            <p className="mt-2 text-sm text-emerald-700">Enheten heter nu {namnState.renamed}.</p>
-          )}
-          <p className="mt-2 text-xs text-slate-500">
-            Namnet är det enda som ändras. Underenheter, personer och incheckningar påverkas inte.
-          </p>
-        </section>
-
-        {/* ── Ny underenhet ── */}
-        {childKind && (
-          <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
-            <h3 className="mb-3 text-sm font-bold text-slate-900">
-              {/* "Nytt kompani", inte "Ny kompani" — se ordformer() i lib/unit-names.ts. */}
-              {ordformer(childKind).ny} {childKind} under {unit.name}
-            </h3>
-            <form action={unitFormAction} className="flex flex-wrap items-end gap-2">
-              <input type="hidden" name="parentId" value={unit.id} />
-              {/* Fältet hade bara en platshållare. Den försvinner när man
-                  börjar skriva, och en skärmläsare läser den inte som namnet
-                  på fältet — det här var enda fältet i vyn utan etikett. */}
-              <label className="flex flex-col gap-1">
-                <span className="text-etikett font-semibold text-slate-500">Namn</span>
-                <input
-                  name="name" required minLength={2} maxLength={60}
-                  placeholder={suggestChildName(childKind, childNames)}
-                  className="w-56 max-w-full rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
-                />
-              </label>
-              <button
-                type="submit" disabled={creatingUnit}
-                className="cursor-pointer rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
-              >
-                {creatingUnit ? 'Skapar…' : 'Skapa'}
-              </button>
-            </form>
-            {unitState.error && <p role="alert" className="mt-2 text-sm text-red-700">{unitState.error}</p>}
-            {unitState.created && <p className="mt-2 text-sm text-emerald-700">Skapade {unitState.created}.</p>}
-          </section>
-        )}
-
+        {/*
+          Ordning: först personerna — det man oftast kommer hit för att se —
+          sedan det man lägger till och flyttar, sedan enhetens egna
+          ändringar, och det som inte går att ångra sist. Förut låg personer
+          och enhet om vartannat, med namnbytet som tvåa.
+        */}
         {/* ── Personer i enheten ── */}
         <section>
           <h3 className="mb-1 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
@@ -583,6 +370,158 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
           )}
         </section>
 
+        {/* ── Lägg till personer ── */}
+        <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
+          <h3 className="mb-3 text-sm font-bold text-slate-900">Lägg till personer</h3>
+
+          {/*
+            Befäl först på de nivåer som har befäl.
+            En pluton består av grupper; de värnpliktiga hör hemma där, och
+            på plutonsnivå sitter plutonchef och annan personal. Tidigare låg
+            "Antal värnpliktiga: 8" överst även här, vilket gjorde det
+            lättare att lägga dem på fel ställe än på rätt.
+          */}
+          {leaderRole && (
+            <form action={codeFormAction} className="flex flex-wrap items-end gap-2">
+              <input type="hidden" name="unitId" value={unit.id} />
+              <input type="hidden" name="unitName" value={unit.name} />
+              <input type="hidden" name="role" value={leaderRole} />
+              <input type="hidden" name="count" value={1} />
+              <label className="flex flex-col gap-1">
+                <span className="text-etikett font-semibold text-slate-500">Befälets benämning</span>
+                <input
+                  name="labelPrefix" defaultValue={ROLE_LABEL[leaderRole]}
+                  maxLength={60} required
+                  className="w-64 max-w-full rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                />
+              </label>
+              <button
+                type="submit" disabled={creatingUsers}
+                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:bg-slate-300"
+              >
+                <Plus size={14} aria-hidden />
+                {creatingUsers ? 'Skapar…' : 'Lägg till befäl'}
+              </button>
+            </form>
+          )}
+
+          {isGrupp && (
+            <form action={codeFormAction} className="flex flex-wrap items-end gap-2">
+              <input type="hidden" name="unitId" value={unit.id} />
+              <input type="hidden" name="unitName" value={unit.name} />
+              <input type="hidden" name="role" value="soldat" />
+              <label className="flex flex-col gap-1">
+                <span className="text-etikett font-semibold text-slate-500">Antal värnpliktiga</span>
+                <input
+                  name="count" type="number" min={1} max={50} defaultValue={8} required
+                  className="w-24 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-etikett font-semibold text-slate-500">Benämning</span>
+                <input
+                  name="labelPrefix" defaultValue="Värnpliktig" maxLength={30}
+                  className="w-36 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                />
+              </label>
+              <button
+                type="submit" disabled={creatingUsers}
+                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:bg-slate-300"
+              >
+                <Plus size={14} aria-hidden />
+                {creatingUsers ? 'Skapar…' : 'Skapa värnpliktiga och koder'}
+              </button>
+            </form>
+          )}
+
+          {/*
+            Fortfarande möjligt att lägga värnpliktiga direkt på plutonen —
+            någon som ännu inte tilldelats en grupp måste kunna rapportera —
+            men det är inte längre förstahandsvalet, och vad det innebär står
+            utskrivet. Aggregaten visar dem som "Direkt i enheten".
+          */}
+          {isPluton && (
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              {!visaVpl ? (
+                <button
+                  type="button"
+                  onClick={() => setVisaVpl(true)}
+                  className="cursor-pointer text-xs font-semibold text-slate-500 underline underline-offset-2 hover:text-slate-900"
+                >
+                  Lägg till värnpliktiga direkt i plutonen
+                </button>
+              ) : (
+                <>
+                  {/*
+                    Bärnsten, inte grått och inte rött. Grå text säger "oviktigt",
+                    men det här är ett val med en följd. Rött är reserverat för
+                    det som inte går att ångra — radering — och skulle tappa sin
+                    tyngd om det användes för en upplysning.
+                  */}
+                  <div
+                    role="note"
+                    className="mb-3 flex gap-2.5 rounded-md border border-amber-300 bg-amber-50 px-3.5 py-3"
+                  >
+                    <Info size={16} className="mt-0.5 shrink-0 text-amber-700" aria-hidden />
+                    <div className="text-xs leading-relaxed text-amber-950">
+                      <p className="font-semibold">Värnpliktiga hör normalt hemma i en grupp.</p>
+                      <p className="mt-0.5">
+                        De du lägger till här hamnar utanför grupperna och visas som{' '}
+                        <strong>Direkt i enheten</strong> i befälets jämförelse. Använd det
+                        bara för den som ännu inte fått en grupp.
+                      </p>
+                    </div>
+                  </div>
+                  <form action={codeFormAction} className="flex flex-wrap items-end gap-2">
+                    <input type="hidden" name="unitId" value={unit.id} />
+                    <input type="hidden" name="unitName" value={unit.name} />
+                    <input type="hidden" name="role" value="soldat" />
+                    <label className="flex flex-col gap-1">
+                      <span className="text-etikett font-semibold text-slate-500">Antal</span>
+                      <input
+                        name="count" type="number" min={1} max={50} defaultValue={1} required
+                        className="w-20 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-etikett font-semibold text-slate-500">Benämning</span>
+                      <input
+                        name="labelPrefix" defaultValue="Värnpliktig" maxLength={30}
+                        className="w-36 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                      />
+                    </label>
+                    <button
+                      type="submit" disabled={creatingUsers}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
+                    >
+                      <Plus size={14} aria-hidden />
+                      {creatingUsers ? 'Skapar…' : 'Skapa'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVisaVpl(false)}
+                      className="cursor-pointer px-2 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
+                    >
+                      Avbryt
+                    </button>
+                  </form>
+                </>
+              )}
+            </div>
+          )}
+
+          {!canHoldSoldiers && (
+            <p className="mt-4 border-t border-slate-100 pt-4 text-xs text-slate-500">
+              {/* Ordet hämtas ur NIVÅORD. Byggt av sorten plus "snivå" blev det
+                  "kompanisnivå", medan kompanichefens egen vy heter
+                  "Kompaninivå" — appen motsade sig själv om samma enhet. */}
+              Värnpliktiga placeras i en grupp, inte direkt på {NIVÅORD[unit.kind]}.
+            </p>
+          )}
+
+          {codeState.error && <p role="alert" className="mt-3 text-sm text-red-700">{codeState.error}</p>}
+        </section>
+
         {/* ── Flytta person ── */}
         {members.length > 0 && (
           <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
@@ -637,6 +576,82 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
             )}
           </section>
         )}
+
+        {/* ── Ny underenhet ── */}
+        {childKind && (
+          <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
+            <h3 className="mb-3 text-sm font-bold text-slate-900">
+              {/* "Nytt kompani", inte "Ny kompani" — se ordformer() i lib/unit-names.ts. */}
+              {ordformer(childKind).ny} {childKind} under {unit.name}
+            </h3>
+            <form action={unitFormAction} className="flex flex-wrap items-end gap-2">
+              <input type="hidden" name="parentId" value={unit.id} />
+              {/* Fältet hade bara en platshållare. Den försvinner när man
+                  börjar skriva, och en skärmläsare läser den inte som namnet
+                  på fältet — det här var enda fältet i vyn utan etikett. */}
+              <label className="flex flex-col gap-1">
+                <span className="text-etikett font-semibold text-slate-500">Namn</span>
+                <input
+                  name="name" required minLength={2} maxLength={60}
+                  placeholder={suggestChildName(childKind, childNames)}
+                  className="w-56 max-w-full rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                />
+              </label>
+              <button
+                type="submit" disabled={creatingUnit}
+                className="cursor-pointer rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
+              >
+                {creatingUnit ? 'Skapar…' : 'Skapa'}
+              </button>
+            </form>
+            {unitState.error && <p role="alert" className="mt-2 text-sm text-red-700">{unitState.error}</p>}
+            {unitState.created && <p className="mt-2 text-sm text-emerald-700">Skapade {unitState.created}.</p>}
+          </section>
+        )}
+
+        {/* ── Byt namn på enheten ── */}
+        <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
+          {/* "Byt namn på enheten", inte på sorten: KIND_LABEL + "en" ger
+              "kompanien" i stället för "kompaniet". Ett neutrum bland tre
+              utrum är inte värt en böjningstabell. */}
+          <h3 className="mb-3 text-sm font-bold text-slate-900">Byt namn på enheten</h3>
+          <form action={namnFormAction} className="flex flex-wrap items-end gap-2">
+            <input type="hidden" name="unitId" value={unit.id} />
+            {/*
+              "Enhetens namn", inte bara "Namn": fältet för ny underenhet
+              längre ned heter också Namn, och två fält med samma etikett på
+              samma sida går inte att skilja åt för den som lyssnar sig
+              igenom formulären i stället för att se rubrikerna ovanför.
+            */}
+            <label className="flex flex-col gap-1">
+              <span className="text-etikett font-semibold text-slate-500">Enhetens namn</span>
+              {/*
+                Nyckeln tvingar fram ett nytt fält när namnet ändrats. Utan
+                den står det gamla värdet kvar i rutan efter ett lyckat byte,
+                eftersom defaultValue bara läses när fältet monteras.
+              */}
+              <input
+                key={unit.name}
+                name="name" required minLength={2} maxLength={60}
+                defaultValue={unit.name}
+                className="w-56 max-w-full rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+              />
+            </label>
+            <button
+              type="submit" disabled={byterNamn}
+              className="cursor-pointer rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
+            >
+              {byterNamn ? 'Sparar…' : 'Spara namnet'}
+            </button>
+          </form>
+          {namnState.error && <p role="alert" className="mt-2 text-sm text-red-700">{namnState.error}</p>}
+          {namnState.renamed && !namnState.error && (
+            <p className="mt-2 text-sm text-emerald-700">Enheten heter nu {namnState.renamed}.</p>
+          )}
+          <p className="mt-2 text-xs text-slate-500">
+            Namnet är det enda som ändras. Underenheter, personer och incheckningar påverkas inte.
+          </p>
+        </section>
 
         {/*
           ── Radera hälsodata ──

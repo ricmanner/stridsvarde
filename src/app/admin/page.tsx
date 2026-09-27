@@ -83,6 +83,10 @@ export default async function AdminPage({
     return delar.join(' › ');
   };
 
+  // Vägen ovanför den valda enheten, eller null högst upp.
+  const upp = selected?.parentId != null ? byId.get(selected.parentId) : undefined;
+  const overordnade = upp ? pathOf(upp) : null;
+
   const kinds = new Set(members.flatMap((m) => KIND_FOR_ROLE[m.role]));
   const moveTargets = tree
     .filter((n) => kinds.has(n.kind))
@@ -102,7 +106,14 @@ export default async function AdminPage({
           <StatCard icon={<UserX size={15} />} label="Spärrade" value={stats.inactive} />
         </div>
 
-        {/* Lagringstid — beslutet är Försvarsmaktens, inte appens. */}
+        {/*
+          Lagringstid — beslutet är Försvarsmaktens, inte appens.
+
+          Bara på översta nivån. Rutan gäller hela systemet, inte enheten, och
+          stod förut överst på varje enhet man klickade på — i telefonen så att
+          den valda enheten hamnade under första skärmen.
+        */}
+        {(!selected || selected.parentId === null) && (
         <div className="no-print mb-6 rounded-md border border-slate-200 bg-white px-4 py-3">
           {/*
             Rubriken behåller fackordet "gallring" — det är arkivlagens term
@@ -155,6 +166,7 @@ export default async function AdminPage({
             </Link>
           </p>
         </div>
+        )}
 
         {raderad && (
           <p role="status" className="no-print mb-4 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
@@ -185,6 +197,8 @@ export default async function AdminPage({
                   kind: selected.kind,
                   kindLabel: KIND_LABEL[selected.kind],
                 }}
+                /* Vägen ovanför: nio grupper heter "1. grupp". */
+                overordnade={overordnade}
                 members={members}
                 currentUserId={session.id}
                 moveTargets={moveTargets}

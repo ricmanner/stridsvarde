@@ -124,6 +124,39 @@ test('ett nytt befäl föreslås heta sin roll', async ({ page }) => {
   await expect(page.getByLabel('Befälets benämning')).toHaveValue('Kompanichef');
 });
 
+/*
+ * Adminvyn säger vilken enhet man står i, och börjar med personerna.
+ *
+ * Nio grupper heter "1. grupp". Rubriken var en liten grå rad, "GRUPP ·
+ * 1. GRUPP", och sa inte vilken — medan den som raderar en enhet bekräftar
+ * genom att skriva just det namnet. Ordningen blandade personer och enhet
+ * om vartannat, med namnbytet, det man gör mest sällan, som tvåa. Och rutan
+ * om gallring, som gäller hela systemet, stod överst på varje enhet.
+ *
+ * textContent, inte innerText: rubrikerna är versaler i formatmallen.
+ */
+test('vald enhet syns med hela vägen, och sidan börjar med personerna', async ({ page }) => {
+  await expect(page.getByText('Gallring av hälsodata')).toBeVisible();
+
+  await page.getByRole('link', { name: /1\. grupp/ }).first().click();
+  await expect(page).toHaveURL(/unit=\d+/);
+  await expect(page.getByRole('heading', { level: 2, name: '1. grupp', exact: true })).toBeVisible();
+  await expect(page.getByText('i 1. bataljon › 1. kompani › 1. pluton', { exact: true })).toBeVisible();
+  await expect(page.getByText('Gallring av hälsodata')).toHaveCount(0);
+
+  const ordning = await page
+    .getByRole('heading', { level: 3 })
+    .evaluateAll((hs) => hs.map((h) => (h.textContent ?? '').replace(/\s*\(\d+\)\s*$/, '').trim()));
+  expect(ordning).toEqual([
+    'Personer i enheten',
+    'Lägg till personer',
+    'Flytta person',
+    'Byt namn på enheten',
+    'Radera hälsodata',
+    'Radera enheten',
+  ]);
+});
+
 test('demons publicerade konton går inte att förstöra', async ({ page }) => {
   await page.getByRole('link', { name: /1\. grupp/ }).first().click();
 
