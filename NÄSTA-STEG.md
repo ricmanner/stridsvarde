@@ -570,6 +570,18 @@ fram demodatan och återställa demon.
      "kritisk nivå", märket "2 kategorier i rött", rutan Tröskelvärden och
      Befälsrådet. I telefonen trycker notiserna ner sammanfattningen en halv
      skärm. Störst för intrycket; ett beslut om vilken som står kvar.
+
+     **Skissat den 27 september, beslutet vilar på Richard.** Två vägar:
+     **A** — göm rutan Tröskelvärden (den upprepar de röda raderna precis
+     ovanför) och flytta "gränserna är preliminära" till kategorilistan.
+     **B** — A, och visa inte heller den dagliga notisen "kritisk nivå";
+     samtalsbegäran och låg svarsfrekvens står kvar. Claude rekommenderade B:
+     notisen återkommer varje dag så länge läget är rött och säger inget nytt,
+     och en gul ruta som visar samma sak varje dag lär befälet att klicka bort
+     gula rutor — samma ruta som bär samtalsbegäran, appens viktigaste notis.
+     Båda byggs som avstängbara (en rad för att slå på igen), notiserna skapas
+     fortfarande. Ungefär en timme. Emot A och B: manuset pekar på
+     "Tröskelvärden och Befälsråd". Skisserna gjordes lokalt, inget byggt.
    - **Rangordningen av grupper** ställer upp dem från bäst till sämst, vilket
      kan bjuda in till tävling eller skuld. En fråga till befäl och
      fysioterapeuter, inte en rättning. I telefonen skärs kolumnen Röda av.
