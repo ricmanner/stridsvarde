@@ -63,31 +63,34 @@ och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 26 september
 
-- **Förbanden heter som Försvarsmakten skriver dem: 1. kompaniet, 1.
-  plutonen, 1. gruppen.** Demon hade "1. Kompaniet" men "Pluton 1–9" och
+- **Förbanden heter som Försvarsmakten skriver dem: 1. kompani, 1. pluton,
+  1. grupp.** Demon hade "1. Kompaniet" men "Pluton 1–9" och
   "Grupp 1–3", med plutonerna numrerade över hela bataljonen — 3. kompaniet
   hade Pluton 7, 8 och 9. Källan är Försvarsmaktens beslut *FAL-A — Fasta
   anropssignaler för lägre förband inom armén*, FM2019-26245:1, 22 april
   2020: "1. komp", "1. plut/1. komp", "1. grp/1. plut" — ordningstal med
   punkt före ordet, och varje förband numrerat inom sitt närmast högre.
-  **Bestämd form och små bokstäver är vår tolkning**, inte beslutets; lätt
-  att ändra om någon på hackathonet säger annat.
+  Beslutet visar bara förkortningar, så formen avgör det inte. Första
+  versionen (`fdb67f1`) skrev bestämd form, "1. plutonen"; **Richard beslutade
+  om obestämd form** (`811779e`) — Claude hade argumenterat för den bestämda,
+  eftersom appen bygger meningar av namnen. Föreslå inte bytet igen.
 
   **Koderna är orörda.** BEF-P4 och P4G1-01 räknas fortfarande över hela
-  bataljonen — den plutonen heter nu 1. plutonen i 2. kompaniet. Seeden
+  bataljonen — den plutonen heter nu 1. pluton i 2. kompani. Seeden
   håller isär namnet (inom kompaniet) och kodnumret (över bataljonen).
   Adminvyn föreslår namn i den nya formen och läser fortfarande den gamla.
-  `underlag/juryfragor.md` uppdaterad ("3. gruppen, sömn"); manuset och
+  `underlag/juryfragor.md` uppdaterad ("3. grupp, sömn"); manuset och
   `genomgang.html` lämnade, på Richards begäran.
 
   **Den delade demon får de nya namnen först efter "Återställ demon"** på
   `/status` — namnen ligger i databasen, inte i koden. Återställningen loggar
   ut, bygger om allt och behåller koderna.
 
-  **Så tar du bort det igen:** `git revert --no-edit fdb67f1`, pusha, och
-  tryck sedan "Återställ demon" igen så att de gamla namnen kommer tillbaka.
-  Prövat den 26 september på en egen gren: `src`, testerna och e2e blir
-  identiska med läget före, och de 189 tester som fanns då är gröna.
+  **Så tar du bort det igen:** `git revert --no-edit 811779e fdb67f1`,
+  pusha, och tryck sedan "Återställ demon" igen så att de gamla namnen kommer
+  tillbaka. Bara den senare av de två ger tillbaka bestämd form. Båda prövade
+  på egna grenar: tillbaka till bestämd form, och tillbaka till läget före —
+  `src`, testerna och e2e identiska, alla tester gröna.
 
   **Lokalt:** den lokala databasen återställdes med samma funktion från ett
   engångsskript. Det måste läsa `.env` och `.env.local` som
@@ -584,6 +587,15 @@ fram demodatan och återställa demon.
      grupp som heter så (ungefär en halvtimme, ingen databasändring). Ta
      **inte** bort raden utan att också stänga placeringen — då går delarna
      inte längre ihop med helheten, vilket var felet som rättades.
+   - **Mörkt läge — inte nu.** Richard frågade den 27 september. Skälet som
+     väger är inte utseendet utan **ljusdisciplin**: en ljus skärm i fält på
+     natten röjer var man är. Men appen har 707 färgklasser i 29 filer och 49
+     fasta färgkoder, ingen med mörk variant, och statusfärgernas två
+     uppsättningar (3:1 för ytor, 4,5:1 för text) är räknade mot vit botten —
+     allt måste räknas om och granskas i båda lägena. Omkring 1,5–2 dagar,
+     och dubbel kontroll av allt som byggs efteråt. **Om det görs: bara
+     incheckningen** (sex frågor och sammanfattning), en halv dag. Fråga
+     hackathonet först: checkar värnpliktiga in i mörker?
    - **Stjärndiagrammet ("Profil") i Jämförelse står kvar med flit.** Det är
      svårläst och tabellen ovanför visar samma tal, och Richard håller med om
      det — men en fysioterapeut föreslog det på hackathonet i våras, och det
