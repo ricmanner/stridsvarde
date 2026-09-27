@@ -15,7 +15,7 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 193 enhetstester och 34
+är gröna, demon är driftsatt och står i visningsskick. 193 enhetstester och 35
 webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
 och bygge.
 
@@ -62,6 +62,31 @@ Följden för arbetet: det finns ingen återkoppling utifrån att väga listan m
 och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 27 september
+
+- **Adminvyn säger vilken enhet man står i, och börjar med personerna.** Ur
+  en designgenomgång av adminvyn på alla fyra nivåerna.
+  - **Rubriken** är enhetens namn i stor stil med vägen under: *1. grupp — i
+    1. bataljon › 1. kompani › 1. pluton*. Förut "GRUPP · 1. GRUPP" i liten
+    grå text, fast nio grupper heter så och radering bekräftas genom att
+    skriva namnet.
+  - **Ordningen:** personer i enheten → lägg till personer → flytta person
+    → ny underenhet → byt namn → det oåterkalleliga sist (radera hälsodata,
+    radera enheten). Förut låg personer och enhet om vartannat, med
+    namnbytet som tvåa.
+  - **Gallringsrutan** visas bara på översta nivån; den gäller hela
+    systemet. I telefonen hamnade den valda enheten förut under första
+    skärmen (rubriken på 557 px, nu 353).
+  - Telefonens "Vald enhet" lämnades som den var — den nya rubriken står
+    direkt under och säger vägen en gång.
+
+  **Kvar, medvetet:** åtgärderna för en person finns på två ställen — Ny
+  kod, Spärra och Ta bort på raden, Flytta och Radera hälsodata som egna
+  formulär med rullista längre ned. Rätt att samla dem på raden i längden,
+  men två–tre timmar och det rör GDPR-raderingen; värt att göra i lugn och ro.
+
+  **Så tar du bort det igen:** `git revert --no-edit 509272f`. Ingen
+  återställning av demon behövs. Prövat på en egen gren: `src`, testerna och
+  e2e identiska med läget före, de 193 tester som fanns då gröna.
 
 - **Kortare fråga vid ny kod, befälen heter sin roll, och roten heter 1.
   bataljon.** Tre förslag från Richard, tagna efter Claudes rekommendation:
