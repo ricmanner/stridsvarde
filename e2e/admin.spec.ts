@@ -54,7 +54,9 @@ test('två kodbyten i rad visar båda koderna', async ({ page }) => {
   const knappar = page.getByRole('button', { name: 'Ny kod' });
   await expect(knappar).toHaveCount(2);
 
+  // "Ny kod" frågar först — se testet nedan.
   await knappar.nth(0).click();
+  await page.getByRole('button', { name: 'Utfärda ny kod' }).click();
   const forsta = (await page.getByText(KODMONSTER).first().innerText()).trim();
   expect(forsta).toMatch(KODMONSTER);
 
@@ -62,9 +64,49 @@ test('två kodbyten i rad visar båda koderna', async ({ page }) => {
   await expect(page.getByText(KODMONSTER)).toHaveCount(0);
 
   await knappar.nth(1).click();
+  await page.getByRole('button', { name: 'Utfärda ny kod' }).click();
   const andra = (await page.getByText(KODMONSTER).first().innerText()).trim();
   expect(andra, 'den andra personens kod visades inte — hen är utelåst').toMatch(KODMONSTER);
   expect(andra).not.toBe(forsta);
+});
+
+test('ny kod frågar först, och rutan gäller rätt person', async ({ page }) => {
+  /*
+   * "Ny kod" spärrade den nuvarande koden direkt, på ett klick. Klickade man
+   * på fel rad var den värnpliktige utelåst tills den nya lappen lämnats
+   * över. Radering frågade redan; det här var den enda oåterkalleliga
+   * knappen som inte gjorde det.
+   *
+   * Rutans namn kontrolleras också. Alla bekräftelserutor delade samma id,
+   * så en skärmläsare fick den FÖRSTA radens fråga uppläst oavsett vilken
+   * rad man tryckt på.
+   */
+  await page.getByRole('link', { name: /1\. pluton/ }).first().click();
+  await expect(page).toHaveURL(/unit=\d+/);
+  await expect(page.getByRole('heading', { name: /Ny grupp under 1\. pluton/ })).toBeVisible();
+
+  const grupp = `E2E-fraga ${Date.now().toString(36)}`;
+  await page.getByLabel('Namn', { exact: true }).fill(grupp);
+  await page.getByRole('button', { name: 'Skapa', exact: true }).click();
+  const gruppLank = page.getByRole('link', { name: new RegExp(grupp) });
+  await expect(gruppLank).toBeVisible({ timeout: 20_000 });
+  await gruppLank.click();
+  await expect(page.getByRole('heading', { name: /Lägg till personer/ })).toBeVisible();
+
+  await page.getByLabel('Antal värnpliktiga').fill('2');
+  await page.getByRole('button', { name: /Skapa värnpliktiga och koder/ }).click();
+  await expect(page.getByText(KODMONSTER).first()).toBeVisible({ timeout: 20_000 });
+  await page.getByRole('button', { name: 'Stäng' }).click();
+  await expect(page.getByText(KODMONSTER)).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Ny kod' }).nth(1).click();
+  const ruta = page.getByRole('dialog', { name: 'Ge Värnpliktig 02 en ny kod?' });
+  await expect(ruta).toBeVisible();
+  await expect(page.getByText(KODMONSTER), 'koden byttes innan någon bekräftat').toHaveCount(0);
+
+  await ruta.getByRole('button', { name: 'Avbryt' }).click();
+  await expect(ruta).toBeHidden();
+  await expect(page.getByText(KODMONSTER), 'Avbryt bytte koden ändå').toHaveCount(0);
 });
 
 test('demons publicerade konton går inte att förstöra', async ({ page }) => {

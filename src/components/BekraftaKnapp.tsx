@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 /**
@@ -42,6 +42,13 @@ export default function BekraftaKnapp({
 }) {
   const ruta = useRef<HTMLDialogElement>(null);
   const [oppen, setOppen] = useState(false);
+  /*
+   * Eget id per ruta. Det stod "bekrafta-fraga" i alla, och adminvyn har en
+   * ruta per person: aria-labelledby pekade då på den FÖRSTA rutans rubrik,
+   * och en skärmläsare läste upp "Ta bort Värnpliktig 01 permanent?" även på
+   * rad fem.
+   */
+  const fragaId = useId();
 
   useEffect(() => {
     const d = ruta.current;
@@ -63,7 +70,7 @@ export default function BekraftaKnapp({
 
       <dialog
         ref={ruta}
-        aria-labelledby="bekrafta-fraga"
+        aria-labelledby={fragaId}
         // Escape stänger rutan själv; state måste följa med.
         onClose={() => setOppen(false)}
         className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-lg border border-slate-200 bg-white p-0 text-slate-900 shadow-xl backdrop:bg-slate-900/40"
@@ -71,7 +78,7 @@ export default function BekraftaKnapp({
         <div className="flex flex-col gap-3 p-5">
           <div className="flex items-start gap-2.5">
             <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-700" aria-hidden />
-            <h2 id="bekrafta-fraga" className="text-sm font-bold text-slate-900">
+            <h2 id={fragaId} className="text-sm font-bold text-slate-900">
               {fraga}
             </h2>
           </div>

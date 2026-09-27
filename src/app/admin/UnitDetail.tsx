@@ -495,16 +495,29 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                       Behövs en ny adminkod: en annan administratör utfärdar
                       den, eller "npm run aterstall-admin" på servern.
                     */}
+                    {/*
+                      Frågar först. Knappen spärrade den nuvarande koden på
+                      ett klick, så ett klick på fel rad låste ute en
+                      värnpliktig tills den nya lappen lämnats över.
+                    */}
                     {!isSelf && (
                       <form action={reissueFormAction}>
                         <input type="hidden" name="userId" value={m.id} />
-                        <button
-                          type="submit"
-                          title="Spärra nuvarande kod och utfärda en ny"
+                        <BekraftaKnapp
+                          fraga={`Ge ${m.label} en ny kod?`}
+                          forklaring={
+                            <>
+                              <p>Den nuvarande koden slutar fungera direkt.</p>
+                              <p className="mt-1.5">
+                                Den nya visas en enda gång — lämna över den innan du stänger lappen.
+                              </p>
+                            </>
+                          }
+                          bekraftaText="Utfärda ny kod"
                           className="flex cursor-pointer items-center gap-1 rounded px-2 py-2 text-etikett font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 sm:py-1"
                         >
                           <KeyRound size={12} aria-hidden /> Ny kod
-                        </button>
+                        </BekraftaKnapp>
                       </form>
                     )}
 
