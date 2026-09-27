@@ -107,6 +107,22 @@ test('återställningen bygger upp demon igen, oavsett vad som hänt med den', a
      * stod i sidhuvudet bredvid "1. pluton" — samma sak två gånger — och
      * "Bataljonschef Bataljonen" i adminvyns förslag.
      */
+    /*
+     * Demons värnpliktiga har funnits lika länge som sin historik.
+     *
+     * Närvaron räknas från den dag personen fanns. Skapades kontona vid
+     * återställningen, med fjorton dagars historik bakåt, fick den som råkade
+     * hoppa över historikens första dag sin närvaro räknad på tretton dagar.
+     */
+    await t.test('demons värnpliktiga finns sedan historikens första dag', async () => {
+      const [rad] = (
+        await client.execute(`SELECT max(created_at) AS senast FROM users WHERE role = 'soldat'`)
+      ).rows;
+      const forstaDag = new Date(Date.now() - 13 * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Europe/Stockholm' });
+      const skapad = new Date(String(rad.senast)).toLocaleDateString('en-CA', { timeZone: 'Europe/Stockholm' });
+      assert.ok(skapad <= forstaDag, `värnpliktiga skapade ${skapad}, historiken börjar ${forstaDag}`);
+    });
+
     await t.test('befälen heter sin roll', async () => {
       for (const [kod, benamning] of [
         ['BEF-BAT', 'Bataljonschef'],

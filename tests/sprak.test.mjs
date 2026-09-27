@@ -433,3 +433,35 @@ test('riktningen på egen sida säger vad den jämför', async () => {
   const vy = synligText('src/app/soldat/dashboard/DashboardClient.tsx');
   assert.match(vy, /trendJamforelse\(svar\.length\)/, 'riktningen visas utan att säga vad den jämför');
 });
+
+/*
+ * Den värnpliktiges närvarotext påstår inget om vad befälet ser.
+ *
+ * Under 40 % stod det "Lägre närvaro — befälet ser ingen data." Det är fel:
+ * vad befälet ser avgörs av hur många i GRUPPEN som svarat, inte av den
+ * enskildes närvaro. En osann mening om integriteten, till den det gäller.
+ */
+test('närvarotexten påstår inget om vad befälet ser', () => {
+  const vy = synligText('src/app/soldat/dashboard/DashboardClient.tsx');
+  assert.ok(!/befälet ser ingen data/.test(vy), 'närvarotexten säger att befälet inte ser något');
+});
+
+/*
+ * "Din session har gått ut" bara när en session faktiskt gått ut.
+ *
+ * Proxyn skickade varje besök utan sessionskaka till /?utgangen=1 — också
+ * den som aldrig loggat in, och den som nyss loggat ut själv och tryckte
+ * bakåt. Utan kaka finns ingen session som kan ha gått ut; då är det bara
+ * inloggningssidan. Kakan som finns men inte längre gäller hanteras av
+ * requireUser(), som fortfarande säger att sessionen gått ut.
+ */
+test('den som aldrig loggat in får inte höra att sessionen gått ut', async () => {
+  const { proxy } = await import('../src/proxy.ts');
+  const { NextRequest } = await import('next/server');
+
+  const svar = proxy(new NextRequest(new Request('https://exempel.test/pluton')));
+  assert.equal(svar.status, 307, 'en skyddad sida ska fortfarande kräva inloggning');
+  const till = new URL(svar.headers.get('location'));
+  assert.equal(till.pathname, '/');
+  assert.equal(till.searchParams.get('utgangen'), null, 'utan kaka finns ingen session som gått ut');
+});

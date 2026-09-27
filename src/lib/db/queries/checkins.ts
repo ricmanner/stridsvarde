@@ -3,9 +3,9 @@ import 'server-only';
 import { and, eq, gte, sql } from 'drizzle-orm';
 
 import type { Category } from '../../data';
-import { serviceDate, serviceDateDaysAgo } from '../../date';
+import { daysBetween, serviceDate, serviceDateDaysAgo } from '../../date';
 import { db } from '..';
-import { checkIns } from '../schema';
+import { checkIns, users } from '../schema';
 
 export type Scores = Record<Category, number>;
 
@@ -82,18 +82,38 @@ export async function getOwnHistory(userId: number, days: number): Promise<Check
     .orderBy(checkIns.serviceDate);
 }
 
-/** Hur många av de senaste N dagarna soldaten faktiskt rapporterat. */
+/**
+ * Hur många av de senaste N dagarna soldaten faktiskt rapporterat.
+ *
+ * Räknas från den dag personen fanns, högst N dagar bakåt. Förut delades
+ * alltid med N, så den som skapats idag och checkat in fick "7 % — 1 av 14
+ * dagar" och "Lägre närvaro" på sin första dag.
+ *
+ * Starten är den tidigaste av kontots skapelsedag och första incheckningen.
+ * Skapelsedagen ensam räcker inte: demons konton skapas vid en återställning
+ * men har historik bakåt, och skulle annars hamna över 100 %.
+ */
 export async function getOwnResponseFrequency(
   userId: number,
   days: number,
 ): Promise<{ checkedIn: number; total: number; pct: number }> {
+  const fran = serviceDateDaysAgo(days - 1);
   const [row] = await db
     .select({ n: sql<number>`count(*)` })
     .from(checkIns)
-    .where(
-      and(eq(checkIns.userId, userId), gte(checkIns.serviceDate, serviceDateDaysAgo(days - 1))),
-    );
+    .where(and(eq(checkIns.userId, userId), gte(checkIns.serviceDate, fran)));
+  const [start] = await db
+    .select({
+      skapad: users.createdAt,
+      forsta: sql<string | null>`(SELECT min(service_date) FROM check_ins WHERE user_id = ${userId})`,
+    })
+    .from(users)
+    .where(eq(users.id, userId));
+
+  const kandidater = [start?.skapad ? serviceDate(new Date(start.skapad)) : fran, start?.forsta ?? fran];
+  const borjade = kandidater.sort()[0];
+  const total = Math.min(days, Math.max(1, daysBetween(borjade > fran ? borjade : fran, serviceDate()) + 1));
 
   const checkedIn = row?.n ?? 0;
-  return { checkedIn, total: days, pct: Math.round((checkedIn / days) * 100) };
+  return { checkedIn, total, pct: Math.round((checkedIn / total) * 100) };
 }

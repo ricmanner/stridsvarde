@@ -428,3 +428,52 @@ test('fördelningen överst räknar in dem som inte svarat', async () => {
   assert.match(vy, /utan svar/);
   assert.match(vy, /värnpliktiga · eget snitt/, 'stapeln säger inte vad den räknar');
 });
+
+/*
+ * Närvaron räknas från den dag personen fanns, inte alltid fjorton dagar bakåt.
+ *
+ * En värnpliktig som skapades idag och checkat in fick "7 % — 1 av 14 dagar"
+ * och texten "Lägre närvaro" på sin första dag. Starten är den tidigaste av
+ * kontots skapelsedag och första incheckningen: demons konton skapas vid en
+ * återställning men har historik bakåt, och får inte hamna över 100 %.
+ */
+test('närvaron räknas från den dag personen fanns', async () => {
+  const { client } = await database();
+  const { getOwnResponseFrequency } = await import('../src/lib/db/queries/checkins.ts');
+  const ins = async (sql, args) => Number((await client.execute({ sql, args })).lastInsertRowid);
+  const tid = (dagar) => new Date(Date.now() - dagar * 86_400_000).toISOString();
+
+  const enhet = await ins('INSERT INTO units (name, kind, parent_id, created_at) VALUES (?,?,?,?)', [
+    `Närvaro ${Date.now()}`, 'grupp', null, iso(),
+  ]);
+  const person = (skapad) =>
+    ins('INSERT INTO users (code_hash, label, role, unit_id, active, created_at) VALUES (?,?,?,?,1,?)', [
+      `narvaro-${Math.random()}`, 'Värnpliktig', 'soldat', enhet, skapad,
+    ]);
+  const checkaIn = (id, dagar) =>
+    client.execute({
+      sql: `INSERT INTO check_ins (user_id, service_date, fysisk, psykisk, social, somn, kost, energi, created_at)
+            VALUES (?,?,5,5,5,5,5,5,?)`,
+      args: [id, daysAgo(dagar), iso()],
+    });
+
+  // Skapad idag, en incheckning idag: 1 av 1, inte 1 av 14.
+  const ny = await person(iso());
+  await checkaIn(ny, 0);
+  assert.deepEqual(await getOwnResponseFrequency(ny, 14), { checkedIn: 1, total: 1, pct: 100 });
+
+  // Skapad för fem dagar sedan, tre incheckningar: 3 av 6.
+  const femDagar = await person(tid(5));
+  for (const d of [0, 2, 4]) await checkaIn(femDagar, d);
+  assert.deepEqual(await getOwnResponseFrequency(femDagar, 14), { checkedIn: 3, total: 6, pct: 50 });
+
+  // Skapad för länge sedan: fjorton dagar, som förut.
+  const gammal = await person(tid(60));
+  await checkaIn(gammal, 1);
+  assert.equal((await getOwnResponseFrequency(gammal, 14)).total, 14);
+
+  // Skapad idag men med historik bakåt (demon efter en återställning): aldrig över 100 %.
+  const demo = await person(iso());
+  for (const d of [13, 7, 0]) await checkaIn(demo, d);
+  assert.deepEqual(await getOwnResponseFrequency(demo, 14), { checkedIn: 3, total: 14, pct: 21 });
+});

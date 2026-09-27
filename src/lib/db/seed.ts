@@ -220,6 +220,7 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
   if (count > 0) return; // redan seedad, eller seedad av en annan process
 
   const ts = now();
+  const historikStart = new Date(Date.now() - (HISTORIK_DAGAR - 1) * 86_400_000).toISOString();
 
   // ── Enhetsträd ────────────────────────────────────────────────────────────
   const [bataljon] = await tx
@@ -318,7 +319,9 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
               role: 'soldat' as const,
               unitId: grupp.id,
               active: true,
-              createdAt: ts,
+              // Lika gammal som historiken — närvaron räknas från den dag
+              // personen fanns, se getOwnResponseFrequency().
+              createdAt: historikStart,
             },
           };
         });

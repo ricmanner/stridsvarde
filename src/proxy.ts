@@ -44,8 +44,14 @@ export function proxy(request: NextRequest) {
 
   if (PUBLIC_PATHS.has(pathname)) return NextResponse.next();
 
+  /*
+   * Utan kaka finns ingen session som kan ha gått ut — bara inloggningen.
+   * Här stod förut "/?utgangen=1", så den som aldrig loggat in, eller nyss
+   * loggat ut och tryckte bakåt, fick höra att sessionen gått ut. En kaka som
+   * finns men inte längre gäller fångas av requireUser(), som säger det.
+   */
   if (!request.cookies.has(SESSION_COOKIE)) {
-    return NextResponse.redirect(new URL('/?utgangen=1', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();

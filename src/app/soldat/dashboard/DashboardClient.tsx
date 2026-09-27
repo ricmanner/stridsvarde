@@ -14,7 +14,7 @@ import { ownTrend, trendJamforelse } from '@/lib/own-trend';
 import { getSoldierTips } from '@/lib/advice';
 import SupportBlock from './SupportBlock';
 import { shortLabel } from '@/lib/date';
-import { formatScore, procent } from '@/lib/format';
+import { antal, formatScore, procent } from '@/lib/format';
 
 export interface DashboardProps {
   scores: Record<Category, number>;
@@ -98,9 +98,10 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
                 trend={trend}
               />
               <MetricCard
-                label="Svarsfrekvens (14 dagar)"
+                // Räknat från den dag personen fanns — se getOwnResponseFrequency().
+                label={`Svarsfrekvens (${antal(freq.total, 'dag', 'dagar')})`}
                 value={procent(freq.pct)}
-                sub={<span className="text-xs text-slate-500">{freq.checkedIn} av {freq.total} dagar</span>}
+                sub={<span className="text-xs text-slate-500">{freq.checkedIn} av {antal(freq.total, 'dag', 'dagar')}</span>}
               />
             </div>
 
@@ -249,7 +250,9 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
 
         {tab === 'history' && (
           <Panel id="history">
-            <SectionHeader label="Din närvaro — de senaste 14 dagarna" />
+            <SectionHeader
+              label={freq.total < chartData.length ? 'Din närvaro — sedan du började' : 'Din närvaro — de senaste 14 dagarna'}
+            />
             <div className="mb-4 rounded-md border border-slate-200 bg-white p-5">
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-xs text-slate-500">Registrerade incheckningar</span>
@@ -268,7 +271,16 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
                 />
               </div>
               <p className="mt-2 text-xs text-slate-500">
-                {freq.pct >= 70 ? 'Bra närvaro — fortsätt så.' : freq.pct >= 40 ? 'Försök checka in dagligen.' : 'Lägre närvaro — befälet ser ingen data.'}
+                {/*
+                  Inget om vad befälet ser: det avgörs av hur många i gruppen
+                  som svarat, inte av den enskildes närvaro. Texten sa förut
+                  "Lägre närvaro — befälet ser ingen data", vilket var fel.
+                */}
+                {freq.pct >= 70
+                  ? 'Bra närvaro — fortsätt så.'
+                  : freq.pct >= 40
+                    ? 'Försök checka in dagligen.'
+                    : 'Checka in varje dag — ju fler i gruppen som svarar, desto bättre bild får befälet.'}
               </p>
             </div>
 
