@@ -15,7 +15,7 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 192 enhetstester och 33
+är gröna, demon är driftsatt och står i visningsskick. 193 enhetstester och 34
 webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
 och bygge.
 
@@ -62,6 +62,23 @@ Följden för arbetet: det finns ingen återkoppling utifrån att väga listan m
 och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 27 september
+
+- **Kortare fråga vid ny kod, befälen heter sin roll, och roten heter 1.
+  bataljon.** Tre förslag från Richard, tagna efter Claudes rekommendation:
+  - Rutan för ny kod säger bara *"Den nuvarande koden slutar fungera
+    direkt."* Meningen om att koden visas en gång ströks — kodlappen säger
+    det själv, i rubriken och med varning om man lämnar.
+  - Ett nytt befäl föreslås heta **sin roll**: "Kompanichef", inte
+    "Kompanichef 1. kompani"; demons befäl likaså. Enheten står redan i
+    trädet och till vänster i sidhuvudet.
+  - Roten heter **1. bataljon** ("1. komp i 1. bat" i FAL-A), också vid en
+    tom pilotinstallation. Richard föreslog "Bataljon"; Claude invände att
+    det ser ut som en typbeteckning, och Richard valde rekommendationen.
+
+  **Kräver "Återställ demon"** för att nå den delade demon. **Så tar du bort
+  det igen:** `git revert --no-edit 070fb99`, pusha, och återställ demon igen.
+  Prövat på en egen gren: `src`, testerna och e2e identiska med läget före,
+  de 192 tester som fanns då gröna.
 
 - **Granskning mot Vercels Web Interface Guidelines, och tre fynd rättade.**
   Reglerna (`vercel-labs/web-interface-guidelines`, ungefär 80 stycken)
@@ -484,7 +501,7 @@ nätet, omdirigeringen och återkopplingssidans egna frågor.
   underenheter, personer och rapporter är orörda — det är bevisat i
   `tests/byt-enhetsnamn.test.mjs` och prövat i webbläsaren hela vägen upp till
   kompanichefens jämförelsevy. Behövs framför allt vid en överlämning: roten
-  heter "Bataljonen" tills någon döper om den.
+  heter "1. bataljon" tills någon döper om den.
 
   Det nya fältet heter **"Enhetens namn"** och inte bara "Namn", eftersom
   fältet för ny underenhet redan heter så och två likadana etiketter i samma
@@ -800,7 +817,7 @@ Schemat i den delade databasen är komplett sedan den 19 september; knappen
 
 Läget finns redan inbyggt och kräver ingen ny kod: `SEED_DEMO_DATA=false`
 tillsammans med `PSVI_ENVIRONMENT=pilot`. Vid första start skapas då exakt två
-saker — en enhet högst upp som heter "Bataljonen", och ett administratörskonto
+saker — en enhet högst upp som heter "1. bataljon", och ett administratörskonto
 — och inget mer. Administratören loggar in och bygger kompanier, plutoner,
 grupper och personer i gränssnittet.
 
