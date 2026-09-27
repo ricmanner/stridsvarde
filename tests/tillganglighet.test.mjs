@@ -174,3 +174,29 @@ test('periodväljaren står en gång, ovanför flikarna, och säger vilken som �
   assert.match(kod, /role="group"[^>]*aria-label="Period"/, 'väljaren är ingen namngiven grupp');
   assert.match(kod, /aria-current=\{current === d/, 'den valda perioden är inte märkt');
 });
+
+/*
+ * Sektionsrubrikerna bryts jämnt, och flikarna svarar på musen.
+ *
+ * I telefonbredd bröts "Kategorier — snitt och fördelning över 7 dagar" så
+ * att "dagar" stod ensamt på andra raden. text-balance fördelar orden över
+ * raderna i stället. Flikarna (Översikt, Trender, Jämförelse; Översikt,
+ * Historik) ändrade sig inte när muspekaren låg över dem — de enda
+ * klickbara ytorna i vyerna som inte gjorde det. Båda fynden ur en granskning
+ * mot Vercels Web Interface Guidelines den 27 september.
+ */
+test('sektionsrubriker bryts jämnt och flikarna svarar på musen', () => {
+  const vyer = {
+    befal: readFileSync(path.join(KOMPONENTER, 'leader', 'LeaderDashboard.tsx'), 'utf8'),
+    soldat: readFileSync(path.join(APP, 'soldat', 'dashboard', 'DashboardClient.tsx'), 'utf8'),
+  };
+  for (const [namn, kod] of Object.entries(vyer)) {
+    const rubrik = kod.match(/<h2 className="([^"]*)"/g) ?? [];
+    assert.ok(rubrik.length > 0, `${namn}: hittar ingen sektionsrubrik`);
+    for (const r of rubrik) assert.match(r, /text-balance/, `${namn}: ${r}`);
+
+    const flik = kod.match(/knappklass=\{\(aktiv\) =>[\s\S]*?\}\s*\n\s*\/>/)?.[0] ?? '';
+    const inaktiv = flik.match(/:\s*'([^']*)'/)?.[1] ?? '';
+    assert.match(inaktiv, /hover:/, `${namn}: en inaktiv flik saknar hover — "${inaktiv}"`);
+  }
+});

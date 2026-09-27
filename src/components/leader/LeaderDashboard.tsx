@@ -160,7 +160,7 @@ export default function LeaderDashboard({
           className="mx-auto flex w-full max-w-5xl"
           knappklass={(aktiv) =>
             `flex-1 cursor-pointer border-b-2 px-2 py-3.5 text-etikett font-bold uppercase tracking-[0.08em] transition-colors ${
-              aktiv ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500'
+              aktiv ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-900'
             }`
           }
         />
@@ -494,7 +494,7 @@ function Preliminary({ children }: { children: React.ReactNode }) {
 
 function SL({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
+    <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-balance text-slate-500">
       {children}
     </h2>
   );

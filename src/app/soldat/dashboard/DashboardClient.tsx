@@ -78,7 +78,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
         className="flex border-b border-slate-200 bg-white"
         knappklass={(aktiv) =>
           `flex-1 cursor-pointer border-b-2 bg-transparent py-3.5 text-xs font-bold uppercase tracking-[0.08em] transition-colors ${
-            aktiv ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500'
+            aktiv ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-900'
           }`
         }
       />
@@ -333,7 +333,7 @@ function MetricCard({ label, value, sub, trend }: { label: string; value: string
 
 function SectionHeader({ label }: { label: string }) {
   return (
-    <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
+    <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-balance text-slate-500">
       {label}
     </h2>
   );
