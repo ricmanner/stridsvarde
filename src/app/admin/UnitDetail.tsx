@@ -84,7 +84,6 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
    * använda förrän man rört den.
    */
   const [raderaId, setRaderaId] = useState(() => String(soldiers[0]?.id ?? ''));
-  const raderaNamn = soldiers.find((m) => String(m.id) === raderaId)?.label ?? 'personen';
   const [renameState, renameFormAction] = useActionState<RenameState, FormData>(renameUserAction, {});
   const [deleteState, deleteFormAction] = useActionState<DeleteState, FormData>(deleteUserAction, {});
   const [dismissed, setDismissed] = useState('');
@@ -99,6 +98,17 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
   const dupeLabels = new Set(
     members.map((m) => m.label).filter((l, i, arr) => arr.indexOf(l) !== i),
   );
+
+  /*
+   * Benämningen som den ska stå i en fråga eller ett val: med "(#1670)" när
+   * två i enheten heter likadant. Rullistorna skilde dem åt, men frågan före
+   * radering av hälsodata sa bara "Värnpliktig 01" — det enda steget som inte
+   * går att ångra, just där namnet är tvetydigt.
+   */
+  const benamning = (m: { id: number; label: string }) =>
+    dupeLabels.has(m.label) ? `${m.label} (#${m.id})` : m.label;
+  const radera = soldiers.find((m) => String(m.id) === raderaId);
+  const raderaNamn = radera ? benamning(radera) : 'personen';
 
   const leaderRole = ROLE_FOR_KIND[unit.kind];
   const childKind = CHILD_KIND[unit.kind];
@@ -291,7 +301,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                       <form action={reissueFormAction}>
                         <input type="hidden" name="userId" value={m.id} />
                         <BekraftaKnapp
-                          fraga={`Ge ${m.label} en ny kod?`}
+                          fraga={`Ge ${benamning(m)} en ny kod?`}
                           // Bara det som händer nu. Att koden visas en gång
                           // säger kodlappen själv, med varning om man lämnar.
                           forklaring={<p>Den nuvarande koden slutar fungera direkt.</p>}
@@ -332,7 +342,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                       <form action={deleteFormAction}>
                         <input type="hidden" name="userId" value={m.id} />
                         <BekraftaKnapp
-                          fraga={`Ta bort ${m.label} permanent?`}
+                          fraga={`Ta bort ${benamning(m)} permanent?`}
                           forklaring={
                             <>
                               <p>Kontot och personens alla incheckningar raderas. Det går inte att ångra.</p>
@@ -522,54 +532,63 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
           {codeState.error && <p role="alert" className="mt-3 text-sm text-red-700">{codeState.error}</p>}
         </section>
 
-        {/* ── Flytta person ── */}
-        {members.length > 0 && (
+        {/*
+          ── Flytta person ──
+
+          Står kvar när den sista personen flyttats ut, så att beskedet syns.
+          Förut försvann rutan med beskedet i samma ögonblick som enheten
+          tömdes, och flytten skedde utan kvitto.
+        */}
+        {(members.length > 0 || moveState.moved) && (
           <section className="rounded-md border border-slate-200 bg-white p-4 sm:p-5">
             <h3 className="mb-1 text-sm font-bold text-slate-900">Flytta person</h3>
-            <p className="mb-3 text-xs leading-relaxed text-slate-500">
-              Personen behåller sin kod och hela sin historik. Tidigare svar räknas
-              dock in i den nya enhetens statistik — systemet håller inte reda på var
-              någon befann sig en viss dag.
-            </p>
-            <form action={moveFormAction} className="flex flex-wrap items-end gap-2">
-              <label className="flex flex-col gap-1">
-                <span className="text-etikett font-semibold text-slate-500">Person</span>
-                <select
-                  name="userId"
-                  required
-                  className="w-48 max-w-full rounded border-[1.5px] border-slate-200 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
-                >
-                  {members.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label}
-                      {dupeLabels.has(m.label) ? ` (#${m.id})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-etikett font-semibold text-slate-500">Till enhet</span>
-                <select
-                  name="targetUnitId"
-                  required
-                  className="w-64 max-w-full rounded border-[1.5px] border-slate-200 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
-                >
-                  {moveTargets.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.path}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                type="submit"
-                disabled={moving}
-                className="flex cursor-pointer items-center gap-1.5 rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
-              >
-                <ArrowRightLeft size={14} aria-hidden />
-                {moving ? 'Flyttar…' : 'Flytta'}
-              </button>
-            </form>
+            {members.length > 0 && (
+              <>
+                <p className="mb-3 text-xs leading-relaxed text-slate-500">
+                  Personen behåller sin kod och hela sin historik. Tidigare svar räknas
+                  dock in i den nya enhetens statistik — systemet håller inte reda på var
+                  någon befann sig en viss dag.
+                </p>
+                <form action={moveFormAction} className="flex flex-wrap items-end gap-2">
+                  <label className="flex flex-col gap-1">
+                    <span className="text-etikett font-semibold text-slate-500">Person</span>
+                    <select
+                      name="userId"
+                      required
+                      className="w-48 max-w-full rounded border-[1.5px] border-slate-200 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                    >
+                      {members.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {benamning(m)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-etikett font-semibold text-slate-500">Till enhet</span>
+                    <select
+                      name="targetUnitId"
+                      required
+                      className="w-64 max-w-full rounded border-[1.5px] border-slate-200 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-slate-900"
+                    >
+                      {moveTargets.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.path}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={moving}
+                    className="flex cursor-pointer items-center gap-1.5 rounded-md border-[1.5px] border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-900 disabled:opacity-50"
+                  >
+                    <ArrowRightLeft size={14} aria-hidden />
+                    {moving ? 'Flyttar…' : 'Flytta'}
+                  </button>
+                </form>
+              </>
+            )}
             {moveState.error && <p role="alert" className="mt-2 text-sm text-red-700">{moveState.error}</p>}
             {moveState.moved && (
               <p className="mt-2 text-sm text-emerald-700">Flyttad till {moveState.moved}.</p>
@@ -689,8 +708,7 @@ export default function UnitDetail({ unit, members, currentUserId, moveTargets, 
                 >
                   {soldiers.map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.label}
-                      {dupeLabels.has(m.label) ? ` (#${m.id})` : ''}
+                      {benamning(m)}
                     </option>
                   ))}
                 </select>

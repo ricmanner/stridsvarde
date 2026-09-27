@@ -13,6 +13,7 @@ import {
   deleteUnit,
   deleteUser,
   getUnitDeletion,
+  getUnitPaths,
   moveUser,
   reissueCode,
   renameUnit,
@@ -159,7 +160,12 @@ export async function moveUserAction(
   if (!result.ok) return { error: result.error };
 
   revalidatePath('/admin');
-  return { moved: result.unitName };
+  /*
+   * Hela vägen, inte bara namnet: "Flyttad till 2. grupp." sa inte vilken av
+   * nio. Samma väg som rullistan visade när målet valdes.
+   */
+  const vag = (await getUnitPaths()).find((u) => u.id === targetUnitId)?.path;
+  return { moved: vag ?? result.unitName };
 }
 
 export interface EraseState {

@@ -157,6 +157,66 @@ test('vald enhet syns med hela vägen, och sidan börjar med personerna', async 
   ]);
 });
 
+/*
+ * Två personer med samma benämning i samma enhet — rutorna säger vilken.
+ *
+ * En flytt kan ge två "Värnpliktig 01" i en grupp. Listan och rullistan
+ * skilde dem åt med "(#1670)", men frågan före radering av hälsodata sa bara
+ * "Värnpliktig 01" — det som inte går att ångra, just där namnet är tvetydigt.
+ * Flyttbeskedet sa "Flyttad till 2. grupp." fast nio grupper heter så.
+ */
+test('samma benämning två gånger: rutorna och flyttbeskedet säger vilken', async ({ page }) => {
+  const id = Date.now().toString(36);
+  const skapaGrupp = async (namn: string) => {
+    await page.getByRole('link', { name: /1\. pluton/ }).first().click();
+    await expect(page).toHaveURL(/unit=\d+/);
+    await expect(page.getByRole('heading', { name: /Ny grupp under 1\. pluton/ })).toBeVisible();
+    await page.getByLabel('Namn', { exact: true }).fill(namn);
+    await page.getByRole('button', { name: 'Skapa', exact: true }).click();
+    const lank = page.getByRole('link', { name: new RegExp(namn) });
+    await expect(lank).toBeVisible({ timeout: 20_000 });
+    await lank.click();
+    await expect(page.getByRole('heading', { level: 2, name: namn })).toBeVisible();
+    await page.getByLabel('Antal värnpliktiga').fill('1');
+    await page.getByRole('button', { name: /Skapa värnpliktiga och koder/ }).click();
+    await expect(page.getByText(KODMONSTER).first()).toBeVisible({ timeout: 20_000 });
+    await page.getByRole('button', { name: 'Stäng' }).click();
+  };
+
+  const b = `E2E-namn-b ${id}`;
+  await skapaGrupp(b);
+  const a = `E2E-namn-a ${id}`;
+  await skapaGrupp(a);
+
+  // Flytta A:s enda person till B, där en annan "Värnpliktig 01" redan finns.
+  const val = page.locator('select');
+  const mal = await val.nth(1).locator('option').evaluateAll(
+    (os, namn) => os.find((o) => o.textContent?.endsWith(namn as string))?.getAttribute('value'),
+    b,
+  );
+  await val.nth(1).selectOption(mal!);
+  await page.getByRole('button', { name: 'Flytta', exact: true }).click();
+  await expect(page.getByText(`Flyttad till 1. bataljon › 1. kompani › 1. pluton › ${b}.`)).toBeVisible({ timeout: 20_000 });
+
+  await page.getByRole('link', { name: new RegExp(b) }).click();
+  await expect(page.getByRole('heading', { level: 2, name: b })).toBeVisible();
+
+  // Radera hälsodata: frågan ska bära samma särskiljning som rullistan.
+  const radera = page.locator('select').last();
+  const andra = await radera.locator('option').nth(1).textContent();
+  expect(andra).toMatch(/\(#\d+\)/);
+  await radera.selectOption({ index: 1 });
+  await page.getByRole('button', { name: 'Radera incheckningarna' }).click();
+  const fraga = page.getByRole('dialog');
+  await expect(fraga).toContainText(`Radera samtliga incheckningar för ${andra}?`);
+  await fraga.getByRole('button', { name: 'Avbryt' }).click();
+
+  // Ta bort på raden: samma sak.
+  await page.getByRole('button', { name: 'Ta bort' }).first().click();
+  await expect(page.getByRole('dialog')).toContainText(/Ta bort Värnpliktig 01 \(#\d+\) permanent\?/);
+  await page.getByRole('dialog').getByRole('button', { name: 'Avbryt' }).click();
+});
+
 test('demons publicerade konton går inte att förstöra', async ({ page }) => {
   await page.getByRole('link', { name: /1\. grupp/ }).first().click();
 
