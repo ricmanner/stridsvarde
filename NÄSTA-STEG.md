@@ -865,6 +865,21 @@ gör siffran realistisk i stället för att stå på 100 %.
 
 ## Kräver dig, inte utvecklaren
 
+- **Sätt kortare sparandetid för driftsättningar i Vercel** — 30 sekunder i
+  kontrollpanelen: projektet fm-psvi-v2 → Settings → Security → Deployment
+  Retention Policy → **1 week** (eller kortast som erbjuds) för Production,
+  och spara. Går inte att göra från terminalen: fältet är skrivskyddat i
+  Vercels API. Påverkar inte demon — versionen som kör har ett
+  produktionsalias och tas aldrig bort, och vi ångrar med `git revert`, inte
+  med Vercels återställning. Bakgrund: den 27 september varnade Vercel för
+  75 % av 10 GB "Function Storage"; 74 av 79 sparade driftsättningar togs bort
+  samma dag (återställbara till omkring den 27 oktober under Settings →
+  Security → Recently Deleted). **Tillbaka:** samma meny, välj 1 month.
+- **Inför skarp drift: Vercels gratisplan är för personligt, icke-kommersiellt
+  bruk** enligt deras villkor. Rimlig för demo och hackathon; ska
+  Försvarsmakten använda appen på riktigt behövs en annan plan eller en annan
+  driftmiljö.
+
 - **Kontrollera säkerhetskopiorna hos Turso.** Automatisk återställning är
   alltid påslagen; vilket abonnemang kontot har avgör hur långt bakåt den
   räcker, och regionen avgör i vilket land kopiorna ligger. Båda står i
