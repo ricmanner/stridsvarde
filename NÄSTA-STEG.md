@@ -15,7 +15,7 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 191 enhetstester och 32
+är gröna, demon är driftsatt och står i visningsskick. 192 enhetstester och 33
 webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
 och bygge.
 
@@ -60,6 +60,35 @@ i `underlag/meddelande-till-gruppen.md` och väntar bara på att skickas.
 
 Följden för arbetet: det finns ingen återkoppling utifrån att väga listan mot,
 och **polering går före demoförberedelser** tills länken är ute.
+
+### Gjort den 27 september
+
+- **Granskning mot Vercels Web Interface Guidelines, och tre fynd rättade.**
+  Reglerna (`vercel-labs/web-interface-guidelines`, ungefär 80 stycken)
+  användes en gång som granskning, **utan att något installerades** — skillen
+  hämtar sina regler från GitHub vid varje körning, vilket är ett skäl att
+  inte ha den installerad. Appen klarade de flesta; fokusmarkeringen på
+  adminfälten med `outline-none` kontrollerades i webbläsaren och syns
+  (appens globala `:focus-visible` ligger utanför Tailwinds lager och vinner).
+
+  **Rättat:** "Ny kod" i adminvyn frågar nu först (en rad per person spärrade
+  koden på ett klick). På vägen: alla bekräftelserutor delade id:t
+  `bekrafta-fraga`, så en skärmläsare läste upp första radens fråga oavsett
+  rad — nu `useId()`, bevisat genom att sätta tillbaka det gamla id:t och se
+  e2e-testet falla. Sektionsrubrikerna bryts jämnt (`text-balance`), och
+  inaktiva flikar svarar på muspekaren.
+
+  **Medvetet inte följt:** Title Case och siffror i stället för ord (engelska
+  regler; appen följer svenska skrivregler), raka "engelska" citattecken,
+  att låta lösenordshanterare spara inloggningskoden (värnpliktiga är
+  inloggade 30 dagar, befäl sitter vid delade datorer), mörkt läge.
+  **Kvar, låga:** flikarna syns inte i adressen (laddar man om hamnar man på
+  Översikt), raka citattecken i utskriftsrapporten, och ingen varning om man
+  lämnar incheckningen halvvägs — den sista inte värd att göra.
+
+  **Så tar du bort det igen:** `git revert --no-edit f75a4a7 33c1b7d`. Prövat
+  den 27 september på en egen gren: `src`, testerna och e2e blir identiska
+  med läget före, och de 191 tester som fanns då är gröna.
 
 ### Gjort den 26 september
 
