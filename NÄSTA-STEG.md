@@ -15,7 +15,7 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 193 enhetstester och 35
+är gröna, demon är driftsatt och står i visningsskick. 197 enhetstester och 36
 webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
 och bygge.
 
@@ -62,6 +62,45 @@ Följden för arbetet: det finns ingen återkoppling utifrån att väga listan m
 och **polering går före demoförberedelser** tills länken är ute.
 
 ### Gjort den 27 september
+
+- **Hela appen genomgången mot den driftsatta demon, som en människa gör, och
+  sex fel rättade.** Incheckning, rättelse, samtalsbegäran, befälsvyerna på
+  tre nivåer, utskriftsrapport och CSV, samt allt i adminvyn: skapa, byt
+  namn, spärra, aktivera, ny kod, flytta, radera hälsodata, ta bort person,
+  radera enhet, och behörigheterna. **Siffrorna stämmer i alla vyer** —
+  "svarat idag" följde med upp genom nivåerna, personantalen går jämnt ut,
+  och skärm, utskrift och CSV är identiska för samma period. Demon
+  återställdes efteråt.
+
+  Rättat:
+  1. **Frågan före radering av hälsodata sa inte vilken person** när två i
+     enheten heter likadant (efter en flytt). Nu "Värnpliktig 01 (#1179)",
+     som rullistan — också i frågorna för Ta bort och Ny kod.
+  2. **"Lägre närvaro — befälet ser ingen data" var osant**: vad befälet
+     ser avgörs av gruppen, inte av den enskildes närvaro. Ny text uppmuntrar
+     till daglig incheckning.
+  3. **Närvaron räknades alltid på fjorton dagar**, så en ny person fick "7 %"
+     första dagen. Nu från den tidigaste av skapelsedag och första
+     incheckning; demons värnpliktiga dateras till historikens första dag.
+  4. **"Din session har gått ut"** visades för den som aldrig loggat in eller
+     nyss loggat ut själv. Proxyn skickar nu till inloggningen utan det.
+  5. **Flyttbeskedet** säger hela vägen, inte bara "2. grupp".
+  6. **Flyttas den sista personen ut försvann beskedet** — rutan det låg i
+     doldes när enheten tömdes. Hittat under rättningen av 5.
+
+  **Medvetet oförändrat:** en spärrad person får samma meddelande som vid
+  felskriven kod (annars blir inloggningen en upplysningskanal), och CSV:n
+  räknar tidigare dagar mot dagens personantal (dokumenterat).
+  **Kvar att ta ställning till:** rättar en värnpliktig en röd incheckning
+  till grön försvinner kvittot på samtalsbegäran ur hens vy, medan begäran
+  ligger kvar hos befälet.
+
+  **Så tar du bort det igen:** `git revert --no-edit 5fb8437 99b6b0f`. Ingen
+  återställning av demon krävs för koden, men demons värnpliktiga får sitt
+  nya skapelsedatum först vid nästa "Återställ demon" — fram till dess räknas
+  de från sin första incheckning, vilket ger 13 i stället för 14 dagar för
+  den som hoppade över historikens första dag. Prövat på en egen gren: `src`,
+  testerna och e2e identiska med läget före, de 193 tester som fanns då gröna.
 
 - **Adminvyn säger vilken enhet man står i, och börjar med personerna.** Ur
   en designgenomgång av adminvyn på alla fyra nivåerna.
