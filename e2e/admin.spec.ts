@@ -25,9 +25,9 @@ test('två kodbyten i rad visar båda koderna', async ({ page }) => {
    * värnpliktiga vore att dra undan mattan för de andra testerna: deras
    * inloggning slutar fungera i samma sekund.
    */
-  await page.getByRole('link', { name: /2\. plutonen/ }).first().click();
+  await page.getByRole('link', { name: /2\. pluton/ }).first().click();
   await expect(page).toHaveURL(/unit=\d+/);
-  await expect(page.getByRole('heading', { name: /Ny grupp under 2\. plutonen/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Ny grupp under 2\. pluton/ })).toBeVisible();
 
   /*
    * Exakt etikett. Sedan enheter går att byta namn finns två fält som slutar
@@ -68,7 +68,7 @@ test('två kodbyten i rad visar båda koderna', async ({ page }) => {
 });
 
 test('demons publicerade konton går inte att förstöra', async ({ page }) => {
-  await page.getByRole('link', { name: /1\. gruppen/ }).first().click();
+  await page.getByRole('link', { name: /1\. grupp/ }).first().click();
 
   // Raden för det publicerade kontot är låst: ingen knapp för ny kod, utan
   // en förklaring. En knapp som alltid misslyckas vore sämre än ingen knapp.
@@ -80,14 +80,14 @@ test('demons publicerade konton går inte att förstöra', async ({ page }) => {
 });
 
 test('en ny grupp dyker upp, och går att radera igen', async ({ page }) => {
-  await page.getByRole('link', { name: /1\. plutonen/ }).first().click();
+  await page.getByRole('link', { name: /1\. pluton/ }).first().click();
   /*
    * Vänta tills valet landat innan något skrivs. Klicket i trädet ritar om
    * högra spalten, och text som skrivs under tiden försvinner med den gamla
    * DOM:en — testet skrev i ett fält som ersattes en sekund senare.
    */
   await expect(page).toHaveURL(/unit=\d+/);
-  await expect(page.getByRole('heading', { name: /Ny grupp under 1\. plutonen/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Ny grupp under 1\. pluton/ })).toBeVisible();
 
   // Unikt namn per körning: två syskonenheter får inte heta lika, och
   // databasen lever kvar mellan körningar. Klockan modulo 10 000 upprepas var

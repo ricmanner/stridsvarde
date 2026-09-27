@@ -60,10 +60,10 @@ test('återställningen bygger upp demon igen, oavsett vad som hänt med den', a
      * Förbanden heter som Försvarsmakten skriver dem: siffra med punkt före
      * ordet, numrerade inom sitt närmast högre förband (FAL-A, FM2019-26245:1:
      * "1. plut/1. komp", "1. grp/1. plut"). Demon hade "Pluton 1–9" räknat
-     * över hela bataljonen, så 3. kompaniet hade Pluton 7, 8 och 9.
+     * över hela bataljonen, så 3. kompani hade Pluton 7, 8 och 9.
      *
      * Koderna rörs inte: BEF-P4 är fortfarande plutonchef för bataljonens
-     * fjärde pluton, som nu heter 1. plutonen i 2. kompaniet.
+     * fjärde pluton, som nu heter 1. pluton i 2. kompani.
      */
     await t.test('förbanden heter och numreras som i Försvarsmakten', async () => {
       const namn = async (sql, args = []) =>
@@ -77,13 +77,13 @@ test('återställningen bygger upp demon igen, oavsett vad som hänt med den', a
 
       assert.deepEqual(
         await namn(`SELECT name FROM units WHERE kind = 'kompani' ORDER BY name`),
-        ['1. kompaniet', '2. kompaniet', '3. kompaniet'],
+        ['1. kompani', '2. kompani', '3. kompani'],
       );
-      for (const kompani of ['1. kompaniet', '2. kompaniet', '3. kompaniet']) {
-        assert.deepEqual(await barn('pluton', kompani), ['1. plutonen', '2. plutonen', '3. plutonen'], kompani);
+      for (const kompani of ['1. kompani', '2. kompani', '3. kompani']) {
+        assert.deepEqual(await barn('pluton', kompani), ['1. pluton', '2. pluton', '3. pluton'], kompani);
       }
       const grupper = await namn(`SELECT DISTINCT name FROM units WHERE kind = 'grupp' ORDER BY name`);
-      assert.deepEqual(grupper, ['1. gruppen', '2. gruppen', '3. gruppen']);
+      assert.deepEqual(grupper, ['1. grupp', '2. grupp', '3. grupp']);
 
       const [p4] = (
         await client.execute({
@@ -93,7 +93,7 @@ test('återställningen bygger upp demon igen, oavsett vad som hänt med den', a
           args: [hashCode('BEF-P4')],
         })
       ).rows;
-      assert.equal(`${p4.pluton}/${p4.kompani}`, '1. plutonen/2. kompaniet');
+      assert.equal(`${p4.pluton}/${p4.kompani}`, '1. pluton/2. kompani');
     });
 
     await t.test('en raderad enhet kommer tillbaka', async () => {

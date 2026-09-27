@@ -24,7 +24,7 @@ import { ordformer } from '@/lib/unit-names';
  *   2. Förhandsvisningen säger exakt vad som försvinner — hur många
  *      underenheter och personer — eller varför det inte går.
  *   3. Är enheten inte tom måste man skriva dess namn. En bekräftelseruta
- *      klickar man förbi; att skriva "1. kompaniet" gör man inte av misstag.
+ *      klickar man förbi; att skriva "1. kompani" gör man inte av misstag.
  *      Namnet kontrolleras också på servern, så det här är inte bara ett hinder
  *      i formuläret.
  */
@@ -150,7 +150,7 @@ function DeleteForm({
           </p>
           <label className="mb-3 flex flex-col gap-1">
             <span className="text-xs font-semibold text-red-900">
-              {/* Inte i jämnbrett typsnitt: där ser "2. plutonen" ut att ha två
+              {/* Inte i jämnbrett typsnitt: där ser "2. pluton" ut att ha två
                   mellanslag, och den som skriver av det exakt får aldrig igång knappen. */}
               Skriv <strong className="font-bold">{preview.name}</strong> för att bekräfta
             </span>

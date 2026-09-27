@@ -59,7 +59,7 @@ Tidigare versioner innehöll siffror som "minskar avbrott med upp till 40
 procent". De togs bort för att de inte gick att belägga.
 
 **8. Jämförelsevyn svarar på befälets faktiska fråga.**
-Inte "hur mår enheten" utan "var brister det" — 3. gruppen, sömn. Det står direkt i
+Inte "hur mår enheten" utan "var brister det" — 3. grupp, sömn. Det står direkt i
 rutnätet i stället för att behöva letas fram ur en graf.
 
 **9. Tillgänglighet är taget på allvar.**

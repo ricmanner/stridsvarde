@@ -30,7 +30,7 @@ export const units = sqliteTable(
   },
   (t) => [
     index('units_parent').on(t.parentId),
-    // Två syskonenheter får inte heta lika, men "1. gruppen" får finnas i varje pluton.
+    // Två syskonenheter får inte heta lika, men "1. grupp" får finnas i varje pluton.
     uniqueIndex('units_parent_name').on(t.parentId, t.name),
   ],
 );
@@ -42,7 +42,7 @@ export const users = sqliteTable(
     /** sha256 av inloggningskoden. Klartextkoden lagras aldrig. */
     codeHash: text('code_hash').notNull().unique(),
     /**
-     * Visningsnamn i admin, t.ex. "Soldat 03" eller "Plutonchef 1. plutonen".
+     * Visningsnamn i admin, t.ex. "Soldat 03" eller "Plutonchef 1. pluton".
      *
      * Sätts automatiskt vid skapandet och kan sedan ändras — se renameUser().
      * Utan det gick systemet inte att administrera: koden lagras bara som
@@ -128,7 +128,7 @@ export const sessions = sqliteTable(
  * Notiser till befäl.
  *
  * Medvetet på *enhetsnivå*, aldrig individnivå: en notis säger
- * "2 soldater i 2. gruppen har röda värden", inte vem. Det följer samma
+ * "2 soldater i 2. grupp har röda värden", inte vem. Det följer samma
  * princip som befälsvyerna i övrigt. Om Försvarsmakten senare beslutar
  * att någon roll ska kunna se individer är det ett policybeslut som
  * kräver egen behandling — inte något som ska smyga in via notiser.

@@ -9,7 +9,7 @@ import { formatScore } from '@/lib/format';
 /**
  * Underenheter som rader, kategorier som kolumner, varje ruta tonad efter status.
  *
- * Det befäl oftast vill veta är var det brister — "3. gruppen, sömn". I en
+ * Det befäl oftast vill veta är var det brister — "3. grupp, sömn". I en
  * linjegraf eller ett spindeldiagram letar man efter det; här står det direkt.
  *
  * Här används statusfärgerna för det de betyder: status. Färgen är ändå aldrig

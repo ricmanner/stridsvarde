@@ -370,7 +370,7 @@ export interface MoveTarget {
   id: number;
   name: string;
   kind: UnitKind;
-  /** Hela vägen ned, så att två "1. gruppen" går att skilja åt. */
+  /** Hela vägen ned, så att två "1. grupp" går att skilja åt. */
   path: string;
 }
 

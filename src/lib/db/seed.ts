@@ -34,19 +34,19 @@ const CATS: Category[] = ['fysisk', 'psykisk', 'social', 'somn', 'kost', 'energi
 /*
  * Plutonerna har två nummer, och de får inte blandas ihop.
  *
- * NAMNET räknas inom kompaniet — 1. plutonen finns i varje kompani — som
+ * NAMNET räknas inom kompaniet — 1. pluton finns i varje kompani — som
  * Försvarsmakten numrerar ("1. plut/1. komp", FAL-A, FM2019-26245:1). Demon
- * hade tidigare "Pluton 1–9" räknat över hela bataljonen, så 3. kompaniet
+ * hade tidigare "Pluton 1–9" räknat över hela bataljonen, så 3. kompani
  * hade Pluton 7, 8 och 9.
  *
  * NUMRET nedan räknas över hela bataljonen, och bara koderna och profilerna
  * använder det: BEF-P4 och P4G1-01 hör till bataljonens fjärde pluton, som
- * heter 1. plutonen i 2. kompaniet. Koderna står på inloggningssidan och i
+ * heter 1. pluton i 2. kompani. Koderna står på inloggningssidan och i
  * testerna, och är koder — inte namn — så de ändras inte.
  */
 
 /**
- * Per-pluton utgångsläge per kategori. Pluton 1 (1. plutonen, 1. kompaniet)
+ * Per-pluton utgångsläge per kategori. Pluton 1 (1. pluton, 1. kompani)
  * har medvetet dålig sömn och kost så att demon berättar samma historia som
  * prototypen gjorde, och så att tröskelvärdeslarmen faktiskt utlöses någonstans.
  */
@@ -63,9 +63,9 @@ const PLUTON_BASE: Record<number, number> = {
 };
 
 const KOMPANIER: ReadonlyArray<{ namn: string; plutoner: readonly number[] }> = [
-  { namn: '1. kompaniet', plutoner: [1, 2, 3] },
-  { namn: '2. kompaniet', plutoner: [4, 5, 6] },
-  { namn: '3. kompaniet', plutoner: [7, 8, 9] },
+  { namn: '1. kompani', plutoner: [1, 2, 3] },
+  { namn: '2. kompani', plutoner: [4, 5, 6] },
+  { namn: '3. kompani', plutoner: [7, 8, 9] },
 ];
 
 const GRUPPER_PER_PLUTON = 3;
@@ -283,7 +283,7 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
 
     for (const [plats, plutonNr] of plutoner.entries()) {
       // Namnet inom kompaniet, numret över bataljonen — se KOMPANIER.
-      const pNamn = `${plats + 1}. plutonen`;
+      const pNamn = `${plats + 1}. pluton`;
 
       const [pluton] = await tx
         .insert(units)
@@ -302,7 +302,7 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
       for (let g = 1; g <= GRUPPER_PER_PLUTON; g++) {
         const [grupp] = await tx
           .insert(units)
-          .values({ name: `${g}. gruppen`, kind: 'grupp', parentId: pluton.id, createdAt: ts })
+          .values({ name: `${g}. grupp`, kind: 'grupp', parentId: pluton.id, createdAt: ts })
           .returning({ id: units.id });
 
         // Koden hålls utanför raden — den ska aldrig kunna råka skrivas till
