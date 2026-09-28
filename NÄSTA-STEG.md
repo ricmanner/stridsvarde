@@ -15,7 +15,7 @@ gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
 Klockan är alltså inte längre något vi tror går.
 
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 197 enhetstester och 36
+är gröna, demon är driftsatt och står i visningsskick. 201 enhetstester och 41
 webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
 och bygge.
 
@@ -60,6 +60,38 @@ i `underlag/meddelande-till-gruppen.md` och väntar bara på att skickas.
 
 Följden för arbetet: det finns ingen återkoppling utifrån att väga listan mot,
 och **polering går före demoförberedelser** tills länken är ute.
+
+### Gjort den 28 september
+
+- **Aktivitetslogg som bara Richard når.** Den som skriver **loggkoden** i
+  det vanliga inloggningsfältet hamnar på `/logg` — ingen annan kommer dit,
+  inte heller ADMIN-01. Koden är hemligheten `LOGG_KOD` i Vercel (satt för
+  produktion, typ Secret), inte ett konto i databasen: "Återställ demon"
+  tömmer användartabellen men rör aldrig vare sig hemligheten eller
+  loggen. Koden prövas efter inloggningsspärren och jämförs som hash;
+  kakan gäller bara `/logg` i tolv timmar och ger ingen session eller roll.
+
+  Sidan visar aktivitet sedan senaste återställningen (inloggningar, nya
+  incheckningar, samtalsbegäranden, adminåtgärder), nya incheckningar per
+  timme **bara som antal**, och händelserna nyast först. En återställning
+  står som en gränsrad, *"Demon återställdes. Allt före den här raden gällde
+  den förra demon"*, och loggen fortsätter efter den. Raderna säger **roll
+  och enhet, aldrig benämning** — "värnpliktig i 1. bataljon › 1. kompani ›
+  1. pluton › 1. grupp" — av samma skäl som granskningsloggen aldrig sparat
+  namn. Beskrivningen skrivs när raden skapas, så den går att läsa även
+  efter att personerna tagits bort. Rader från före den 28 september har
+  ingen sådan beskrivning ("Inloggning" utan mer, "användare 1179").
+
+  Prövat i en riktig körning i demoläge: inloggningar, incheckning,
+  samtalsbegäran, ny grupp, nya personer, spärr, återställning — och loggen
+  fortsatte efter återställningen med den nya sammanfattningen från noll.
+
+  **Stänga av utan att ändra kod:** ta bort `LOGG_KOD` i Vercel (Settings →
+  Environment Variables) och driftsätt igen — då finns ingen väg in.
+  **Byta kod:** ändra värdet och driftsätt; gamla kakor slutar gälla direkt.
+  **Ta bort helt:** `git revert --no-edit a8e2b72`, pusha, och ta bort
+  `LOGG_KOD` i Vercel. Prövat på en egen gren: `src`, testerna och e2e blir
+  identiska med läget före, de 197 tester som fanns då gröna.
 
 ### Gjort den 27 september
 
@@ -718,15 +750,11 @@ fram demodatan och återställa demon.
      och dubbel kontroll av allt som byggs efteråt. **Om det görs: bara
      incheckningen** (sex frågor och sammanfattning), en halv dag. Fråga
      hackathonet först: checkar värnpliktiga in i mörker?
-   - **Ingen aktivitetslogg i appen — Richards beslut den 28 september.**
-     Länken är skickad till kollegorna, och de ska kunna utforska fritt.
-     ADMIN-01 står på inloggningssidan, så en logg i adminvyn eller på
-     `/status` skulle alla kunna läsa — den skulle kännas som övervakning.
-     Datan finns ändå (`audit_log`: inloggningar och alla adminåtgärder,
-     aldrig koder eller hälsodata), men visas ingenstans. Vill Richard
-     senare se vad som händer: läs av antalen på `/status` jämfört med efter
-     senaste återställningen, eller bygg en vy bakom ett adminkonto vars kod
-     *inte* står på inloggningssidan. Föreslå inte en synlig logg igen.
+   - **Ingen aktivitetslogg som kollegorna kan se — Richards beslut den 28
+     september.** De ska kunna utforska fritt, och ADMIN-01 står på
+     inloggningssidan. Loggen som byggdes samma dag ligger därför bakom en
+     egen kod (se "Gjort den 28 september"), aldrig i adminvyn eller på
+     `/status`. Föreslå inte en logg där.
    - **Stjärndiagrammet ("Profil") i Jämförelse står kvar med flit.** Det är
      svårläst och tabellen ovanför visar samma tal, och Richard håller med om
      det — men en fysioterapeut föreslog det på hackathonet i våras, och det
