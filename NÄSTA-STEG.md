@@ -718,6 +718,15 @@ fram demodatan och återställa demon.
      och dubbel kontroll av allt som byggs efteråt. **Om det görs: bara
      incheckningen** (sex frågor och sammanfattning), en halv dag. Fråga
      hackathonet först: checkar värnpliktiga in i mörker?
+   - **Ingen aktivitetslogg i appen — Richards beslut den 28 september.**
+     Länken är skickad till kollegorna, och de ska kunna utforska fritt.
+     ADMIN-01 står på inloggningssidan, så en logg i adminvyn eller på
+     `/status` skulle alla kunna läsa — den skulle kännas som övervakning.
+     Datan finns ändå (`audit_log`: inloggningar och alla adminåtgärder,
+     aldrig koder eller hälsodata), men visas ingenstans. Vill Richard
+     senare se vad som händer: läs av antalen på `/status` jämfört med efter
+     senaste återställningen, eller bygg en vy bakom ett adminkonto vars kod
+     *inte* står på inloggningssidan. Föreslå inte en synlig logg igen.
    - **Stjärndiagrammet ("Profil") i Jämförelse står kvar med flit.** Det är
      svårläst och tabellen ovanför visar samma tal, och Richard håller med om
      det — men en fysioterapeut föreslog det på hackathonet i våras, och det
