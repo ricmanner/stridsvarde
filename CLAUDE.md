@@ -174,7 +174,8 @@ npm run rundtur     # klickar igenom appen som alla fem demokonton
 
 Allt arbete sker på **`v2-produktion`**. En push dit driftsätts automatiskt av
 Vercel till <https://fm-psvi-v2.vercel.app> — ett bygge tar ungefär 30–60
-sekunder.
+sekunder. GitHub kör samma kontroller, men först efter pushen, så kör dem
+själv innan.
 
 **Varje push kostar lagring.** Vercel sparar varje driftsättning, ungefär
 95 MB, och gratisplanen rymmer 10 GB. Den 27 september låg 79 stycken där
@@ -183,8 +184,7 @@ stoppas eller demon pausas. Samla därför flera ändringar per push. Rensa vid
 behov med `vercel ls` och `vercel remove <url> --yes` — behåll de senaste,
 och aldrig den som `vercel inspect fm-psvi-v2.vercel.app` visar som
 produktion. En borttagen går att återställa i 30 dagar under Settings →
-Security → Recently Deleted. GitHub kör samma kontroller, men först efter pushen, så kör dem
-själv innan.
+Security → Recently Deleted.
 
 **Sessionen måste starta i den här mappen.** En push till ett förråd utanför
 sessionens arbetsmapp stoppas som otillåten publicering, och då måste Richard
