@@ -37,6 +37,9 @@ const PUBLIC_PATHS = new Set([
   '/ingen-behorighet',
   '/api/halsa',
   '/api/demo-tidslinje',
+  // Aktivitetsloggen: nås med loggkoden, inte med en session. Låset är
+  // requireLoggatkomst() i sidan — se lib/auth/logg.ts.
+  '/logg',
 ]);
 
 export function proxy(request: NextRequest) {

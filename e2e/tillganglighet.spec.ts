@@ -109,6 +109,15 @@ test('adminvyn och rapporten', async ({ page }) => {
   expect.soft(await granska(page, 'rapport')).toEqual([]);
 });
 
+// Aktivitetsloggen nås med sin egen kod — samma som LOGG_KOD i playwright.config.ts.
+test('aktivitetsloggen', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Inloggningskod').fill('LOGGK-E2E23');
+  await page.getByRole('button', { name: 'Logga in' }).click();
+  await expect(page).toHaveURL(/\/logg$/, { timeout: 15_000 });
+  expect.soft(await granska(page, 'aktivitetslogg')).toEqual([]);
+});
+
 /**
  * Graferna ska berätta vad de visar.
  *

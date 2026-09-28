@@ -8,6 +8,7 @@ import { serviceDate } from '@/lib/date';
 import { db } from '@/lib/db';
 import { getChildComparison, getUnitCategorySeries } from '@/lib/db/queries/aggregates';
 import { auditLog } from '@/lib/db/schema';
+import { beskrivEnhet } from '@/lib/db/queries/aktivitet';
 import { parsePeriod } from '@/lib/privacy';
 
 /**
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
     await db.insert(auditLog).values({
       actorUserId: session.id,
       action: 'export.csv',
-      detail: `${kind}, ${period} dagar, enhet ${session.unitId}`,
+      detail: `${kind}, ${period} dagar, ${await beskrivEnhet(session.unitId)}`,
       createdAt: new Date().toISOString(),
     });
   });

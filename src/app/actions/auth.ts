@@ -17,7 +17,10 @@ import {
   destroySession,
   pruneExpiredSessions,
 } from '@/lib/auth/session';
+import { oppnaLogg } from '@/lib/auth/logg';
+import { arLoggkod } from '@/lib/auth/loggkod';
 import { db, ensureDb } from '@/lib/db';
+import { beskrivPerson } from '@/lib/db/queries/aktivitet';
 import { auditLog, users } from '@/lib/db/schema';
 import { homeFor } from '@/lib/roles';
 
@@ -57,6 +60,17 @@ export async function loginAction(
     };
   }
 
+  /*
+   * Loggkoden öppnar aktivitetsloggen och ingenting annat — ingen session,
+   * ingen roll. Den prövas efter spärren, så att den inte går att gissa sig
+   * fram till snabbare än en vanlig kod. Se lib/auth/logg.ts.
+   */
+  if (arLoggkod(input)) {
+    await clearAttempts(ipHash);
+    await oppnaLogg();
+    redirect('/logg');
+  }
+
   const [user] = await db
     .select({ id: users.id, role: users.role, active: users.active })
     .from(users)
@@ -84,7 +98,8 @@ export async function loginAction(
     await db.insert(auditLog).values({
       actorUserId: user.id,
       action: 'login.success',
-      detail: null, // aldrig koden, aldrig hälsodata
+      // Roll och enhet — aldrig koden, benämningen eller hälsodata.
+      detail: await beskrivPerson(user.id),
       createdAt: new Date().toISOString(),
     });
     await pruneExpiredSessions();

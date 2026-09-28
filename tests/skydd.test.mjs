@@ -49,7 +49,7 @@ const UTAN_KRAV = new Set([
  * få en omdirigering tillbaka i ansiktet — men obehöriga får fortfarande
  * ingenting skrivet till loggen.
  */
-const KONTROLL = /requireRole\(|requireUser\(|getSessionUser\(|LeaderPageShell/;
+const KONTROLL = /requireRole\(|requireUser\(|getSessionUser\(|LeaderPageShell|requireLoggatkomst\(/;
 
 function filer(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((d) => {

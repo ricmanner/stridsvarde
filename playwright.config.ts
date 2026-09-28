@@ -29,6 +29,8 @@ export const miljo = {
   MIN_RESPONDERS: '4',
   AUTH_PEPPER: 'e2e-pepper-som-ar-tillrackligt-lang-for-att-duga',
   RETENTION_DAYS: '',
+  // Aktivitetsloggens kod — bara i testerna; i Vercel är den en hemlighet.
+  LOGG_KOD: 'LOGGK-E2E23',
 };
 
 export default defineConfig({

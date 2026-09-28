@@ -10,6 +10,7 @@ import { NIVÅORD } from '../../unit-names';
 import { db } from '..';
 import { environment } from '../client';
 import { eraseCheckInsForUsers, erasePersonalData } from '../retention';
+import { beskrivEnhet, beskrivPerson } from './aktivitet';
 import { auditLog, sessions, units, users } from '../schema';
 
 /*
@@ -193,7 +194,7 @@ export async function createUnit(
       .values({ name: trimmed, kind, parentId, createdAt: new Date().toISOString() })
       .returning({ id: units.id });
 
-    await audit(actorUserId, 'unit.create', `${kind}: ${trimmed}`);
+    await audit(actorUserId, 'unit.create', await beskrivEnhet(row.id));
     return { ok: true, id: row.id };
   } catch (fel) {
     // Unikindexet (parent_id, name) — två syskon får inte heta lika.
@@ -300,7 +301,8 @@ export async function createUsers(
     issued.push({ label, code });
   }
 
-  await audit(actorUserId, 'user.create', `${count} × ${role} i ${unit.name}`);
+  const rollord = ROLE_LABEL[role].toLocaleLowerCase('sv-SE');
+  await audit(actorUserId, 'user.create', `${count} × ${rollord} i ${await beskrivEnhet(unitId)}`);
   return { ok: true, codes: issued };
 }
 
@@ -353,7 +355,7 @@ export async function reissueCode(
   // Den som har den gamla lappen ska inte kunna fortsätta vara inloggad.
   await db.delete(sessions).where(eq(sessions.userId, userId));
 
-  await audit(actorUserId, 'code.reissue', `användare ${userId}`);
+  await audit(actorUserId, 'code.reissue', await beskrivPerson(userId));
   return { ok: true, code, label: user.label };
 }
 
@@ -448,8 +450,10 @@ export async function moveUser(
     };
   }
 
+  // Varifrån beskrivs före flytten, vart efter — annars säger raden samma sak två gånger.
+  const fran = await beskrivPerson(userId);
   await db.update(users).set({ unitId: targetUnitId }).where(eq(users.id, userId));
-  await audit(actorUserId, 'user.move', `användare ${userId} → enhet ${targetUnitId}`);
+  await audit(actorUserId, 'user.move', `${fran} → ${await beskrivEnhet(targetUnitId)}`);
 
   return { ok: true, unitName: target.name };
 }
@@ -524,7 +528,7 @@ export async function setUserActive(
   // Avaktivering ska slå igenom direkt, inte när sessionen råkar löpa ut.
   if (!active) await db.delete(sessions).where(eq(sessions.userId, userId));
 
-  await audit(actorUserId, active ? 'user.activate' : 'user.deactivate', `användare ${userId}`);
+  await audit(actorUserId, active ? 'user.activate' : 'user.deactivate', await beskrivPerson(userId));
   return { ok: true };
 }
 
@@ -638,13 +642,15 @@ export async function deleteUser(
    * ett konto utan sin historik — eller ett felmeddelande som såg ut som att
    * ingenting hänt fast rapporterna redan var borta.
    */
+  // Före transaktionen: efteråt finns personen inte att beskriva.
+  const vem = await beskrivPerson(userId);
   const erased = await db.transaction(async (tx) => {
-    const n = await erasePersonalData(actorUserId, userId, tx);
+    const n = await erasePersonalData(actorUserId, userId, tx, vem);
     await tx.delete(users).where(eq(users.id, userId));
     await tx.insert(auditLog).values({
       actorUserId,
       action: 'user.delete',
-      detail: `${tillaten.role} ${userId}`,
+      detail: vem,
       createdAt: new Date().toISOString(),
     });
     return n;
@@ -803,9 +809,11 @@ export async function deleteUnit(
     return { ok: false, error: `Skriv enhetens namn, ${d.name}, exakt för att bekräfta.` };
   }
 
+  // Vägen före raderingen — efteråt finns enheten inte att beskriva.
+  const vag = await beskrivEnhet(unitId);
   const erased = await db.transaction(async (tx) => {
     // Hälsodatan först, i samma transaktion — se kommentaren i deleteUser().
-    const n = await eraseCheckInsForUsers(actorUserId, d.userIds, d.name, tx);
+    const n = await eraseCheckInsForUsers(actorUserId, d.userIds, vag, tx);
     // Personerna sedan — databasen vägrar radera en enhet som någon tillhör.
     if (d.userIds.length > 0) {
       await tx.delete(users).where(inArray(users.id, d.userIds));
@@ -817,7 +825,7 @@ export async function deleteUnit(
     await tx.insert(auditLog).values({
       actorUserId,
       action: 'unit.delete',
-      detail: `${d.name} med ${d.subunits} underenheter och ${d.people} personer`,
+      detail: `${vag} med ${d.subunits} underenheter och ${d.people} personer`,
       createdAt: new Date().toISOString(),
     });
     return n;
@@ -884,7 +892,7 @@ export async function renameUser(
    * samling personuppgifter — och den som raderas via erasePersonalData
    * skulle ligga kvar i den.
    */
-  await audit(actorUserId, 'user.rename', `användare ${userId}`);
+  await audit(actorUserId, 'user.rename', await beskrivPerson(userId));
   return { ok: true, label: trimmed };
 }
 
@@ -933,7 +941,8 @@ export async function renameUnit(
   }
 
   // Det tidigare namnet loggas INTE, av samma skäl som vid renameUser().
-  await audit(actorUserId, 'unit.rename', `enhet ${unitId}`);
+  // Den nya vägen; det gamla namnet loggas inte, se ovan.
+  await audit(actorUserId, 'unit.rename', await beskrivEnhet(unitId));
   return { ok: true, name: trimmed };
 }
 

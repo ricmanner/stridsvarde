@@ -131,6 +131,11 @@ export async function erasePersonalData(
   actorUserId: number,
   userId: number,
   exec: Exec = db,
+  /**
+   * Roll och enhet, för loggen — beskrivPerson() i queries/aktivitet.ts.
+   * Räknas fram av anroparen före raderingen: efteråt kan personen vara borta.
+   */
+  vem?: string,
 ): Promise<number> {
   const [row] = await exec
     .select({ n: sql<number>`count(*)` })
@@ -143,7 +148,7 @@ export async function erasePersonalData(
   await exec.insert(auditLog).values({
     actorUserId,
     action: 'retention.erase_person',
-    detail: `${count} incheckningar raderade för användare ${userId}`,
+    detail: `${count} incheckningar raderade för ${vem ?? `användare ${userId}`}`,
     createdAt: new Date().toISOString(),
   });
 

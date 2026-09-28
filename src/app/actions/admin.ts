@@ -22,6 +22,7 @@ import {
   type IssuedCode,
   type UnitDeletion,
 } from '@/lib/db/queries/admin';
+import { beskrivPerson } from '@/lib/db/queries/aktivitet';
 import { erasePersonalData } from '@/lib/db/retention';
 import { ATERSTALL_ORD } from '@/lib/demo';
 import type { Role } from '@/lib/roles';
@@ -194,7 +195,7 @@ export async function erasePersonalDataAction(
   const tillaten = await canErasePersonalData(userId);
   if (!tillaten.ok) return { error: tillaten.error };
 
-  const erased = await erasePersonalData(admin.id, userId);
+  const erased = await erasePersonalData(admin.id, userId, undefined, await beskrivPerson(userId));
 
   revalidatePath('/admin');
   return { erased };
