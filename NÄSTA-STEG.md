@@ -7,10 +7,12 @@ Senast uppdaterad: 15 oktober 2026.
 
 ## Läget
 
-**Arbete pågår inför måndag — committat men inte pushat.** Två steg ur
-fysioterapeuternas lista (nummer och samtalsknappar borta; förklaring av
-siffrorna) ligger lokalt och väntar på att Richard säger "pusha". Se "Gjort
-den 15 oktober". 208 enhetstester och 42 webbläsartester gröna lokalt. Demon kör fortfarande
+**Arbete pågår inför måndag — committat men inte pushat.** Fyra steg ligger
+lokalt och väntar på att Richard säger "pusha": nummer och samtalsknappar
+borta, förklaring av siffrorna, rörelse i reglaget, och reglaget börjar tomt.
+Se "Gjort den 15 oktober". 210 enhetstester och 43 webbläsartester gröna
+lokalt. Richard har sagt att demon får ändras ("ingen använder den nu"), så
+"Återställ demon" efter pushen är godkänt. Demon kör fortfarande
 förra versionen, och står i visningsskick. Nattkörningen håller datan färsk —
 kontrollerat den 14 oktober: körningen gick 02:05, inga fel i servern på en
 vecka, alla åtta P1G1-konton lediga. 201 enhetstester och 41
@@ -265,6 +267,31 @@ ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
   **Så tar du bort det igen:** `git revert --no-edit e37458c` och pusha.
   Prövat på en egen gren: `src`, testerna och e2e blir identiska med läget
   före, och de 205 tester som fanns då är gröna.
+
+- **Rörelse i reglaget.** Richard ville ha den efter Readiness Advisor.
+  Tummen växer medan man håller i den, färgen glider mellan rött, gult och
+  grönt, och texten om vad siffran betyder tonar in. Återhållsamt med flit,
+  och avstängt för den som valt "minska rörelse" i telefonen. Ingen kopia av
+  Apples glaseffekt. **Så tar du bort det igen:** `git revert --no-edit
+  3156eec`, eller ta bort blocket "Rörelse i incheckningen" i
+  `src/app/globals.css`.
+
+- **Reglaget börjar tomt** (Richards beslut, efter Claudes rekommendation).
+  Förut stod varje fråga på 5, och den som tryckte "Nästa" sex gånger skickade
+  in sex femmor som såg ut som svar. Nu står ett streck i stället för siffran
+  och ingen tumme visas. "Nästa" är gråad med texten *"Välj en siffra för att
+  gå vidare."* Ett tryck på skalan ger den siffran, femman också. Rättar man
+  dagens rapport börjar reglagen på de sparade svaren.
+
+  iPhones Safari flyttar inte ett reglage när man trycker på spåret, bara
+  när man drar i tummen, och här finns ingen tumme. Därför räknar appen ut
+  siffran från var man trycker (`src/lib/reglage.ts`). **Inte prövat på en
+  riktig iPhone**, eftersom ingen iPhone-webbläsare finns här. Prova på
+  telefonen efter pushen.
+
+  **Så tar du bort det igen:** `git revert --no-edit 7ad5462` och pusha.
+  Prövat på en egen gren: `src`, testerna och e2e blir identiska med läget
+  före, och de 208 tester som fanns då är gröna.
 
 ### Gjort den 28 september
 
@@ -901,9 +928,8 @@ fram demodatan och återställa demon.
    de två besluten — "svar" i fördelningen och vad riktningen jämför — är
    tagna och gjorda (se "Gjort den 26 september"). Resten ligger kvar:
 
-   - **Reglaget står på 5 och är märkt GUL innan man rört det.** Appen har satt
-     en färg på den som ännu inte svarat. Samma fråga som punkt 8, men det är
-     så den märks för en förstagångsbesökare.
+   - ~~Reglaget står på 5 och är märkt GUL innan man rört det.~~ Löst den 15
+     oktober: reglaget börjar tomt (se "Gjort den 15 oktober").
    - **I telefonen syns inte vilken roll man är inloggad som.** Rollen visas
      först från `sm:` och uppåt. Den som provar fem koder i rad tappar bort
      sig. Liten rättning.
@@ -1033,11 +1059,11 @@ fram demodatan och återställa demon.
    alltså inte om det är påslaget utan vilken plan kontot har, och i vilken
    region databasen ligger. Värt att veta i förväg: en återställning skapar en
    **ny** databas, så adressen i Vercel måste pekas om efteråt.
-8. **Designfrågor som väntar på ett samtal**, inte på kod: reglaget i
-   incheckningen börjar på 5, så den som bara trycker "Nästa" skickar in sex
-   femmor som ser ut som svar. Att tvinga fram en rörelse straffar den som
-   verkligen menar 5 — Richard har avfärdat både det och att hoppa över frågor.
-   Frågan är öppen.
+8. ~~Reglaget som börjar på 5.~~ **Avgjort den 15 oktober: reglaget börjar
+   tomt**, och man går inte vidare utan att välja. Det är inte den tvingade
+   rörelsen Richard avfärdade (som straffade den som menade 5), eftersom ett
+   tryck räcker för varje siffra. Att hoppa över frågor är fortfarande
+   avfärdat. Föreslå inte att reglaget ska börja på 5 igen.
 
 Utanför listan — tillgängligheten, och var gränsen för vad vi vet faktiskt går.
 Två av punkterna som stod här är åtgärdade den 26 september: granskningarna

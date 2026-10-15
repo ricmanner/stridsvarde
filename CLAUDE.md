@@ -174,6 +174,11 @@ utskriftsrapporten och 64 px på incheckningens siffra.
   fungera för alla andra tester. Skapa egna personer.
 - `getByRole('alert')` träffar två element: ditt eget och Next egen tomma
   ruta för sidbyten. Leta efter texten i stället.
+- **Rensa `.next` innan du prövar ett test mot gammal kod med `git stash`.**
+  Byggets cache märkte inte att `globals.css` lagts undan, och ett test som
+  skulle falla gick igenom (15 oktober). `rm -rf .next` först.
+- Kör inte `npm run build` medan `next dev` är igång i samma mapp: dev-servern
+  serverade efter det en stilmall utan de senaste reglerna.
 
 ## Innan något driftsätts
 
