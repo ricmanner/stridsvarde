@@ -12,7 +12,28 @@ import { formatScore, procent } from '@/lib/format';
 import { skaltext } from '@/lib/skala';
 import { TIDSGRÄNS_KLIENT_MS } from '@/lib/tidsgrans';
 
-const EMPTY: Record<Category, number> = { fysisk: 5, psykisk: 5, social: 5, somn: 5, kost: 5, energi: 5 };
+/*
+ * Obesvarat är null, inte 5. Förut stod varje reglage på 5 från början, och
+ * den som bara tryckte Nästa sex gånger skickade in sex femmor som såg ut som
+ * svar — befälet kunde inte skilja dem från ärliga femmor. Sedan den 15
+ * oktober går det inte att gå vidare utan att välja (Richards beslut, efter
+ * Readiness Advisor som fysioterapeuterna visade). Ett tryck räcker för alla
+ * siffror, femman också, så ingen straffas för att mena 5.
+ */
+type Svar = Record<Category, number | null>;
+
+const EMPTY: Svar = { fysisk: null, psykisk: null, social: null, somn: null, kost: null, energi: null };
+
+function allaBesvarade(svar: Svar): svar is Record<Category, number> {
+  return CATEGORIES.every((c) => svar[c.key] !== null);
+}
+
+/**
+ * Färgen innan något valts: neutral, eftersom inget svar finns. Slate-500,
+ * inte ljusare — strecket i stället för siffran är text och behöver 3:1 mot
+ * bakgrunden. Slate-400 underkändes av axe (2,5:1).
+ */
+const OBESVARAD_FARG = '#64748B';
 
 /**
  * Beskedet när ingenting alls kommer tillbaka.
@@ -166,7 +187,7 @@ interface Props {
  */
 export default function SoldatCheckin({ initial, editing = false, dateLabel }: Props) {
   const [step, setStep] = useState(0);
-  const [scores, setScores] = useState<Record<Category, number>>(initial ?? EMPTY);
+  const [scores, setScores] = useState<Svar>(initial ?? EMPTY);
   // Räknare, inte ett ja/nej: varje nytt försök ska ge ett NYTT formulär.
   const [omtag, setOmtag] = useState(0);
 
@@ -218,29 +239,37 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
     );
   }
 
+  /*
+   * Sammanfattningen kräver svar på allt. Nästa går inte att trycka på utan
+   * svar, så hit kommer man inte annars — men skulle det ske visas den första
+   * obesvarade frågan i stället för en sammanfattning med hål i.
+   */
+  const forstaObesvarade = CATEGORIES.findIndex((c) => scores[c.key] === null);
+  const fraga = step > CATEGORIES.length && forstaObesvarade >= 0 ? forstaObesvarade + 1 : step;
+
   // ── Steg 1–6: en fråga i taget ────────────────────────────────────────────
-  if (step >= 1 && step <= CATEGORIES.length) {
-    const cat = CATEGORIES[step - 1];
+  if (fraga >= 1 && fraga <= CATEGORIES.length) {
+    const cat = CATEGORIES[fraga - 1];
     const score = scores[cat.key];
-    const color = statusTextColor(getStatus(score));
-    const andel = step / CATEGORIES.length;
+    const color = score === null ? OBESVARAD_FARG : statusTextColor(getStatus(score));
+    const andel = fraga / CATEGORIES.length;
 
     return (
       <div className="flex flex-1 flex-col bg-slate-50">
         <div className="border-b border-slate-200 bg-white px-6 py-4">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">
-              Fråga {step} av {CATEGORIES.length}
+              Fråga {fraga} av {CATEGORIES.length}
             </span>
             <span className="text-xs text-slate-500">{procent(Math.round(andel * 100))}</span>
           </div>
           {/* Framstegsraden var ren grafik; nu berättar den var man är. */}
           <div
             role="progressbar"
-            aria-valuenow={step}
+            aria-valuenow={fraga}
             aria-valuemin={1}
             aria-valuemax={CATEGORIES.length}
-            aria-label={`Fråga ${step} av ${CATEGORIES.length}`}
+            aria-label={`Fråga ${fraga} av ${CATEGORIES.length}`}
             className="h-[3px] rounded-sm bg-slate-100"
           >
             <div
@@ -262,12 +291,14 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
 
           <div className="mb-3 flex items-baseline gap-2">
             <span className="psvi-fargskifte text-[64px] font-extrabold leading-none tabular-nums" style={{ color }}>
-              {score}
+              {score ?? '–'}
             </span>
             <span className="text-xl text-slate-500">/10</span>
-            <span className="ml-3">
-              <Marke score={score} size="md" />
-            </span>
+            {score !== null && (
+              <span className="ml-3">
+                <Marke score={score} size="md" />
+              </span>
+            )}
           </div>
 
           {/*
@@ -279,10 +310,10 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
            * frågan byts, men inte för varje steg inom samma nivå.
            */}
           <p
-            key={`${cat.key}-${getStatus(score)}`}
+            key={`${cat.key}-${score === null ? 'tom' : getStatus(score)}`}
             className="psvi-tona-in mb-6 min-h-[2lh] text-sm leading-relaxed text-slate-700"
           >
-            {skaltext(cat.key, score)}
+            {score === null ? 'Välj en siffra för att gå vidare.' : skaltext(cat.key, score)}
           </p>
 
           <div className="mb-3">
@@ -290,7 +321,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
               value={score}
               color={color}
               label={cat.question}
-              beskrivning={skaltext(cat.key, score)}
+              beskrivning={score === null ? undefined : skaltext(cat.key, score)}
               onChange={(v) => setScores((prev) => ({ ...prev, [cat.key]: v }))}
             />
             <div className="mt-2.5 flex justify-between text-etikett font-semibold">
@@ -314,17 +345,18 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
         <div className="flex gap-3 px-6 pb-8 pt-4">
           <button
             type="button"
-            onClick={() => setStep((s) => Math.max(0, s - 1))}
+            onClick={() => setStep(Math.max(0, fraga - 1))}
             className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-slate-200 bg-white py-[13px] text-sm text-slate-600"
           >
             <ChevronLeft size={16} aria-hidden /> Tillbaka
           </button>
           <button
             type="button"
-            onClick={() => setStep((s) => s + 1)}
-            className="flex flex-[2] cursor-pointer items-center justify-center gap-1.5 rounded-md bg-slate-900 py-[13px] text-sm font-semibold tracking-[0.04em] text-white"
+            onClick={() => setStep(fraga + 1)}
+            disabled={score === null}
+            className="flex flex-[2] cursor-pointer items-center justify-center gap-1.5 rounded-md bg-slate-900 py-[13px] text-sm font-semibold tracking-[0.04em] text-white disabled:cursor-not-allowed disabled:bg-slate-300"
           >
-            {step === CATEGORIES.length ? 'Sammanfattning' : 'Nästa'}
+            {fraga === CATEGORIES.length ? 'Sammanfattning' : 'Nästa'}
             <ChevronRight size={16} aria-hidden />
           </button>
         </div>
@@ -333,6 +365,8 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
   }
 
   // ── Sammanfattning ────────────────────────────────────────────────────────
+  // Alltid sant här (se forstaObesvarade ovan); kontrollen ger rätt typ.
+  if (!allaBesvarade(scores)) return null;
   const helhet = Object.values(scores).reduce((a, b) => a + b, 0) / CATEGORIES.length;
 
   return (

@@ -27,13 +27,13 @@ export default function SkalaInfo({
   etikett: string;
   /** Frågan, som blir rutans rubrik. */
   fraga: string;
-  /** Där reglaget står, så att den raden kan markeras. */
-  varde: number;
+  /** Där reglaget står, så att den raden kan markeras. Null: inget valt än. */
+  varde: number | null;
 }) {
   const ruta = useRef<HTMLDialogElement>(null);
   const [oppen, setOppen] = useState(false);
   const rubrikId = useId();
-  const valdStatus = getStatus(varde);
+  const valdStatus = varde === null ? null : getStatus(varde);
 
   useEffect(() => {
     const d = ruta.current;

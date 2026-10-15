@@ -61,14 +61,15 @@ test('varje fråga säger vad siffran betyder, och info-knappen listar alla niv�
   await loggaIn(page, 'P1G1-05');
   await oppnaIncheckning(page);
 
-  // Reglaget börjar på 5, alltså gult. Texten står ovanför reglaget och
-  // följer med när det flyttas. Sök i <p>: listan i den stängda rutan har
-  // samma texter, i <span>.
+  // Texten står ovanför reglaget och följer med när det flyttas. Sök i <p>:
+  // listan i den stängda rutan har samma texter, i <span>. Reglaget börjar
+  // tomt; första piltrycket ger 6, så tre tryck ger 8.
   const text = (t: string) => page.locator('p', { hasText: t });
-  await expect(text('Stel, öm eller sliten.')).toBeVisible();
   const reglage = page.locator('input[type="range"]');
   await reglage.focus();
-  for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
+  await expect(text('Stel, öm eller sliten.')).toBeVisible();
+  for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowRight');
   await expect(text('Kroppen känns bra. Inget som hindrar dig.')).toBeVisible();
   await expect(text('Stel, öm eller sliten.')).toHaveCount(0);
   // Skärmläsaren får samma sak som den som ser texten.
@@ -86,10 +87,53 @@ test('varje fråga säger vad siffran betyder, och info-knappen listar alla niv�
 
   // Nästa fråga har sina egna texter.
   await page.getByRole('button', { name: 'Nästa' }).click();
+  await reglage.focus();
+  await page.keyboard.press('ArrowRight');
   await expect(text('Mer pressad än vanligt.')).toBeVisible();
   await page.getByRole('button', { name: 'Vad betyder siffrorna för psykiskt mående?' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Stäng' }).click();
   await expect(page.getByRole('dialog')).toBeHidden();
+});
+
+test('reglaget börjar tomt, och man går inte vidare utan att välja', async ({ page }) => {
+  /*
+   * Förut stod reglaget på 5, och den som bara tryckte Nästa sex gånger
+   * skickade in sex femmor som såg ut som svar. Beslut den 15 oktober.
+   */
+  await loggaIn(page, 'P1G1-07');
+  await oppnaIncheckning(page);
+
+  const reglage = page.locator('input[type="range"]');
+  const nasta = page.getByRole('button', { name: 'Nästa' });
+  await expect(page.getByText('Välj en siffra för att gå vidare.')).toBeVisible();
+  await expect(nasta).toBeDisabled();
+  await expect(reglage).toHaveAttribute('aria-valuetext', 'Inget svar än');
+  // Ingen tumme förrän man valt — den hade sett ut som ett svar. Regeln
+  // försvann en gång i bygget utan att något föll, så den mäts i den byggda
+  // sidan. Tummens egen stil går inte att läsa ut i Chrome; variabeln som
+  // styr den gör det (--psvi-tumme i globals.css).
+  const tumme = () => reglage.evaluate((el) => getComputedStyle(el).getPropertyValue('--psvi-tumme').trim());
+  await expect.poll(tumme).toBe('0');
+
+  // Ett tryck på skalan, där sjuan sitter, ger 7 — också femman skulle gå
+  // med ett tryck, vilket var skälet att börja tomt i stället för på 5.
+  const ruta = (await reglage.boundingBox())!;
+  const x = 14 + ((ruta.width - 28) * 6) / 9;
+  await page.mouse.click(ruta.x + x, ruta.y + ruta.height / 2);
+  await expect(reglage).toHaveAttribute('aria-valuetext', /^7 av 10/);
+  await expect.poll(tumme).toBe('');
+  await expect(nasta).toBeEnabled();
+
+  // Nästa fråga är tom igen; tangentbordet fungerar från tomt.
+  await nasta.click();
+  await expect(nasta).toBeDisabled();
+  await reglage.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(reglage).toHaveAttribute('aria-valuetext', /^6 av 10/);
+
+  // Tillbaka behåller det man valt.
+  await page.getByRole('button', { name: 'Tillbaka' }).click();
+  await expect(reglage).toHaveAttribute('aria-valuetext', /^7 av 10/);
 });
 
 test('den som redan rapporterat skickas till sin återkoppling', async ({ page }) => {

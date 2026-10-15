@@ -48,6 +48,16 @@ async function granska(page: Page, vad: string) {
     })
     .not.toBe('');
 
+  /*
+   * Vänta ut rörelser. Texten i incheckningen tonar in på 220 ms, och läser
+   * axe den mitt i intoningen mäts en halvgenomskinlig färg — 4,45:1 i stället
+   * för den riktiga. Det är inte ett fel någon människa ser, men det föll
+   * på tidpunkten (15 oktober). Granska sidan i vila. allSettled: en
+   * övergång som avbryts av en ny (färgen när reglaget flyttas) avslutas
+   * med ett fel, och det är också ett slut.
+   */
+  await page.evaluate(() => Promise.allSettled(document.getAnimations().map((a) => a.finished)));
+
   const resultat = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
     .analyze();
@@ -76,10 +86,11 @@ test('incheckningen, alla steg', async ({ page }) => {
   expect.soft(await granska(page, 'fråga 1, info')).toEqual([]);
   await page.keyboard.press('Escape');
 
+  // Reglaget börjar tomt, så varje fråga måste besvaras för att gå vidare.
   const reglage = page.locator('input[type="range"]');
-  await reglage.focus();
-  await page.keyboard.press('ArrowLeft');
   for (let i = 1; i <= 6; i++) {
+    await reglage.focus();
+    await page.keyboard.press('ArrowLeft');
     await page.getByRole('button', { name: i === 6 ? 'Sammanfattning' : 'Nästa' }).click();
   }
   expect.soft(await granska(page, 'sammanfattning')).toEqual([]);
