@@ -289,7 +289,16 @@ ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
   riktig iPhone**, eftersom ingen iPhone-webbläsare finns här. Prova på
   telefonen efter pushen.
 
-  **Så tar du bort det igen:** `git revert --no-edit 7ad5462` och pusha.
+  **Efter Richards prov på iPhone** (samma dag): en tom linje utan knapp
+  kändes klumpig, strecket var ett tjockt block och knappen hackade mellan
+  siffrorna. Nu står en grå knapp i mitten tills man valt, strecket har
+  samma storlek som "/10", och knappen följer fingret när man drar och
+  glider till närmaste siffra när man släpper. Knappen och linjen ritas av
+  appen, under det riktiga reglaget, som fortfarande sköter tangentbord och
+  skärmläsare. Det går att trycka och dra var som helst på linjen.
+  Ångra bara den delen med `git revert --no-edit b6d787f`.
+
+  **Så tar du bort det igen:** `git revert --no-edit b6d787f 7ad5462` och pusha.
   Prövat på en egen gren: `src`, testerna och e2e blir identiska med läget
   före, och de 208 tester som fanns då är gröna.
 
