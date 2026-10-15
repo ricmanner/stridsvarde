@@ -7,18 +7,18 @@ Senast uppdaterad: 15 oktober 2026.
 
 ## Läget
 
-**Arbete pågår inför måndag — committat men inte pushat.** Sju steg ligger
-lokalt och väntar på att Richard säger "pusha": nummer och samtalsknappar
-borta, förklaring av siffrorna, rörelse i reglaget, tomt reglage, oval knapp
-och lugn siffra, vägen tillbaka till sammanfattningen, och demodata med
-historier. Se "Gjort den 15 oktober". 219 enhetstester och 43
-webbläsartester gröna lokalt. **Efter pushen måste "Återställ demon" tryckas
-på `/status`**, annars syns inte den nya demodatan. Richard har sagt att demon får ändras ("ingen använder den nu"), så
-"Återställ demon" efter pushen är godkänt. Demon kör fortfarande
-förra versionen, och står i visningsskick. Nattkörningen håller datan färsk —
-kontrollerat den 14 oktober: körningen gick 02:05, inga fel i servern på en
-vecka, alla åtta P1G1-konton lediga. 201 enhetstester och 41
-webbläsartester, plus typkontroll, lint och bygge.
+**Pushat och driftsatt den 15 oktober (kväll).** Alla steg i "Gjort den 15
+oktober" ligger ute på demon, och "Återställ demon" är tryckt, så den nya
+demodatan med historier syns. Någon hade lagt till två enheter och åtta
+personer i demon; de försvann vid återställningen, med Richards godkännande.
+`npm run rundtur` mot demon: allt fungerade. GitHubs kontroller för den
+stora pushen (`3da4b26`) är gröna; den sista, en texträttning på `/status`
+(`02c5a24`), var inte avläst när detta skrevs (GitHubs gräns för
+okontrollerade frågor). 221 enhetstester och 43 webbläsartester.
+
+**Lokalt, inte committat med flit:** `allowedDevOrigins` i `next.config.ts`,
+så att Richards telefon når utvecklingsservern. Ta bort raden när
+telefonproven är klara.
 
 **Länken är skickad till kollegorna (28 september), och demon är delad.**
 Återställ inte, checka inte in och ändra inget i den driftsatta demon utan att
