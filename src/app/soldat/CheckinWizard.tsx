@@ -261,7 +261,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
           <h2 className="mb-10 text-xl font-bold text-slate-900">{cat.question}</h2>
 
           <div className="mb-3 flex items-baseline gap-2">
-            <span className="text-[64px] font-extrabold leading-none tabular-nums" style={{ color }}>
+            <span className="psvi-fargskifte text-[64px] font-extrabold leading-none tabular-nums" style={{ color }}>
               {score}
             </span>
             <span className="text-xl text-slate-500">/10</span>
@@ -274,8 +274,14 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
            * Vad siffran betyder, och den byts medan man drar. Står OVANFÖR
            * reglaget: under hade tummen täckt den i telefonen. Höjden är satt
            * för två rader, så att reglaget inte hoppar när texten blir kortare.
+           *
+           * Nyckeln gör att stycket ritas om — och tonar in — när nivån eller
+           * frågan byts, men inte för varje steg inom samma nivå.
            */}
-          <p className="mb-6 min-h-[2lh] text-sm leading-relaxed text-slate-700">
+          <p
+            key={`${cat.key}-${getStatus(score)}`}
+            className="psvi-tona-in mb-6 min-h-[2lh] text-sm leading-relaxed text-slate-700"
+          >
             {skaltext(cat.key, score)}
           </p>
 

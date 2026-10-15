@@ -115,6 +115,58 @@ input.code-input {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
+/*
+  Rörelse i incheckningen — Richards önskemål den 15 oktober, efter
+  Readiness Advisor. Återhållsamt med flit: tummen växer medan man håller i
+  den, färgen glider mellan rött, gult och grönt i stället för att hoppa,
+  och texten om vad siffran betyder tonar in när den byts.
+
+  Allt ligger inom prefers-reduced-motion: den som valt "minska rörelse" i
+  telefonen får samma sida utan rörelse. Ta bort hela blocket för att stänga
+  av det; inget annat beror på det.
+
+  @property gör --psvi-color till en färg i stället för en textsträng. Först
+  då kan den övergå mjukt — och tummen och spåret, som är pseudo-element,
+  ärver det glidande värdet från reglaget.
+*/
+@property --psvi-color {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #B45309;
+}
+
+@keyframes psvi-tona-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .psvi-slider {
+    transition: --psvi-color 250ms ease;
+  }
+  .psvi-slider::-webkit-slider-thumb {
+    transition: transform 150ms ease, box-shadow 150ms ease;
+  }
+  .psvi-slider::-moz-range-thumb {
+    transition: transform 150ms ease, box-shadow 150ms ease;
+  }
+  /* Medan man håller i tummen: större, och lyft från spåret. */
+  .psvi-slider:active::-webkit-slider-thumb {
+    transform: scale(1.3);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+  }
+  .psvi-slider:active::-moz-range-thumb {
+    transform: scale(1.3);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+  }
+  .psvi-tona-in {
+    animation: psvi-tona-in 220ms ease-out;
+  }
+  .psvi-fargskifte {
+    transition: color 250ms ease;
+  }
+}
+
 .psvi-slider:focus-visible::-webkit-slider-thumb {
   outline: 2px solid #0F172A;
   outline-offset: 2px;
