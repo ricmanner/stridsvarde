@@ -7,8 +7,11 @@ Senast uppdaterad: 15 oktober 2026.
 
 ## Läget
 
-**Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, och demon står i visningsskick. Nattkörningen håller datan färsk —
+**Arbete pågår inför måndag — committat men inte pushat.** Första steget ur
+fysioterapeuternas lista (nummer och samtalsknappar borta, se "Gjort den 15
+oktober") ligger lokalt och väntar på att Richard säger "pusha". 205
+enhetstester och 41 webbläsartester gröna lokalt. Demon kör fortfarande
+förra versionen, och står i visningsskick. Nattkörningen håller datan färsk —
 kontrollerat den 14 oktober: körningen gick 02:05, inga fel i servern på en
 vecka, alla åtta P1G1-konton lediga. 201 enhetstester och 41
 webbläsartester, plus typkontroll, lint och bygge.
@@ -205,6 +208,38 @@ kan se; stjärndiagrammet står kvar (en fysioterapeuts idé); förrådet på
 GitHub förblir offentligt tills vidare; mörkt läge inte nu (fråga om
 ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
 "1. gruppen".
+
+### Gjort den 15 oktober
+
+- **Stödrutan utan telefonnummer och utan samtalsknappar.** Richards beslut
+  efter fysioterapeuternas övning (se "Synpunkter från fysioterapeuterna",
+  a och b). Den värnpliktige med röda värden ser rubriken, inledningen, och
+  i fet stil: *"Säg till ditt befäl att du vill prata. Befälet hjälper dig
+  vidare, också till sjukvården om det behövs."* Inget annat. Två råd pekade
+  på det som försvann och säger nu *"Säg till ditt befäl direkt om det känns
+  akut"* och *"Säg till ditt befäl, som ordnar kontakt med sjukvården"*.
+  Befälsvyn visar inte längre samtalsbegäranden. Den som låg öppen hos
+  kompanichefen i demon syns alltså inte där efter pushen, men finns kvar i
+  databasen. Larmen om enheten visas som förut.
+
+  Två inställningar i `src/lib/support.ts`, båda `false`:
+  `VISA_STODNUMMER` och `SAMTALSBEGARAN_PA`. De går att slå på var för sig.
+  Slås bara knapparna på: kvittot säger "använd numren ovan", så se över den
+  texten först. Prövat i en riktig körning mot en egen databas, i
+  telefonbredd och som plutonchef.
+
+  **Sett på vägen, inte rättat:** larmet "2 kategorier ligger kritiskt"
+  skrivs en gång och står kvar resten av dagen, medan märket bredvid räknar
+  om. Efter en ny låg incheckning stod det "2" i larmet och "3 kategorier i
+  rött" i märket. Det hör till fynd 1, varningen som står fyra gånger:
+  väg B tar bort larmet.
+
+  **Så tar du bort det igen:** `git revert --no-edit 5a22ee1` och pusha.
+  Prövat på en egen gren: `src`, testerna och e2e blir identiska med läget
+  före, och de 201 tester som fanns då är gröna. Ingen återställning av
+  demon behövs. Vill man bara ha tillbaka en av delarna: sätt den
+  inställningen till `true`. Då faller testet "beslutet den 15 oktober" med
+  flit, och webbläsartestet för stödrutan behöver skrivas om.
 
 ### Gjort den 28 september
 
