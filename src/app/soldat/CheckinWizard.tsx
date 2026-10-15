@@ -162,56 +162,45 @@ function Marke({ score, size = 'sm' }: { score: number; size?: 'sm' | 'md' }) {
 }
 
 /**
- * Försök den 15 oktober: siffran rullar när den ändras, som Apples rullande
- * siffror. `false` ger en vanlig siffra som byts direkt — inget annat ändras.
+ * Siffran glider in vid ett steg (15 oktober). `false` ger en siffra som byts
+ * direkt — inget annat ändras.
+ *
+ * Den första versionen rullade både ut och in, med oskärpa och studs, vid
+ * varje ändring. Richard provade på iPhone: "snygg, men lite väl mycket" —
+ * när man drar byts siffran många gånger i sekunden, och det blev rörigt.
+ * Nu: bara den nya siffran rör sig, en kort bit och utan studs, och inte alls
+ * medan man drar.
  */
 const RULLANDE_SIFFROR = true;
 
 /**
- * Den stora siffran. Med RULLANDE_SIFFROR ligger den gamla siffran kvar en
- * kort stund i samma ruta och rullar ut, medan den nya rullar in — uppåt när
- * värdet stiger, nedåt när det sjunker. Rörelsen ligger i globals.css.
- *
- * Bara den nya siffran läses upp; den gamla är aria-hidden. Drar man snabbt
- * byts den gamla ut vid varje steg, så det ligger aldrig mer än två siffror
- * där samtidigt.
+ * Den stora siffran. Vid ett steg — ett tryck eller en piltangent — glider
+ * den nya in underifrån om värdet steg och uppifrån om det sjönk. Medan man
+ * drar byts den bara. Rörelsen ligger i globals.css.
  */
-function RullandeSiffra({ varde }: { varde: number }) {
-  const [nu, setNu] = useState(varde);
-  const [ut, setUt] = useState<{ varde: number; id: number } | null>(null);
-  const [riktning, setRiktning] = useState<'upp' | 'ned'>('upp');
+function RullandeSiffra({ varde, glid }: { varde: number; glid: boolean }) {
+  const [forra, setForra] = useState(varde);
+  const [rorelse, setRorelse] = useState<{ id: number; riktning: 'upp' | 'ned' } | null>(null);
 
-  // Nytt värde: spara det gamla för utrullningen. Görs under ritningen, inte
-  // i en effekt, så att den gamla och den nya syns i samma bild.
-  if (varde !== nu) {
-    setRiktning(varde > nu ? 'upp' : 'ned');
-    setUt({ varde: nu, id: (ut?.id ?? 0) + 1 });
-    setNu(varde);
+  // Nytt värde: bestäm riktningen. Görs under ritningen, inte i en effekt,
+  // så att den nya siffran ritas med sin rörelse direkt.
+  if (varde !== forra) {
+    setForra(varde);
+    if (RULLANDE_SIFFROR && glid) {
+      setRorelse({ id: (rorelse?.id ?? 0) + 1, riktning: varde > forra ? 'upp' : 'ned' });
+    }
   }
 
-  if (!RULLANDE_SIFFROR) return <span data-siffra>{varde}</span>;
-
   return (
-    <span className="inline-grid">
-      {ut && (
-        <span
-          key={`ut-${ut.id}`}
-          aria-hidden
-          data-siffra
-          data-riktning={riktning}
-          className="psvi-siffra-ut col-start-1 row-start-1"
-        >
-          {ut.varde}
-        </span>
-      )}
-      <span
-        key={`in-${varde}-${ut?.id ?? 0}`}
-        data-siffra
-        data-riktning={ut ? riktning : undefined}
-        className="psvi-siffra-in col-start-1 row-start-1"
-      >
-        {varde}
-      </span>
+    <span
+      // Ny nyckel ger ett nytt element, och då spelas rörelsen upp på nytt.
+      // Under en dragning behålls nyckeln och bara texten byts.
+      key={rorelse?.id ?? 0}
+      data-siffra
+      data-riktning={rorelse?.riktning}
+      className="psvi-siffra-in inline-block"
+    >
+      {varde}
     </span>
   );
 }
@@ -243,6 +232,8 @@ interface Props {
 export default function SoldatCheckin({ initial, editing = false, dateLabel }: Props) {
   const [step, setStep] = useState(0);
   const [scores, setScores] = useState<Svar>(initial ?? EMPTY);
+  // Kom den senaste ändringen från en dragning? Då glider inte siffran.
+  const [drogs, setDrogs] = useState(false);
   // Räknare, inte ett ja/nej: varje nytt försök ska ge ett NYTT formulär.
   const [omtag, setOmtag] = useState(0);
 
@@ -355,7 +346,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             ) : (
               <span className="psvi-fargskifte text-[64px] font-extrabold leading-none tabular-nums" style={{ color }}>
                 {/* Ny fråga ger en ny siffra som inte rullar från förra frågans. */}
-                <RullandeSiffra key={cat.key} varde={score} />
+                <RullandeSiffra key={cat.key} varde={score} glid={!drogs} />
               </span>
             )}
             <span className="text-xl text-slate-500">/10</span>
@@ -387,7 +378,10 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
               color={color}
               label={cat.question}
               beskrivning={score === null ? undefined : skaltext(cat.key, score)}
-              onChange={(v) => setScores((prev) => ({ ...prev, [cat.key]: v }))}
+              onChange={(v, satt) => {
+                setDrogs(satt === 'drag');
+                setScores((prev) => ({ ...prev, [cat.key]: v }));
+              }}
             />
             <div className="mt-2.5 flex justify-between text-etikett font-semibold">
               <span className="text-red-700">1 — Kritiskt</span>

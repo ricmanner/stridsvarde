@@ -132,9 +132,39 @@ test('reglaget börjar tomt, och man går inte vidare utan att välja', async ({
   expect(Math.round(knapp.width)).toBe(40);
   expect(knapp.height).toBeLessThan(knapp.width);
 
-  // Den stora siffran rullar: den gamla ligger kvar en kort stund medan den
-  // tonar ut, men bara den nya läses upp.
-  await expect(page.locator('[data-siffra]:not([aria-hidden])')).toHaveText('7');
+  // Den stora siffran: en, och den nya.
+  await expect(page.locator('[data-siffra]')).toHaveText('7');
+
+  /*
+   * Siffran glider in vid ett enstaka steg, men inte medan man drar — då
+   * byts den många gånger i sekunden, och den första rullande versionen blev
+   * rörig (Richard, iPhone, 15 oktober).
+   */
+  const siffrornasRorelser = () =>
+    page.evaluate(() =>
+      document
+        .getAnimations()
+        .map((a) => (a as CSSAnimation).animationName)
+        .filter((n) => n?.startsWith('psvi-siffra')),
+    );
+  await reglage.focus();
+  await page.keyboard.press('ArrowRight');
+  expect(await siffrornasRorelser()).toEqual(['psvi-siffra-in-upp']);
+  await page.waitForTimeout(400);
+
+  const y = ruta.y + ruta.height / 2;
+  await page.mouse.move(ruta.x + 20 + ((ruta.width - 40) * 7) / 9, y);
+  await page.mouse.down();
+  for (let i = 1; i <= 6; i++) {
+    await page.mouse.move(ruta.x + 20 + ((ruta.width - 40) * (7 - i)) / 9, y);
+    expect(await siffrornasRorelser(), 'ingen rullning under dragningen').toEqual([]);
+  }
+  await page.mouse.up();
+  await expect(reglage).toHaveAttribute('aria-valuetext', /^2 av 10/);
+
+  // Tillbaka till sjuan för resten av testet.
+  await reglage.focus();
+  for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight');
   await expect(nasta).toBeEnabled();
 
   // Nästa fråga är tom igen; tangentbordet fungerar från tomt.

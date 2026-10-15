@@ -1,13 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { andelVidTryck, vardeVidTryck } from '@/lib/reglage';
 
 interface Props {
   /** 1–10, eller null när frågan ännu inte besvarats. */
   value: number | null;
-  onChange: (v: number) => void;
+  /**
+   * `satt` säger hur värdet ändrades: 'drag' medan fingret eller musen rör
+   * sig över skalan, 'steg' vid ett tryck eller en piltangent. Den stora
+   * siffran rullar bara vid steg (CheckinWizard).
+   */
+  onChange: (v: number, satt: 'steg' | 'drag') => void;
   color: string;
   /** Frågan reglaget besvarar — läses upp av skärmläsare. */
   label: string;
@@ -54,6 +59,10 @@ export default function ScoreSlider({ value, onChange, color, label, beskrivning
    */
   const [fri, setFri] = useState<number | null>(null);
   const drar = fri !== null;
+  // Har pekaren rört sig sedan den trycktes ned? Ett tryck är ett steg, en
+  // dragning är det inte. En ref, eftersom webbläsarens eget change-event
+  // kan komma före Reacts nästa ritning.
+  const flyttad = useRef(false);
   const tom = value === null;
   // Mitt på skalan i tomt läge, där den grå knappen står.
   const andel = fri ?? ((value ?? 5) - 1) / 9;
@@ -66,7 +75,12 @@ export default function ScoreSlider({ value, onChange, color, label, beskrivning
     const x = e.clientX - ruta.left;
     setFri(andelVidTryck(x, ruta.width, TUMME));
     const v = vardeVidTryck(x, ruta.width, TUMME);
-    if (v !== value) onChange(v);
+    if (v !== value) onChange(v, flyttad.current ? 'drag' : 'steg');
+  }
+
+  function slapp() {
+    setFri(null);
+    flyttad.current = false;
   }
 
   return (
@@ -90,14 +104,19 @@ export default function ScoreSlider({ value, onChange, color, label, beskrivning
         max={10}
         step={1}
         value={value ?? 5}
-        onChange={(e) => onChange(Number(e.target.value))}
-        onPointerDown={franPekare}
-        onPointerMove={(e) => {
-          if (drar) franPekare(e);
+        onChange={(e) => onChange(Number(e.target.value), flyttad.current ? 'drag' : 'steg')}
+        onPointerDown={(e) => {
+          flyttad.current = false;
+          franPekare(e);
         }}
-        onPointerUp={() => setFri(null)}
-        onPointerCancel={() => setFri(null)}
-        onLostPointerCapture={() => setFri(null)}
+        onPointerMove={(e) => {
+          if (!drar) return;
+          flyttad.current = true;
+          franPekare(e);
+        }}
+        onPointerUp={slapp}
+        onPointerCancel={slapp}
+        onLostPointerCapture={slapp}
         className="psvi-slider"
         aria-label={label}
         // Skärmläsare läser annars bara siffran. "7 av 10" är begripligt, och
