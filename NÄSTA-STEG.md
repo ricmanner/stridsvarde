@@ -18,16 +18,16 @@ webbläsartester, plus typkontroll, lint och bygge.
 fråga Richard först — någon kan vara inne. Den 14 oktober syntes inga spår
 efter kollegorna utom en öppen samtalsbegäran hos kompanichefen.
 
-**Presentation måndag den 19 oktober, inför fler chefer.** En övning med
-fysioterapeuter och ett par chefer hölls den 14 oktober. De hade synpunkter —
-**inget av det är nedskrivet än; fråga Richard vad de sa** innan något
-annat byggs. Önskemål som säger emot varandra byggs inte två gånger (se
-"Under hackathonet" i CLAUDE.md).
+**Presentation måndag den 19 oktober, inför officerare och chefer.** Den
+leder i sin tur till ett möte med fler chefer och beslutsfattare. En övning
+med fem fysioterapeuter hölls den 14 oktober; deras synpunkter står i
+"Synpunkter från fysioterapeuterna den 14 oktober" nedan, värderade.
+**Richard har inte valt än vad som görs före måndag.** Önskemål som säger
+emot varandra byggs inte två gånger (se "Under hackathonet" i CLAUDE.md).
 
 **Nästa uppgift — förslag i ordning, men fråga Richard först:**
 
-1. **Mötets synpunkter.** Få dem av Richard, skriv ner dem här med vem som
-   ville vad, värdera dem, och låt honom välja.
+1. **Fysioterapeuternas synpunkter** — Richard väljer ur listan nedan.
 2. **Samtalsbegäran säger inte vilken grupp.** Hos kompanichefen står
    "Värnpliktig 02 i 1. grupp har begärt ett samtal" — och kompaniet har tre
    grupper som heter så. Ska säga grupp och pluton. Texten byggs i
@@ -39,7 +39,130 @@ annat byggs. Önskemål som säger emot varandra byggs inte två gånger (se
    vilken region databasen ligger (meddelandet till gruppen säger "inom EU";
    servrarna ligger i Dublin, databasen är okontrollerad); spara loggkoden i
    en lösenordshanterare; sätt Vercels sparandetid till 1 week (se "Kräver
-   dig").
+   dig"). Loggkoden är sparad (Richard, 15 oktober).
+
+### Synpunkter från fysioterapeuterna den 14 oktober
+
+Fem fysioterapeuter, i en övning inför måndagens möte. Richards anteckningar
+skiljer inte på vem av dem som sa vad, så alla punkter står som
+"fysioterapeuterna". **(1)** och **(2)** är deras prioritering: 1 är viktigt,
+2 kan vänta. Värderingen och tiden är Claudes, kontrollerade mot koden den
+15 oktober.
+
+**Frågor de tror kommer på måndag:** var informationen hamnar, AI,
+säkerhet, och hur appen kommer in i Försvarsmaktens nät. Det mesta har
+redan svar i `underlag/juryfragor.md`. Två sakuppgifter att ha klara:
+
+- **Appen har ingen AI.** Råden till den värnpliktige och Befälsrådet är
+  förskrivna texter som väljs efter vilka värden som är röda och gula
+  (`src/lib/advice.ts`). Ingenting skickas till någon AI-tjänst eller
+  annan utomstående tjänst. Det är en styrka i säkerhetsfrågan, och texterna
+  kan granskas ord för ord av fysioterapeuter.
+- **Försvarsmaktens nät:** appen anropar inga tjänster utanför sig själv
+  och kan köras mot en vanlig databasfil på en egen server. Det betyder att
+  den i princip kan stå i ett slutet nät utan internet. Vad som krävs för
+  att få stå där (säkerhetsgranskning, ackreditering) är inte utrett. Var
+  databasen ligger i demon är fortfarande okontrollerat; se Richards egna
+  punkter ovan.
+
+| # | Önskemål | Prio | Värdering | Tid | Före måndag? |
+|---|---|---|---|---|---|
+| a | Ta bort 112, behåll "jourhavande" | 1 | Billig, och deras fackområde | ½ h | Ja, om Richard vill |
+| b | Råd om vård ska gå via befälet, knapparna bort — bara text | – | Krockar med samtalsbegäran | ½–1 h för texterna | Texterna ja, knapparna nej |
+| c | Ny fråga: sjukdom | 1 | Bra idé, men en ny databaskolumn | 1–2 dagar | Nej |
+| d | Förklaring av vad varje siffra betyder | 1 | Högst värde för appen | 2 h | Ja |
+| e | Kontrollfråga när värdet hoppar | 1 | Fritext bryter löftet; en bekräftelse gör det inte | 1–2 h | Kanske |
+| f | Veckorapport med kort sammanfattande text | 1 | Bra, men utan AI | 3 h | Ja, utan AI |
+| g | Större skillnader mellan plutonerna i demon | 1 | För visningen, inte för appen | 1–2 h + återställning | Ja |
+| h | Svara i efterhand för dagar i fält | 2 | Ta som fråga på måndag | – | Nej |
+| i | Befattning per värnpliktig | 2 | Integritetsrisk | – | Nej |
+
+**a. Ta bort "Akut fara 112", behåll jourhavande.** Idag står 112 med i
+varje fall, med flit: `supportPlan()` i `src/lib/support.ts` säger
+"INGENTING TAS BORT", och ett test håller den regeln. Att ta bort 112 är att
+ändra den regeln, och det är fysioterapeuternas fackområde, inte
+utvecklarens. 112 kan alla ändå utantill. **Oklart:** menade de *Jourhavande
+medmänniska* (den ideella stödlinjen som står i appen) eller *jourhavande
+befäl* på förbandet? Det senare passar ihop med punkt b. De sa inget om
+Självmordslinjen och 1177.
+
+**b. Rådgivning ska leda till befälet, inte ge den värnpliktige för mycket
+eget initiativ.** Rekommenderad vård ska nämnas, men befälet gör den vidare
+bedömningen. Råden om sömn och liknande står kvar. Två delar:
+- *Texterna:* rådet "Kontakta kompaniets sjukvårdare" och 1177 som
+  direktnummer går förbi befälet. Att skriva om dem så att vägen till vård går
+  via befälet är billigt och följer hur det fungerar på förbandet.
+- *Knapparna "Plutonchefen" / "Kompanichefen" bort, bara text:* det är
+  **samtalsbegäran**, appens enda väg för en enskild att bli sedd, och
+  manuset och juryfrågorna bygger på den ("Det enda som passerar gränsen gör
+  det för att soldaten själv tryckt på en knapp"). Knappen *är* dessutom en
+  kontakt med befälet. Claudes förslag är att inte röra den före måndag. Fråga
+  i stället officerarna, som är de som tar emot begäranden. Skälet bakom
+  önskemålet behöver höras: rör det att en digital begäran kan bli liggande,
+  eller att den värnpliktige själv väljer att gå förbi plutonchefen?
+
+**c. En sjunde fråga: sjukdom** ("Hur frisk känner du dig?"). En rimlig
+lucka, eftersom energifrågan idag bär sjukdom indirekt. Men varje fråga är en
+egen kolumn i databasen, och den nya saknas i all historik. Därtill behöver
+befälsvyn, jämförelsen, rapporten, CSV:n, demodatan och testerna ändras.
+Strukturändringar i den delade databasen ska inte göras inför en visning.
+Hur frågan ska ställas är dessutom olöst. **Före måndag: ta det som en fråga
+till mötet, inte som kod.**
+
+**d. Förklaring vid varje fråga om vad siffrorna betyder.** Idag står bara
+"1 — Kritiskt" och "10 — Utmärkt". Det här är punkten som gör appen mest
+bättre: om alla menar samma sak med en femma blir varje snitt i befälsvyn mer
+värt. Två saker att bestämma:
+- *Intervallen måste följa färgerna:* 1–3 röd, 4–6 gul, 7–10 grön.
+  Fysioterapeuternas exempel ("1–2 betyder…, 3–5…") skulle ge en text som
+  säger emot färgen på samma skärm.
+- *Info-knapp eller text direkt under siffran som byts när reglaget flyttas?*
+  Claude föreslår det senare: ingen extra knapptryckning kl. sex på morgonen.
+
+Claude kan skriva ett utkast till de 18 texterna (6 frågor × 3 nivåer), men
+fysioterapeuterna bör granska dem.
+
+**e. Kontrollfråga när ett värde ändras mycket från igår,** med en ruta där
+den värnpliktige förklarar skillnaden. **Fritext bryter appens löfte:** den
+måste sparas, den kan inte göras anonym som ett snitt, och någon ska läsa
+den. Läser befälet den har befälet sett en enskilds svar. Läser ingen den är
+den meningslös. Den kräver också en ny kolumn. Vad som går: en bekräftelse
+utan lagring, *"Igår svarade du 3, idag 8 — stämmer det?"*, som fångar
+felklick på reglaget. Ungefär 1–2 timmar. Vilken av de två de menade avgör
+värdet; fråga Richard vad syftet var.
+
+**f. Veckorapport till plutonchefens kompanimöte, med ungefär tre meningar
+som sammanfattar måendet.** Utskriftsrapporten finns och har siffror men
+ingen text. Befälsrådet på skärmen har bara tre fasta varianter och säger
+inte vilken kategori det gäller. **AI avråds före måndag:** frågan om AI och
+säkerhet väntas på mötet, och att skicka hälsodata till en AI-tjänst är just
+det svaret ska kunna säga nej till. En regelskriven sammanfattning från samma
+snitt ger samma sak utan att något lämnar appen: *"1. pluton svarade 78 %
+av dagarna. Sömnen ligger på röd nivå och har sjunkit från 4,8 till 3,9 sedan
+förra veckan. Övriga kategorier är oförändrade."* Den följer
+anonymitetsgränsen automatiskt. Ungefär 3 timmar med tester. AI kan nämnas
+som möjlig vidareutveckling inom Försvarsmaktens egen miljö.
+
+**g. Större skillnader mellan plutonerna inför visningen.** Det här är för
+visningen, inte för appen, men det är ändå rätt att göra: en graf där alla
+ligger på samma nivå säger ingenting till en chef. Idag skiljer plutonernas
+utgångslägen mellan 5,2 och 7,4, men brus per person och dag jämnar ut det,
+och kurvorna har ingen riktning över tid. Ändras i `src/lib/db/seed.ts`.
+Kan slås ihop med "Att ta härnäst" punkt 3: en öppen samtalsbegäran och en
+liten enhet med "Underlag saknas" direkt efter återställning. **Kräver
+"Återställ demon" på den delade demon**, vilket loggar ut alla och tar bort
+det kollegorna lagt till. Fråga Richard först.
+
+**h. Svara i efterhand** för dagar då telefonen inte var med, till exempel
+ett snitt för fem dagar i fält. Ingen databasändring, men minnet av fem
+dagar bakåt är osäkert, och det ändrar vad "svarat" betyder i alla vyer. En
+bra fråga till mötet, inget att bygga nu.
+
+**i. Befattning per värnpliktig** (stabsassistent eller pansarskytt).
+Integritetsrisk: finns en stabsassistent per pluton *är* befattningen
+personen, och anonymitetsgränsen på fyra hjälper inte inom plutonen. En
+jämförelse per befattning fungerar först på bataljonsnivå, och kräver en ny
+kolumn. Ta det som en fråga till mötet.
 
 **Det här är gjort och behöver inte föreslås igen:**
 
