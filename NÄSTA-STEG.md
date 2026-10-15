@@ -101,6 +101,19 @@ bedömningen. Råden om sömn och liknande står kvar. Två delar:
   önskemålet behöver höras: rör det att en digital begäran kan bli liggande,
   eller att den värnpliktige själv väljer att gå förbi plutonchefen?
 
+**Richards beslut den 15 oktober om a och b:** alla telefonnummer i
+stödrutan tas bort (112, Självmordslinjen, 1177, Jourhavande medmänniska),
+och knapparna "Plutonchefen" / "Kompanichefen" likaså. Texten om att
+kontakta befälet står kvar. Fysioterapeuternas skäl: **appen ska inte bli en
+kommunikationskanal mellan värnpliktiga och befäl.** En begäran kan bli
+liggande när plutonchefen är ledig en vecka eller inte loggar in, och den
+värnpliktige väntar. Den som vill prata går fram och säger det. Claudes
+invändning, framförd och avvägd: den som mår psykiskt dåligt en natt får
+inget nummer i appen. Svaret är att 112 kan alla, och att det är
+fysioterapeuternas fackområde. Görs avstängbart, inte borttaget. Följden
+blir att punkt 2 ovan (samtalsbegäran som inte säger vilken grupp) inte
+längre behövs så länge knapparna är avstängda.
+
 **c. En sjunde fråga: sjukdom** ("Hur frisk känner du dig?"). En rimlig
 lucka, eftersom energifrågan idag bär sjukdom indirekt. Men varje fråga är en
 egen kolumn i databasen, och den nya saknas i all historik. Därtill behöver
