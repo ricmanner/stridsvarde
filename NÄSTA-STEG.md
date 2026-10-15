@@ -3,63 +3,72 @@
 Kort överlämning mellan arbetspass. `README.md` beskriver appen, `CLAUDE.md`
 reglerna som styr arbetet — den här filen säger bara **var vi står just nu**.
 
-Senast uppdaterad: 26 september 2026.
+Senast uppdaterad: 15 oktober 2026.
 
 ## Läget
 
-**Nattkörningen är bevisad.** Natten till den 25 september gick den igång av
-sig själv 02:05 UTC — inom fönstret 02:00–02:59, utan att någon rörde något —
-och flyttade historiken en dag fram. `/status` visar raden, de åtta
-P1G1-kontona öppnades på nytt (kontrollerat: P1G1-01, som var förbrukad under
-gårdagen, kunde checka in igen), och räknaren står på 2459 som den ska.
-Klockan är alltså inte längre något vi tror går.
-
 **Inget arbete pågår.** Allt är committat och pushat, GitHubs båda kontroller
-är gröna, demon är driftsatt och står i visningsskick. 201 enhetstester och 41
-webbläsartester — 26 i datorbredd och 6 i telefonbredd — plus typkontroll, lint
-och bygge.
+är gröna, och demon står i visningsskick. Nattkörningen håller datan färsk —
+kontrollerat den 14 oktober: körningen gick 02:05, inga fel i servern på en
+vecka, alla åtta P1G1-konton lediga. 201 enhetstester och 41
+webbläsartester, plus typkontroll, lint och bygge.
 
-**Nästa uppgift är inte vald.** Under "Att ta härnäst" ligger punkterna, och
-punkt 1 — fynden ur genomgången den 26 september — är den enda som kommer ur
-att någon faktiskt tittat på appen med nya ögon. De två som var beslut är
-tagna och gjorda; kvar står reglaget (en designfråga) och tre små rättningar.
-Fråga honom innan du börjar bygga; ordningen i listan är ett förslag, inte
-hans beslut.
+**Länken är skickad till kollegorna (28 september), och demon är delad.**
+Återställ inte, checka inte in och ändra inget i den driftsatta demon utan att
+fråga Richard först — någon kan vara inne. Den 14 oktober syntes inga spår
+efter kollegorna utom en öppen samtalsbegäran hos kompanichefen.
+
+**Presentation måndag den 19 oktober, inför fler chefer.** En övning med
+fysioterapeuter och ett par chefer hölls den 14 oktober. De hade synpunkter —
+**inget av det är nedskrivet än; fråga Richard vad de sa** innan något
+annat byggs. Önskemål som säger emot varandra byggs inte två gånger (se
+"Under hackathonet" i CLAUDE.md).
+
+**Nästa uppgift — förslag i ordning, men fråga Richard först:**
+
+1. **Mötets synpunkter.** Få dem av Richard, skriv ner dem här med vem som
+   ville vad, värdera dem, och låt honom välja.
+2. **Samtalsbegäran säger inte vilken grupp.** Hos kompanichefen står
+   "Värnpliktig 02 i 1. grupp har begärt ett samtal" — och kompaniet har tre
+   grupper som heter så. Ska säga grupp och pluton. Texten byggs i
+   `src/lib/db/queries/notifications.ts` av `soldierUnitName`. Ungefär 20
+   minuter med test; rekommenderat före måndag.
+3. **Fynd 1, varningen fyra gånger i befälsvyn** — beslut A eller B väntar
+   på Richard, gärna med chefernas syn. Se "Att ta härnäst", punkt 1.
+4. **Richards egna, före måndag:** kontrollera i Tursos kontrollpanel i
+   vilken region databasen ligger (meddelandet till gruppen säger "inom EU";
+   servrarna ligger i Dublin, databasen är okontrollerad); spara loggkoden i
+   en lösenordshanterare; sätt Vercels sparandetid till 1 week (se "Kräver
+   dig").
 
 **Det här är gjort och behöver inte föreslås igen:**
 
-- Hela språkgenomgången, paket A–D, den 25–26 september. Inget av den står kvar.
-- Tillgängligheten: granskningarna körs i två bredder, och graferna beskriver
-  sitt innehåll för den som lyssnar.
-- Underhållet med datum: arbetsflödets actions höjda till v7 och maskinen
-  fastlåst till `ubuntu-24.04` före GitHubs byte den 19 oktober.
-- Mappen är ett eget förråd sedan den 25 september, inte längre en länkad
-  arbetskopia av förrådet i `~/Code/Stridvärde app`.
+- Språkgenomgången (paket A–D), tillgängligheten i två bredder, och
+  grafernas beskrivningar.
+- Militära namn: **1. kompani, 1. pluton, 1. grupp, 1. bataljon**, numrerade
+  inom sitt förband (FAL-A). Obestämd form är Richards beslut. Befäl heter
+  sin roll ("Plutonchef"), inte roll plus enhet.
+- Befälsvyn: stapel över hela enheten med "utan svar", periodväljaren
+  överst, "svar" i kategorifördelningen, och vad riktningen jämför.
+- Adminvyn: rubrik med hela vägen, personerna först, "Ny kod" frågar
+  först, personer med samma benämning särskiljs i varje fråga, flyttbeskedet
+  säger hela vägen.
+- Hela appen genomtestad mot demon den 27 september (sex fel rättade), och
+  kollegornas scenario — nytt kompani, nya värnpliktiga, nya befäl som ser
+  datan — provat den 28 september med exakt de siffror som räknats fram.
+- Aktivitetsloggen bakom en egen kod (`/logg`, hemligheten `LOGG_KOD` i
+  Vercel). Richard har inte bekräftat att han provat sin kod.
+- Vercels lagring: 74 av 79 sparade versioner borttagna den 27 september.
+- Underhållet med datum: actions v7, maskinen fastlåst till `ubuntu-24.04`.
+- Mappen är ett eget förråd sedan den 25 september. Den gamla arbetskopian
+  `~/Code/stridsvarde-v2-gammal-arbetskopia` går att radera när Richard vill
+  (kör sedan `git worktree prune` i `~/Code/Stridvärde app`).
 
-Att den schemalagda molnkontrollen inte kunde läsa demon står under
-återvändsgränderna.
-
-**Mappen är ett eget förråd sedan den 25 september.** `~/Code/stridsvarde-v2`
-var tidigare en länkad arbetskopia (`git worktree`) av förrådet i
-`~/Code/Stridvärde app`, som höll git-datan för båda. Två följder: en radering
-av den gamla mappen hade tagit v2:s historik med sig, och en session som
-startade i den gamla mappen kunde inte pusha. Nu är mappen en egen klon —
-kontrollkedjan, rundturen och en torrkörd push är prövade därifrån. Filerna som
-inte ligger i git kopierades för hand: `.env`, `.env.local`, `.vercel/` och
-`data/`. Behövs de igen finns originalen kvar i
-`~/Code/stridsvarde-v2-gammal-arbetskopia`, som är den gamla arbetskopian med
-nytt namn. Den går att radera när som helst; kör sedan `git worktree prune` i
-`~/Code/Stridvärde app` så försvinner registreringen. Vägen tillbaka, om något
-skulle fattas: ta filerna ur den gamla mappen, den är orörd.
-
-**Ingen kollega har provat demon än.** Den här filen påstod motsatsen, vilket
-var fel. Richard var på väg att skicka länken den 25 september, men höll igen
-när grammatikgenomgången visade hur många språkfel som fanns — han skickar den
-först när han är mycket nöjd med appen. Meddelandet till gruppen ligger färdigt
-i `underlag/meddelande-till-gruppen.md` och väntar bara på att skickas.
-
-Följden för arbetet: det finns ingen återkoppling utifrån att väga listan mot,
-och **polering går före demoförberedelser** tills länken är ute.
+**Beslut som inte ska föreslås igen:** ingen aktivitetslogg som kollegorna
+kan se; stjärndiagrammet står kvar (en fysioterapeuts idé); förrådet på
+GitHub förblir offentligt tills vidare; mörkt läge inte nu (fråga om
+ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
+"1. gruppen".
 
 ### Gjort den 28 september
 
@@ -902,6 +911,11 @@ gör siffran realistisk i stället för att stå på 100 %.
 
 ## Kräver dig, inte utvecklaren
 
+- **Spara loggkoden.** Den togs fram den 28 september och ligger i en
+  tillfällig fil:
+  `/private/tmp/claude-501/-Users-richard-Code-stridsvarde-v2/c3b03cea-adf6-4f43-a364-056cfc6b9b18/scratchpad/loggkod.txt`.
+  Mappen kan försvinna vid en omstart. Är den borta: sätt ett nytt värde för
+  `LOGG_KOD` i Vercel (minst tio tecken) och driftsätt igen.
 - **Sätt kortare sparandetid för driftsättningar i Vercel** — 30 sekunder i
   kontrollpanelen: projektet fm-psvi-v2 → Settings → Security → Deployment
   Retention Policy → **1 week** (eller kortast som erbjuds) för Production,
@@ -970,6 +984,33 @@ koden direkt vid första start, innan du gör något annat.**
 ## Återvändsgränder — prova inte om igen
 
 Sådant som såg ut som förbättringar och inte var det. Varje rad kostade tid.
+
+- **Vercel kan missa en push.** GitHub fick den och körde sina kontroller,
+  men inget bygge startade. En tom commit (`git commit --allow-empty`) väckte
+  Vercel. Kontrollera alltid med `vercel ls --meta githubCommitSha=…`.
+- **Vercels sparandetid går inte att ändra från terminalen** — fältet är
+  skrivskyddat i API:t. Det görs i kontrollpanelen (Settings → Security).
+- **`vercel ls` visar 20 åt gången** och skriver varje rad två gånger
+  (tabellen och en lista med adresser). Bläddra med `--next <tal>` ur
+  utskriften, och räkna bara tabellraderna.
+- **Hemligheter skrivs inte ut i chatten.** Säkerhetsspärren stoppar
+  utläsning av en nyskapad kod. Lägg den i en fil och ge Richard sökvägen,
+  eller låt honom sätta värdet själv i Vercel.
+- **macOS har inget `timeout`-kommando.** Ett kommando med `timeout` före
+  misslyckas tyst; använd verktygets egen tidsgräns.
+- **Den lokala servern och webbläsartesterna har olika databaser.** `npm run
+  dev` använder `data/psvi.db`; e2e en egen fil i tmp. Det som skapats i den
+  ena syns inte i den andra.
+- **Ett lokalt återställningsskript måste läsa `.env` och `.env.local`**
+  som `scripts/db-setup.mjs` gör — annars hashas koderna med fel peppar och
+  ingen kan logga in.
+- **Playwright-verktyget hänger sig om man tar bort element som React
+  äger** (vid skisser i webbläsaren). Göm dem med `display: none` i stället,
+  och stäng webbläsaren för att komma vidare om det redan hänt.
+- **`getByLabel` hittar inte en rullista** när etiketten omsluter den:
+  namnet blir etiketten plus alla alternativ. Ta `locator('select')` i stället.
+- **Bygg aldrig en "lika för alla" logg i adminvyn eller på `/status`** —
+  ADMIN-01 är publik. Se aktivitetsloggen, som har en egen kod.
 
 - **Sätt aldrig ett reglages värde med `element.value` i webbläsaren.** React
   har ett eget spår på värdet, och en tilldelning utifrån plus ett `input`-utskick

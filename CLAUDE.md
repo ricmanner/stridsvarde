@@ -58,6 +58,14 @@ commit-texten, som skrivs för nästa utvecklare.
   säg vilket av de två det är.
 - **Radera ingenting som är hans utan att fråga** — mappar, filer, grenar. Han
   behåller hellre något i onödan än ångrar en radering.
+- **Svara alltid på svenska**, också mitt i ett långt arbete.
+- **Visa före och efter med skärmdumpar** vid allt som syns, och säg hur det
+  ångras — innan push.
+- **Säg emot honom när ett förslag inte passar appen.** Han vill ha kritik,
+  inte medhåll. Men när han har bestämt: följ beslutet och skriv ner det i
+  `NÄSTA-STEG.md`, så att det inte föreslås igen.
+- **Den driftsatta demon är delad med kollegor.** Återställ inte, checka inte
+  in och ändra inget där utan att fråga — någon kan vara inne. Prova lokalt.
 - **Föreslå inte det som redan är gjort.** Läs `NÄSTA-STEG.md` först — och
   **titta i `underlag/`** innan du skriver något som ska läsas av andra
   (meddelande till gruppen, manus, juryfrågor). Det har två gånger varit nära
@@ -122,6 +130,12 @@ den. Då gäller tre saker utöver det vanliga.
 
 ## Regler som kostat tid att lära sig
 
+- **Förbanden heter som Försvarsmakten skriver dem:** 1. bataljon,
+  1. kompani, 1. pluton, 1. grupp — siffra med punkt, obestämd form, numrerat
+  inom sitt förband. Befäl heter sin roll ("Plutonchef").
+- **Designen ska tas på allvar av Försvarsmakten:** återhållsam, inget
+  "djärvt". En kontroll står ovanför det den styr, och ett tal säger vad det
+  räknar (personer eller svar).
 - **Ett tal och dess färg får aldrig säga emot varandra.** Aggregaten räknas
   med full precision; `roundScore()` i `lib/data.ts` avrundar en gång, och
   `getStatus()` bedömer det avrundade talet. Avrundas det två gånger visas
@@ -166,7 +180,7 @@ utskriftsrapporten och 64 px på incheckningens siffra.
 ```bash
 npm test && npm run typecheck && npx eslint src tests scripts e2e && npm run build
 lsof -ti:3100 | xargs kill   # en server som ligger kvar ger gamla resultat
-npm run e2e         # 25 tester i webbläsare, inklusive tillgänglighet (axe)
+npm run e2e         # 41 tester i webbläsare, inklusive tillgänglighet (axe)
 npm run rundtur     # klickar igenom appen som alla fem demokonton
 ```
 
