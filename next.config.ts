@@ -45,7 +45,6 @@ const csp = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ['192.168.1.122'], // TILLFÄLLIGT — committas inte
   /**
    * Säkerhetsrubriker på varje svar.
    *
