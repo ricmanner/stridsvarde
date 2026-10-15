@@ -7,10 +7,10 @@ Senast uppdaterad: 15 oktober 2026.
 
 ## Läget
 
-**Arbete pågår inför måndag — committat men inte pushat.** Första steget ur
-fysioterapeuternas lista (nummer och samtalsknappar borta, se "Gjort den 15
-oktober") ligger lokalt och väntar på att Richard säger "pusha". 205
-enhetstester och 41 webbläsartester gröna lokalt. Demon kör fortfarande
+**Arbete pågår inför måndag — committat men inte pushat.** Två steg ur
+fysioterapeuternas lista (nummer och samtalsknappar borta; förklaring av
+siffrorna) ligger lokalt och väntar på att Richard säger "pusha". Se "Gjort
+den 15 oktober". 208 enhetstester och 42 webbläsartester gröna lokalt. Demon kör fortfarande
 förra versionen, och står i visningsskick. Nattkörningen håller datan färsk —
 kontrollerat den 14 oktober: körningen gick 02:05, inga fel i servern på en
 vecka, alla åtta P1G1-konton lediga. 201 enhetstester och 41
@@ -240,6 +240,31 @@ ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
   demon behövs. Vill man bara ha tillbaka en av delarna: sätt den
   inställningen till `true`. Då faller testet "beslutet den 15 oktober" med
   flit, och webbläsartestet för stödrutan behöver skrivas om.
+
+- **Incheckningen säger vad siffran betyder** (fysioterapeuternas punkt d).
+  En rad mellan siffran och reglaget byts när man drar. Den står ovanför
+  reglaget, eftersom tummen annars täcker den i telefonen. En info-knapp vid
+  kategorinamnet öppnar en ruta med alla tre nivåerna och markerar den man
+  står på. Richard ville ha båda. Förebilden är Readiness Advisor; Richard
+  visade foton av den.
+
+  En text per färg (1–3, 4–6, 7–10), inte sex nivåer som Readiness Advisor.
+  Gränserna kommer ur `GREEN_MIN` och `YELLOW_MIN`, så texten kan aldrig
+  säga emot färgen. Texterna ligger i `src/lib/skala.ts`. Det är Claudes
+  utkast, godkända av Richard, och **fysioterapeuterna bör läsa dem** före
+  skarp drift.
+
+  **Sett i Readiness Advisor, inte byggt:** reglagen börjar tomma, och appen
+  vägrar spara förrän alla är ifyllda. Det är det tredje alternativet i den
+  öppna frågan om reglaget som börjar på 5 ("Att ta härnäst", punkt 8). Den
+  har också en egen fråga om sjukdom ("Current illness"), vilket talar för
+  fysioterapeuternas punkt c. Animationen när man drar är troligen Apples
+  Liquid Glass. Den kan bara efterliknas på en webbsida, och den är för
+  visningens skull, inte appens.
+
+  **Så tar du bort det igen:** `git revert --no-edit e37458c` och pusha.
+  Prövat på en egen gren: `src`, testerna och e2e blir identiska med läget
+  före, och de 205 tester som fanns då är gröna.
 
 ### Gjort den 28 september
 
