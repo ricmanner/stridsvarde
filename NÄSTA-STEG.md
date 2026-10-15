@@ -7,11 +7,13 @@ Senast uppdaterad: 15 oktober 2026.
 
 ## Läget
 
-**Arbete pågår inför måndag — committat men inte pushat.** Fyra steg ligger
+**Arbete pågår inför måndag — committat men inte pushat.** Sju steg ligger
 lokalt och väntar på att Richard säger "pusha": nummer och samtalsknappar
-borta, förklaring av siffrorna, rörelse i reglaget, och reglaget börjar tomt.
-Se "Gjort den 15 oktober". 210 enhetstester och 43 webbläsartester gröna
-lokalt. Richard har sagt att demon får ändras ("ingen använder den nu"), så
+borta, förklaring av siffrorna, rörelse i reglaget, tomt reglage, oval knapp
+och lugn siffra, vägen tillbaka till sammanfattningen, och demodata med
+historier. Se "Gjort den 15 oktober". 219 enhetstester och 43
+webbläsartester gröna lokalt. **Efter pushen måste "Återställ demon" tryckas
+på `/status`**, annars syns inte den nya demodatan. Richard har sagt att demon får ändras ("ingen använder den nu"), så
 "Återställ demon" efter pushen är godkänt. Demon kör fortfarande
 förra versionen, och står i visningsskick. Nattkörningen håller datan färsk —
 kontrollerat den 14 oktober: körningen gick 02:05, inga fel i servern på en
@@ -330,6 +332,46 @@ ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
   - Startsidan med de sex kategorierna står kvar tills vidare (Richard).
   - Klickbara siffror under linjen: inte nu. Hela linjen går redan att trycka
     på.
+
+- **Demodata med historier, så att befälsvyns kurvor rör sig.**
+  Fysioterapeuterna sa att kurvorna var "raka sträck" och jämförelserna för
+  vaga. Uppmätt före: varje plutons dagliga snitt rörde sig 0,4–0,6 på två
+  veckor och kompaniernas 0,3–0,4. Orsaken var att varje person hade ett fast
+  grundvärde plus brus, och bruset tar ut sig i ett snitt.
+
+  Nu har varje pluton en historia (`src/lib/demo-forlopp.ts`):
+
+  | Förband | Historia |
+  |---|---|
+  | 1. komp, 1. pluton | Fältövning för en vecka sedan. Sömn och energi rasar och kommer delvis tillbaka. Sömn och kost är röda den senaste veckan. |
+  | 1. komp, 2. pluton | Psykiskt mående och trivsel sjunker sakta i tre veckor. |
+  | 1. komp, 3. pluton | Stabilt bra. |
+  | 2. komp, 1. pluton | Tung period för två–tre veckor sedan, nu på väg upp. |
+  | 2. komp, 2. pluton | Stabilt. |
+  | 2. komp, 3. pluton | Marsch för tre dagar sedan. Fysisk form och ork låga. |
+  | 3. kompani | Genomgående bäst, 1. pluton något lägre i kost. |
+
+  Uppmätt efter: plutonerna med en historia rör sig 1,6–3,1, och
+  kompanierna ligger på 5,7 / 6,3 / 7,2. Historiken är tre veckor, så att
+  21-dagarsperioden är fylld. **4. grupp i 1. pluton, 1. kompani** har tre
+  personer och visar "Underlag saknas". Det är integritetsskyddet i
+  praktiken. Koder, namn och de åtta lediga P1G1-kontona är oförändrade.
+
+  **Bataljonens egna kurvor är fortfarande nästan raka.** Historierna tar
+  delvis ut varandra när 219 personer läggs ihop, och det är realistiskt:
+  en bataljon som helhet rör sig långsamt. Bataljonschefens jämförelse
+  mellan kompanierna visar skillnaderna. Ingen veckorytm, eftersom
+  nattkörningen flyttar alla datum lika långt och helgerna då hade hamnat på
+  fel dagar.
+
+  **Så tar du bort det igen:** `git revert --no-edit f69b67a`, pusha, och
+  tryck "Återställ demon". Prövat på en egen gren: identiskt med läget före,
+  211 tester gröna.
+
+- **Ett eget misstag, rättat:** den tillfälliga telefoninställningen
+  (`allowedDevOrigins` i `next.config.ts`) följde med en dokumentcommit
+  (c9f0d6a) och togs bort i nästa. Den påverkar bara utvecklingsservern.
+  Regeln står nu i CLAUDE.md.
 
 ### Gjort den 28 september
 
@@ -1048,15 +1090,9 @@ fram demodatan och återställa demon.
    framför en publik och ska inte behöva veta vad "flytta fram" betyder.
    Frågan är din.
 
-3. **Låt "Återställ demon" ge en demo som är visningsklar.** Seeden skapar inga
-   notiser, och alla grupper är lika stora med hög svarsfrekvens. Följden är att
-   två saker demon ska visa upp inte finns efter en återställning: en öppen
-   samtalsbegäran, som manuset pekar på, och en enhet där det står "Underlag
-   saknas", som `underlag/juryfragor.md` kallar den bästa demonstrationen av
-   integriteten. Låt seeden skapa en liten enhet — säg en spaningsgrupp med tre
-   värnpliktiga — och en samtalsbegäran. En till två timmar med tester. Den här
-   ger mest inför hackathonet, eftersom den tar bort pyssel just före en
-   visning.
+3. ~~Låt "Återställ demon" ge en demo som är visningsklar.~~ Gjort den 15
+   oktober: 4. grupp med tre personer ger "Underlag saknas". Samtalsbegäran
+   behövs inte längre, eftersom knapparna är avstängda.
 
 4. **Låt den som mår dåligt nå nästa nivå samma dag.** Den som ber sitt
    plutonsbefäl om samtal på morgonen kan inte be igen samma dag via appen —
