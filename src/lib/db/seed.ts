@@ -6,6 +6,7 @@ import { generateSoldierAdvice } from '../advice';
 import { hashCode } from '../auth/codes';
 import { serviceDateDaysAgo } from '../date';
 import type { Category } from '../data';
+import { forlopp, HISTORIK_DAGAR } from '../demo-forlopp';
 import { db, environment, isSeedDemoData } from './client';
 import { auditLog, checkIns, units, users } from './schema';
 
@@ -45,23 +46,6 @@ const CATS: Category[] = ['fysisk', 'psykisk', 'social', 'somn', 'kost', 'energi
  * testerna, och är koder — inte namn — så de ändras inte.
  */
 
-/**
- * Per-pluton utgångsläge per kategori. Pluton 1 (1. pluton, 1. kompani)
- * har medvetet dålig sömn och kost så att demon berättar samma historia som
- * prototypen gjorde, och så att tröskelvärdeslarmen faktiskt utlöses någonstans.
- */
-const PLUTON_PROFILE: Record<number, Partial<Record<Category, number>>> = {
-  1: { somn: 3.4, kost: 3.8, energi: 4.2 },
-  2: { psykisk: 4.4, social: 4.8 },
-  7: { fysisk: 4.6, energi: 4.5 },
-};
-
-const PLUTON_BASE: Record<number, number> = {
-  1: 6.4, 2: 5.2, 3: 7.0,
-  4: 6.6, 5: 7.4, 6: 6.1,
-  7: 5.6, 8: 6.8, 9: 7.1,
-};
-
 const KOMPANIER: ReadonlyArray<{ namn: string; plutoner: readonly number[] }> = [
   { namn: '1. kompani', plutoner: [1, 2, 3] },
   { namn: '2. kompani', plutoner: [4, 5, 6] },
@@ -70,6 +54,14 @@ const KOMPANIER: ReadonlyArray<{ namn: string; plutoner: readonly number[] }> = 
 
 const GRUPPER_PER_PLUTON = 3;
 const SOLDATER_PER_GRUPP = 8;
+
+/*
+ * En liten grupp där befälet ser "Underlag saknas" — integritetsskyddet i
+ * praktiken. Tre personer räcker inte för att visa något (minst fyra krävs,
+ * se lib/privacy.ts). Ligger i bataljonens första pluton, så att BEF-P1, demons
+ * huvudkonto, ser den direkt i jämförelsen. Tillagd den 15 oktober.
+ */
+const LITEN_GRUPP = { plutonNr: 1, namn: '4. grupp', nr: 4, soldater: 3 };
 
 /**
  * Soldater som lämnas utan dagens incheckning.
@@ -88,7 +80,6 @@ export const DAGEN_OPPEN: readonly string[] = Array.from(
   { length: SOLDATER_PER_GRUPP },
   (_, i) => `P1G1-${String(i + 1).padStart(2, '0')}`,
 );
-const HISTORIK_DAGAR = 14;
 /** Ungefärlig svarsfrekvens i demodatan — så att siffran betyder något. */
 const SVARSSANNOLIKHET = 0.82;
 
@@ -300,15 +291,24 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
         createdAt: ts,
       });
 
-      for (let g = 1; g <= GRUPPER_PER_PLUTON; g++) {
+      const grupper = Array.from({ length: GRUPPER_PER_PLUTON }, (_, i) => ({
+        g: i + 1,
+        namn: `${i + 1}. grupp`,
+        antal: SOLDATER_PER_GRUPP,
+      }));
+      if (plutonNr === LITEN_GRUPP.plutonNr) {
+        grupper.push({ g: LITEN_GRUPP.nr, namn: LITEN_GRUPP.namn, antal: LITEN_GRUPP.soldater });
+      }
+
+      for (const { g, namn, antal } of grupper) {
         const [grupp] = await tx
           .insert(units)
-          .values({ name: `${g}. grupp`, kind: 'grupp', parentId: pluton.id, createdAt: ts })
+          .values({ name: namn, kind: 'grupp', parentId: pluton.id, createdAt: ts })
           .returning({ id: units.id });
 
         // Koden hålls utanför raden — den ska aldrig kunna råka skrivas till
         // databasen, bara användas för att para ihop soldat och kod efteråt.
-        const rows = Array.from({ length: SOLDATER_PER_GRUPP }, (_, i) => {
+        const rows = Array.from({ length: antal }, (_, i) => {
           const nr = String(i + 1).padStart(2, '0');
           const code = `P${plutonNr}G${g}-${nr}`;
           return {
@@ -343,8 +343,6 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
 
   for (const soldier of soldiers) {
     const rnd = mulberry32(seedFrom(soldier.code));
-    const base = PLUTON_BASE[soldier.plutonNr] ?? 6.5;
-    const profile = PLUTON_PROFILE[soldier.plutonNr] ?? {};
     // Varje soldat har en egen personlig avvikelse som består över tid.
     const personal = (rnd() - 0.5) * 2.4;
 
@@ -355,8 +353,9 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
       const dayShift = (rnd() - 0.5) * 1.6;
       const scores = {} as Record<Category, number>;
       for (const cat of CATS) {
-        const catBase = profile[cat] ?? base;
-        scores[cat] = clamp(catBase + personal + dayShift + (rnd() - 0.5) * 1.8);
+        // Plutonens förlopp den dagen (lib/demo-forlopp.ts), och personen
+        // runt det: egen nivå, dagsform och lite slump per fråga.
+        scores[cat] = clamp(forlopp(soldier.plutonNr, cat, d) + personal + dayShift + (rnd() - 0.5) * 1.8);
       }
 
       checkInRows.push({
@@ -373,7 +372,7 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
 
   console.log(
     '\n  Demodata seedad: %d enheter, %d soldater, %d incheckningar',
-    1 + 3 + 9 + 9 * GRUPPER_PER_PLUTON,
+    1 + 3 + 9 + 9 * GRUPPER_PER_PLUTON + 1,
     soldiers.length,
     checkInRows.length,
   );

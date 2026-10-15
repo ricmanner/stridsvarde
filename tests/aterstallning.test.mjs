@@ -83,7 +83,25 @@ test('återställningen bygger upp demon igen, oavsett vad som hänt med den', a
         assert.deepEqual(await barn('pluton', kompani), ['1. pluton', '2. pluton', '3. pluton'], kompani);
       }
       const grupper = await namn(`SELECT DISTINCT name FROM units WHERE kind = 'grupp' ORDER BY name`);
-      assert.deepEqual(grupper, ['1. grupp', '2. grupp', '3. grupp']);
+      assert.deepEqual(grupper, ['1. grupp', '2. grupp', '3. grupp', '4. grupp']);
+
+      // 4. grupp finns bara i BEF-P1:s pluton, med tre personer — för få för
+      // att befälet ska se något ("Underlag saknas"). Tillagd den 15 oktober.
+      const [liten] = (
+        await client.execute({
+          sql: `SELECT count(*) AS n, count(DISTINCT g.id) AS grupper FROM units g
+                  JOIN users s ON s.unit_id = g.id AND s.role = 'soldat'
+                  JOIN users b ON b.unit_id = g.parent_id AND b.code_hash = ?
+                 WHERE g.name = '4. grupp'`,
+          args: [hashCode('BEF-P1')],
+        })
+      ).rows;
+      assert.equal(Number(liten.n), 3);
+      assert.equal(
+        await n(`SELECT count(*) n FROM units WHERE kind = 'grupp' AND name = '4. grupp'`),
+        1,
+        '4. grupp ska bara finnas i en pluton',
+      );
 
       const [p4] = (
         await client.execute({
