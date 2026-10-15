@@ -357,15 +357,16 @@ ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
   personer och visar "Underlag saknas". Det är integritetsskyddet i
   praktiken. Koder, namn och de åtta lediga P1G1-kontona är oförändrade.
 
-  **Bataljonens egna kurvor är fortfarande nästan raka.** Historierna tar
-  delvis ut varandra när 219 personer läggs ihop, och det är realistiskt:
-  en bataljon som helhet rör sig långsamt. Bataljonschefens jämförelse
-  mellan kompanierna visar skillnaderna. Ingen veckorytm, eftersom
+  **Hela bataljonen: skjutvecka för två veckor sedan** (Richards önskemål),
+  lagd ovanpå plutonernas historier. Utan den var bataljonschefens kurvor
+  nästan raka, eftersom historierna tar ut varandra när 219 personer läggs
+  ihop. Nu sjunker bataljonens sömn från 6,4 till 4,9 och kommer tillbaka.
+  Commit `0f87bb3`. Ingen veckorytm, eftersom
   nattkörningen flyttar alla datum lika långt och helgerna då hade hamnat på
   fel dagar.
 
-  **Så tar du bort det igen:** `git revert --no-edit f69b67a`, pusha, och
-  tryck "Återställ demon". Prövat på en egen gren: identiskt med läget före,
+  **Så tar du bort det igen:** `git revert --no-edit 0f87bb3 f69b67a`,
+  pusha, och tryck "Återställ demon". Bara skjutveckan: `0f87bb3`. Prövat på en egen gren: identiskt med läget före,
   211 tester gröna.
 
 - **Ett eget misstag, rättat:** den tillfälliga telefoninställningen
