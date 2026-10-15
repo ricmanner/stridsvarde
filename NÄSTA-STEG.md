@@ -302,6 +302,35 @@ ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
   Prövat på en egen gren: `src`, testerna och e2e blir identiska med läget
   före, och de 208 tester som fanns då är gröna.
 
+- **Oval knapp och en siffra som glider in.** Knappen i reglaget är avlång
+  (40 × 26), som Apples nyare reglage. Siffran glider in en kort bit vid ett
+  tryck eller en piltangent, underifrån när värdet stiger och uppifrån när det
+  sjunker, men inte medan man drar. Den första versionen rullade både ut och
+  in, med oskärpa och studs, och Richard tyckte den var rörig. Stängs av med
+  `RULLANDE_SIFFROR = false` i `CheckinWizard.tsx`. **Så tar du bort det
+  igen:** `git revert --no-edit 2168647 67f5d94`.
+
+- **Från sammanfattningen direkt tillbaka.** Trycker man på en rad i
+  sammanfattningen för att ändra ett svar, står det **"Till
+  sammanfattningen"** i stället för "Nästa" på den frågan. Förut fick man
+  trycka sig igenom alla frågor efter den. Sammanfattningen säger också att
+  raderna går att trycka på, och varje rad har en pil. Inget skickas förrän
+  man trycker "Bekräfta och skicka". **Så tar du bort det igen:** `git revert
+  --no-edit e7bf69d`. Prövat på en egen gren: identiskt med läget före, 211
+  tester gröna.
+
+- **Frågor till måndagens möte, ur samtalet med Richard:**
+  - **En fråga i taget eller alla på en sida?** Readiness Advisor har alla
+    på en sida. Claudes bedömning är att en sida är rätt i längden, med
+    ungefär hälften så många tryck varje dag (cirka 7 i stället för 15), men
+    att det är en ombyggnad på en halv till en hel dag. Den görs efter
+    måndag, om cheferna håller med fysioterapeuterna.
+  - **Klick i handen** vid varje siffra: går på Android (cirka en kvart),
+    inte från en webbsida på iPhone.
+  - Startsidan med de sex kategorierna står kvar tills vidare (Richard).
+  - Klickbara siffror under linjen: inte nu. Hela linjen går redan att trycka
+    på.
+
 ### Gjort den 28 september
 
 - **Aktivitetslogg som bara Richard når.** Den som skriver **loggkoden** i
@@ -1038,9 +1067,8 @@ fram demodatan och återställa demon.
    är en avvägning om hur appen beter sig mot någon som mår dåligt, så beslutet
    är Richards.
 
-5. **Skavank i incheckningen.** Ändrar man ett svar från sammanfattningen måste
-   man klicka "Nästa" genom de återstående frågorna för att komma tillbaka. Att
-   gå direkt till sammanfattningen är några rader. En halvtimme, ingen brådska.
+5. ~~Skavank i incheckningen: vägen tillbaka till sammanfattningen.~~ Gjort
+   den 15 oktober (se "Gjort den 15 oktober").
 
 6. **Resten av nätverksfelen.** Incheckningen är klar, men den var bara den
    första av flera skrivvägar. Utan tidsgräns står ännu inloggningen
