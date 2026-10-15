@@ -11,6 +11,37 @@ import type { Category } from './data';
  * förband innan skarp drift — de varierar mellan regementen och får inte
  * gissas.
  */
+/*
+ * ── Avstängt den 15 oktober 2026 ────────────────────────────────────────────
+ *
+ * Fem fysioterapeuter, i en övning inför chefsmötet den 19 oktober: appen ska
+ * inte bli en kommunikationskanal mellan värnpliktiga och befäl. En begäran
+ * kan bli liggande när plutonchefen är ledig en vecka, och den värnpliktige
+ * väntar på ett svar som inte kommer. Den som vill prata går fram och säger
+ * det. Vägen till vård går via befälet, inte direkt till 1177 eller en
+ * stödlinje. Richard beslutade att följa dem.
+ *
+ * Avstängt, inte borttaget — sätt `true` för att få tillbaka det. Inget i
+ * databasen har ändrats, och gamla samtalsbegäranden ligger kvar och syns
+ * igen hos befälet när SAMTALSBEGARAN_PA slås på. Se NÄSTA-STEG.md.
+ *
+ * Slås bara knapparna på, utan numren: kvittot i SupportBlock säger "använd
+ * numren ovan", och de står då inte där. Se över den texten först.
+ */
+
+/** Telefonnumren i stödrutan: 112, Självmordslinjen, 1177, Jourhavande medmänniska. */
+export const VISA_STODNUMMER = false;
+
+/** Knapparna "Plutonchefen" / "Kompanichefen", och begärandena i befälsvyn. */
+export const SAMTALSBEGARAN_PA = false;
+
+/**
+ * Det stödrutan säger när knapparna är avstängda. Då är det här den enda
+ * vägen, och den ska sägas rakt ut.
+ */
+export const SAG_TILL_BEFALET =
+  'Säg till ditt befäl att du vill prata. Befälet hjälper dig vidare, också till sjukvården om det behövs.';
+
 export interface SupportContact {
   name: string;
   detail: string;
@@ -102,18 +133,32 @@ export interface SupportPlan {
  * Är något psykiskt eller socialt rött går stödlinjerna först, även om
  * kroppen också är röd: det är det mest brådskande att inte missa.
  *
+ * Med `nummer: false` (se VISA_STODNUMMER överst) visas ingen kontakt alls,
+ * bara texten. Försvarshälsan försvinner också: dess rad säger "kontakta via
+ * ditt befäl", vilket SAG_TILL_BEFALET redan säger.
+ *
  * Returnerar null när inget värde är rött — då visas inget stödblock.
  */
-export function supportPlan(red: readonly Category[]): SupportPlan | null {
+export function supportPlan(
+  red: readonly Category[],
+  { nummer = VISA_STODNUMMER }: { nummer?: boolean } = {},
+): SupportPlan | null {
   if (red.length === 0) return null;
 
   const halsa = [...UNIT_CONTACTS, HEALTH_SERVICE_CONTACT];
+  const sinne = red.some((c) => MIND.includes(c));
 
-  if (red.some((c) => MIND.includes(c))) {
+  const intro = sinne
+    ? 'Några av dina värden är låga. Det är vanligare än du tror, och det ' +
+      'finns folk vars uppgift det är att hjälpa till.'
+    : 'Några av dina värden är låga. Brist på sömn, mat och återhämtning ökar ' +
+      'risken för belastningsskador — ta hjälp innan det blir en skada.';
+
+  if (!nummer) return { intro, primary: [], secondaryLabel: null, secondary: [] };
+
+  if (sinne) {
     return {
-      intro:
-        'Några av dina värden är låga. Det är vanligare än du tror, och det ' +
-        'finns folk vars uppgift det är att hjälpa till.',
+      intro,
       primary: [AKUT, SJALVMORDSLINJEN, JOURHAVANDE, VARDGUIDEN],
       secondaryLabel: 'Vården på förbandet',
       secondary: halsa,
@@ -122,9 +167,7 @@ export function supportPlan(red: readonly Category[]): SupportPlan | null {
 
   // Bara kropp, sömn, kost eller energi.
   return {
-    intro:
-      'Några av dina värden är låga. Brist på sömn, mat och återhämtning ökar ' +
-      'risken för belastningsskador — ta hjälp innan det blir en skada.',
+    intro,
     primary: [...halsa, VARDGUIDEN],
     secondaryLabel: 'Vid akut fara, eller om du mår psykiskt dåligt',
     secondary: [AKUT, SJALVMORDSLINJEN, JOURHAVANDE],

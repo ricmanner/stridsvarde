@@ -43,12 +43,12 @@ const actionTips: Record<Category, Record<Status, string[]>> = {
   fysisk: {
     green: ['Stretcha 5–10 minuter efter varje pass', 'Drick 2–3 liter vatten om dagen'],
     yellow: ['Sänk intensiteten i nästa träningspass', 'Gör fem minuters rörlighetsträning i kväll', 'Välj vila framför extra rep om du är osäker'],
-    red: ['Vila från tung belastning idag', 'Kontakta kompaniets sjukvårdare', 'Informera din gruppchef om besvären'],
+    red: ['Vila från tung belastning idag', 'Säg till ditt befäl, som ordnar kontakt med sjukvården', 'Informera din gruppchef om besvären'],
   },
   psykisk: {
     green: ['Ta två minuters djupandning om stressen ökar', 'Håll kontakten med kamrater — det skyddar'],
     yellow: ['Prata med en kamrat du litar på idag', 'Fysisk aktivitet hjälper mot stress — ta en promenad', 'Sätt av tio minuter för dig själv i kväll'],
-    red: ['Prata med ditt befäl eller en kurator idag', 'Du behöver inte berätta allt — bara att du behöver stöd', 'Kontakta krisstöd om det känns akut'],
+    red: ['Prata med ditt befäl eller en kurator idag', 'Du behöver inte berätta allt — bara att du behöver stöd', 'Säg till ditt befäl direkt om det känns akut'],
   },
   social: {
     green: ['Bjud in någon som verkar utanför till nästa aktivitet', 'Engagemang i gruppen stärker din egen hälsa'],

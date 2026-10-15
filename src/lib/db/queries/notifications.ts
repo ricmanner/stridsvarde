@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, desc, eq, isNull, or, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, ne, or, sql } from 'drizzle-orm';
 
 import { serviceDate } from '../../date';
 import type { Role } from '../../roles';
@@ -103,7 +103,15 @@ export interface NotificationRow {
   readAt: string | null;
 }
 
-export async function getUnreadNotifications(userId: number): Promise<NotificationRow[]> {
+/**
+ * `samtal: false` lämnar samtalsbegärandena utanför — befälsvyn skickar det
+ * medan knapparna är avstängda (SAMTALSBEGARAN_PA i lib/support.ts). Raderna
+ * ligger kvar i databasen och syns igen när funktionen slås på.
+ */
+export async function getUnreadNotifications(
+  userId: number,
+  { samtal = true }: { samtal?: boolean } = {},
+): Promise<NotificationRow[]> {
   return db
     .select({
       id: notifications.id,
@@ -113,7 +121,13 @@ export async function getUnreadNotifications(userId: number): Promise<Notificati
       readAt: notifications.readAt,
     })
     .from(notifications)
-    .where(and(eq(notifications.recipientUserId, userId), isNull(notifications.readAt)))
+    .where(
+      and(
+        eq(notifications.recipientUserId, userId),
+        isNull(notifications.readAt),
+        samtal ? undefined : ne(notifications.kind, 'talk_request'),
+      ),
+    )
     .orderBy(desc(notifications.createdAt));
 }
 

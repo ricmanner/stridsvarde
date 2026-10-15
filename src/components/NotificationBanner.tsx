@@ -2,6 +2,7 @@ import { BellRing, X } from 'lucide-react';
 
 import { dismissNotificationAction } from '@/app/actions/support';
 import { getUnreadNotifications } from '@/lib/db/queries/notifications';
+import { SAMTALSBEGARAN_PA } from '@/lib/support';
 
 /**
  * Visar olästa notiser för ett befäl.
@@ -10,7 +11,7 @@ import { getUnreadNotifications } from '@/lib/db/queries/notifications';
  * begärt. Alla andra larm ligger på enhetsnivå.
  */
 export default async function NotificationBanner({ userId }: { userId: number }) {
-  const items = await getUnreadNotifications(userId);
+  const items = await getUnreadNotifications(userId, { samtal: SAMTALSBEGARAN_PA });
   if (items.length === 0) return null;
 
   return (

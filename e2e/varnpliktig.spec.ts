@@ -82,7 +82,12 @@ test('flikarna går att stega med piltangenter', async ({ page }) => {
   await expect(oversikt).toHaveAttribute('aria-selected', 'true');
 });
 
-test('låga värden ger stödkontakter, inte bara en siffra', async ({ page }) => {
+/*
+ * Sedan den 15 oktober utan nummer och utan samtalsknappar (VISA_STODNUMMER
+ * och SAMTALSBEGARAN_PA i lib/support.ts). Rutan står kvar, och säger att
+ * vägen går via befälet. Slås de på igen: se testets version i historiken.
+ */
+test('låga värden ger stödrutan, som hänvisar till befälet', async ({ page }) => {
   await loggaIn(page, 'P1G1-02');
   await oppnaIncheckning(page);
 
@@ -97,9 +102,12 @@ test('låga värden ger stödkontakter, inte bara en siffra', async ({ page }) =
 
   const text = await synligText(page);
   expect(text, 'stödrutan ska ligga överst').toContain('du behöver inte lösa det här själv');
-  expect(text).toContain('1177');
-  expect(text, 'krislinjerna ska finnas när psykiskt mående är rött').toContain('självmordslinjen');
+  expect(text).toContain('säg till ditt befäl att du vill prata');
+  // Numren var länkar att ringa. Att leta efter "112" i sidans text kunde
+  // träffa en siffra någon annanstans; länkarna är det som faktiskt fanns.
+  await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
+  expect(text).not.toContain('självmordslinjen');
 
-  // Och möjligheten att be befälet höra av sig.
-  await expect(page.getByRole('button', { name: /plutonchefen/i })).toBeVisible();
+  // Ingen knapp som skickar en begäran — den som vill prata går fram och säger det.
+  await expect(page.getByRole('button', { name: /plutonchefen|kompanichefen/i })).toHaveCount(0);
 });

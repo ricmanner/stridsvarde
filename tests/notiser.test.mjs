@@ -87,6 +87,34 @@ test('en samtalsbegäran slängs inte för att ett larm om samma enhet redan fin
   assert.ok(titlar.includes('Pluton 1 ligger på kritisk nivå'), 'larmet ska finnas kvar');
 });
 
+test('med samtalsbegäran avstängd visas gamla begäranden inte för befälet, men larmen gör det', async () => {
+  /*
+   * Knapparna är avstängda sedan den 15 oktober. En begäran som skickades
+   * innan dess ligger kvar i databasen — men en notis om en funktion som inte
+   * längre finns ska inte stå överst i befälsvyn.
+   */
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const befal = await plutonchef(client, org);
+  const [anna] = org.soldater['Grupp A'];
+
+  await client.execute({
+    sql: `INSERT INTO notifications (recipient_user_id, subject_unit_id, kind, title, body, service_date, created_at)
+          VALUES (?,?,'red_values','Pluton 1 ligger på kritisk nivå','…',?,?)`,
+    args: [befal, org.pluton, stockholmsDag(), iso()],
+  });
+
+  const { createTalkRequest, getUnreadNotifications } = await import('../src/lib/db/queries/notifications.ts');
+  await createTalkRequest({ soldierUserId: anna, soldierLabel: 'Anna', soldierUnitName: 'Grupp A', recipientUserId: befal, subjectUnitId: org.grupper['Grupp A'] });
+
+  const titlar = (await getUnreadNotifications(befal, { samtal: false })).map((n) => n.title);
+  assert.deepEqual(titlar, ['Pluton 1 ligger på kritisk nivå']);
+
+  // Påslagen igen kommer begäran tillbaka — den raderades aldrig.
+  const alla = (await getUnreadNotifications(befal, { samtal: true })).map((n) => n.title);
+  assert.ok(alla.includes('En värnpliktig vill prata med dig'));
+});
+
 test('en värnpliktig som bett om samtal går att radera, och begäran försvinner med henne', async () => {
   const { client } = await database();
   const org = await buildOrg(client);

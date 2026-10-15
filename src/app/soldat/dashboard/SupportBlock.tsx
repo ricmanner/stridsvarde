@@ -5,7 +5,12 @@ import { Check, LifeBuoy, Phone } from 'lucide-react';
 
 import { requestTalkAction, type TalkState } from '@/app/actions/support';
 import type { Category } from '@/lib/data';
-import { supportPlan, type SupportContact } from '@/lib/support';
+import {
+  SAG_TILL_BEFALET,
+  SAMTALSBEGARAN_PA,
+  supportPlan,
+  type SupportContact,
+} from '@/lib/support';
 
 /**
  * Visas när soldaten har minst ett rött värde.
@@ -47,7 +52,7 @@ export default function SupportBlock({
       <p className="mb-4 text-sm leading-relaxed text-slate-600">{plan.intro}</p>
 
       {/* Kontaktvägar som fungerar utan att gå via appen alls. */}
-      <ContactList contacts={plan.primary} />
+      {plan.primary.length > 0 && <ContactList contacts={plan.primary} />}
 
       {plan.secondary.length > 0 && (
         <>
@@ -58,9 +63,16 @@ export default function SupportBlock({
         </>
       )}
 
-      <div className="mb-5" />
+      {plan.primary.length > 0 && <div className="mb-5" />}
 
-      {state.sent || begaranSkickad ? (
+      {!SAMTALSBEGARAN_PA ? (
+        /*
+         * Utan knapparna är det här den enda vägen — se SAMTALSBEGARAN_PA i
+         * lib/support.ts. Den står därför i samma storlek som texten ovanför,
+         * inte som en liten fotnot.
+         */
+        <p className="text-sm font-semibold leading-relaxed text-slate-900">{SAG_TILL_BEFALET}</p>
+      ) : state.sent || begaranSkickad ? (
         /*
          * Kvittot låg tidigare bara i `state`, alltså i formulärets minne.
          * Laddades sidan om var det borta och knapparna stod där igen som om
