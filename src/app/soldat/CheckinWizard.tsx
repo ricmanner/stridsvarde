@@ -161,6 +161,61 @@ function Marke({ score, size = 'sm' }: { score: number; size?: 'sm' | 'md' }) {
   );
 }
 
+/**
+ * Försök den 15 oktober: siffran rullar när den ändras, som Apples rullande
+ * siffror. `false` ger en vanlig siffra som byts direkt — inget annat ändras.
+ */
+const RULLANDE_SIFFROR = true;
+
+/**
+ * Den stora siffran. Med RULLANDE_SIFFROR ligger den gamla siffran kvar en
+ * kort stund i samma ruta och rullar ut, medan den nya rullar in — uppåt när
+ * värdet stiger, nedåt när det sjunker. Rörelsen ligger i globals.css.
+ *
+ * Bara den nya siffran läses upp; den gamla är aria-hidden. Drar man snabbt
+ * byts den gamla ut vid varje steg, så det ligger aldrig mer än två siffror
+ * där samtidigt.
+ */
+function RullandeSiffra({ varde }: { varde: number }) {
+  const [nu, setNu] = useState(varde);
+  const [ut, setUt] = useState<{ varde: number; id: number } | null>(null);
+  const [riktning, setRiktning] = useState<'upp' | 'ned'>('upp');
+
+  // Nytt värde: spara det gamla för utrullningen. Görs under ritningen, inte
+  // i en effekt, så att den gamla och den nya syns i samma bild.
+  if (varde !== nu) {
+    setRiktning(varde > nu ? 'upp' : 'ned');
+    setUt({ varde: nu, id: (ut?.id ?? 0) + 1 });
+    setNu(varde);
+  }
+
+  if (!RULLANDE_SIFFROR) return <span data-siffra>{varde}</span>;
+
+  return (
+    <span className="inline-grid">
+      {ut && (
+        <span
+          key={`ut-${ut.id}`}
+          aria-hidden
+          data-siffra
+          data-riktning={riktning}
+          className="psvi-siffra-ut col-start-1 row-start-1"
+        >
+          {ut.varde}
+        </span>
+      )}
+      <span
+        key={`in-${varde}-${ut?.id ?? 0}`}
+        data-siffra
+        data-riktning={ut ? riktning : undefined}
+        className="psvi-siffra-in col-start-1 row-start-1"
+      >
+        {varde}
+      </span>
+    </span>
+  );
+}
+
 interface Props {
   /** Dagens redan sparade svar, när soldaten korrigerar en rapport. */
   initial?: Record<Category, number>;
@@ -299,7 +354,8 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
               <span className="text-xl text-slate-500">–</span>
             ) : (
               <span className="psvi-fargskifte text-[64px] font-extrabold leading-none tabular-nums" style={{ color }}>
-                {score}
+                {/* Ny fråga ger en ny siffra som inte rullar från förra frågans. */}
+                <RullandeSiffra key={cat.key} varde={score} />
               </span>
             )}
             <span className="text-xl text-slate-500">/10</span>

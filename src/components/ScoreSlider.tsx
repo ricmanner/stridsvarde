@@ -15,8 +15,8 @@ interface Props {
   beskrivning?: string;
 }
 
-/** Knappens bredd, samma som .psvi-tumme i globals.css. */
-const TUMME = 28;
+/** Knappens bredd, samma som --psvi-tumbredd i globals.css. */
+const TUMME = 40;
 
 /**
  * Byggd på en riktig <input type="range">.

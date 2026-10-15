@@ -118,12 +118,23 @@ test('reglaget börjar tomt, och man går inte vidare utan att välja', async ({
 
   // Ett tryck på skalan, där sjuan sitter, ger 7 — också femman skulle gå
   // med ett tryck, vilket var skälet att börja tomt i stället för på 5.
+  // Knappen är 40 punkter bred (oval, som Apples reglage), och dess mitt
+  // rör sig mellan en halv knappbredd från vardera kanten.
   const ruta = (await reglage.boundingBox())!;
-  const x = 14 + ((ruta.width - 28) * 6) / 9;
+  const x = 20 + ((ruta.width - 40) * 6) / 9;
   await page.mouse.click(ruta.x + x, ruta.y + ruta.height / 2);
   await expect(reglage).toHaveAttribute('aria-valuetext', /^7 av 10/);
   await expect.poll(kant).not.toBe('rgb(148, 163, 184)');
   await expect.poll(fyllning).toBe('visible');
+
+  // Oval knapp, bredare än hög.
+  const knapp = (await page.locator('.psvi-tumme').boundingBox())!;
+  expect(Math.round(knapp.width)).toBe(40);
+  expect(knapp.height).toBeLessThan(knapp.width);
+
+  // Den stora siffran rullar: den gamla ligger kvar en kort stund medan den
+  // tonar ut, men bara den nya läses upp.
+  await expect(page.locator('[data-siffra]:not([aria-hidden])')).toHaveText('7');
   await expect(nasta).toBeEnabled();
 
   // Nästa fråga är tom igen; tangentbordet fungerar från tomt.
