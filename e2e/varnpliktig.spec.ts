@@ -108,12 +108,13 @@ test('reglaget börjar tomt, och man går inte vidare utan att välja', async ({
   await expect(page.getByText('Välj en siffra för att gå vidare.')).toBeVisible();
   await expect(nasta).toBeDisabled();
   await expect(reglage).toHaveAttribute('aria-valuetext', 'Inget svar än');
-  // Ingen tumme förrän man valt — den hade sett ut som ett svar. Regeln
-  // försvann en gång i bygget utan att något föll, så den mäts i den byggda
-  // sidan. Tummens egen stil går inte att läsa ut i Chrome; variabeln som
-  // styr den gör det (--psvi-tumme i globals.css).
-  const tumme = () => reglage.evaluate((el) => getComputedStyle(el).getPropertyValue('--psvi-tumme').trim());
-  await expect.poll(tumme).toBe('0');
+  // Knappen är grå och linjen ofärgad förrän man valt — en färgad knapp hade
+  // sett ut som ett svar. En regel för det försvann en gång i bygget utan att
+  // något föll, så färgen mäts i den byggda sidan.
+  const kant = () => page.locator('.psvi-tumme').evaluate((el) => getComputedStyle(el).borderTopColor);
+  const fyllning = () => page.locator('.psvi-fyllning').evaluate((el) => getComputedStyle(el).visibility);
+  await expect.poll(kant).toBe('rgb(148, 163, 184)');
+  await expect.poll(fyllning).toBe('hidden');
 
   // Ett tryck på skalan, där sjuan sitter, ger 7 — också femman skulle gå
   // med ett tryck, vilket var skälet att börja tomt i stället för på 5.
@@ -121,7 +122,8 @@ test('reglaget börjar tomt, och man går inte vidare utan att välja', async ({
   const x = 14 + ((ruta.width - 28) * 6) / 9;
   await page.mouse.click(ruta.x + x, ruta.y + ruta.height / 2);
   await expect(reglage).toHaveAttribute('aria-valuetext', /^7 av 10/);
-  await expect.poll(tumme).toBe('');
+  await expect.poll(kant).not.toBe('rgb(148, 163, 184)');
+  await expect.poll(fyllning).toBe('visible');
   await expect(nasta).toBeEnabled();
 
   // Nästa fråga är tom igen; tangentbordet fungerar från tomt.

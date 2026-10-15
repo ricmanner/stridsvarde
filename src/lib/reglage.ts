@@ -15,7 +15,15 @@
  * @param tumme   tummens bredd (28 px, se .psvi-slider i globals.css)
  */
 export function vardeVidTryck(x: number, bredd: number, tumme: number): number {
+  return 1 + Math.round(andelVidTryck(x, bredd, tumme) * 9);
+}
+
+/**
+ * Var på spåret knappens mitt står, från 0 (ettan) till 1 (tian) — utan att
+ * avrunda till en siffra. Medan man drar står knappen här, under fingret,
+ * och glider till närmaste siffra när man släpper (ScoreSlider).
+ */
+export function andelVidTryck(x: number, bredd: number, tumme: number): number {
   const andel = (x - tumme / 2) / (bredd - tumme);
-  const begransad = Math.min(1, Math.max(0, andel));
-  return 1 + Math.round(begransad * 9);
+  return Math.min(1, Math.max(0, andel));
 }

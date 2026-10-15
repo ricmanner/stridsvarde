@@ -60,119 +60,160 @@ input.code-input {
 }
 
 /*
-  Skattningsreglaget. Ett native range-element, men med egen yta.
-  Tummen måste stylas via pseudo-element och kan därför inte sättas inline —
-  färgen och ifyllnaden kommer in som CSS-variabler från komponenten.
-*/
-.psvi-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 28px;
-  background: transparent;
-  cursor: pointer;
-  display: block;
-}
+  Skattningsreglaget. Ett native range-element — det tar emot tryck, dragning,
+  piltangenter och skärmläsare — men det RITAR ingenting själv. Spåret och
+  knappen som syns är egna element under det (se ScoreSlider).
 
-/* Spåret, med ifylld del till vänster om tummen */
-.psvi-slider::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 2px;
-  background: linear-gradient(
-    to right,
-    var(--psvi-color) 0 var(--psvi-pct),
-    #E2E8F0 var(--psvi-pct) 100%
-  );
-}
-.psvi-slider::-moz-range-track {
-  height: 4px;
-  border-radius: 2px;
-  background: #E2E8F0;
-}
-.psvi-slider::-moz-range-progress {
-  height: 4px;
-  border-radius: 2px;
-  /* Firefox fyller fram till värdet självt, alltså till 5 i tomt läge. */
-  background: var(--psvi-fyllning, var(--psvi-color));
-}
+  Skälet är rörelsen. Ett range-element med steg om 1 hoppar mellan
+  siffrorna, och tummen är ett pseudo-element vars läge inte går att låta
+  glida. Richard provade på iPhone den 15 oktober: "det hackar mellan varje
+  siffra". De egna elementen läser läget ur --psvi-andel, och den variabeln
+  övergår mjukt.
 
-.psvi-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 28px;
-  height: 28px;
-  margin-top: -12px; /* centrerar tummen på det 4px höga spåret */
-  border-radius: 50%;
-  background: white;
-  border: 2.5px solid var(--psvi-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
-  opacity: var(--psvi-tumme, 1);
-}
-.psvi-slider::-moz-range-thumb {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: white;
-  border: 2.5px solid var(--psvi-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
-  opacity: var(--psvi-tumme, 1);
-}
-
-/*
-  Tomt reglage: frågan är inte besvarad. Ingen tumme — den hade sett ut som
-  ett svar — bara det grå spåret. Se ScoreSlider.
-
-  Styrs med en variabel på reglaget, inte med egna regler för tummen.
-  Byggverktyget slog ihop två sådana regler med samma innehåll till en, med
-  Chromes och Firefox tumme i samma selektorlista — och en webbläsare kastar
-  hela regeln när den inte känner igen en del av listan. Tummen syntes.
-*/
-.psvi-slider-tom {
-  --psvi-tumme: 0;
-  --psvi-fyllning: transparent;
-}
-
-/*
-  Rörelse i incheckningen — Richards önskemål den 15 oktober, efter
-  Readiness Advisor. Återhållsamt med flit: tummen växer medan man håller i
-  den, färgen glider mellan rött, gult och grönt i stället för att hoppa,
-  och texten om vad siffran betyder tonar in när den byts.
-
-  Allt ligger inom prefers-reduced-motion: den som valt "minska rörelse" i
-  telefonen får samma sida utan rörelse. Ta bort hela blocket för att stänga
-  av det; inget annat beror på det.
-
-  @property gör --psvi-color till en färg i stället för en textsträng. Först
-  då kan den övergå mjukt — och tummen och spåret, som är pseudo-element,
-  ärver det glidande värdet från reglaget.
+  Ett tidigare försök att gömma tummen med egna regler per webbläsare slogs
+  ihop av byggverktyget till en selektorlista med Firefox pseudo-element, och
+  Chrome kastade hela regeln. Reglerna nedan har olika innehåll och slås inte
+  ihop — men e2e-testet mäter ändå i den byggda sidan.
 */
 @property --psvi-color {
   syntax: '<color>';
   inherits: true;
   initial-value: #B45309;
 }
+@property --psvi-andel {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.4444;
+}
 
+.psvi-reglage {
+  position: relative;
+  height: 28px;
+}
+
+.psvi-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  /* Vågrät dragning går till reglaget, lodrät till sidan. */
+  touch-action: pan-y;
+  z-index: 1;
+}
+.psvi-slider::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+.psvi-slider::-moz-range-track {
+  background: transparent;
+}
+.psvi-slider::-moz-range-progress {
+  background: transparent;
+}
+/* Osynlig men lika stor som den synliga, så att den går att ta tag i. */
+.psvi-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  opacity: 0;
+}
+.psvi-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  opacity: 0;
+}
+
+/* Det synliga: grått spår, färgad del fram till knappen, och knappen. */
+.psvi-spar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 12px;
+  height: 4px;
+  border-radius: 2px;
+  background: #E2E8F0;
+}
+.psvi-fyllning {
+  position: absolute;
+  left: 0;
+  top: 12px;
+  height: 4px;
+  border-radius: 2px;
+  width: calc(14px + (100% - 28px) * var(--psvi-andel));
+  background: var(--psvi-color);
+}
+.psvi-tumme {
+  position: absolute;
+  top: 0;
+  left: calc((100% - 28px) * var(--psvi-andel));
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: white;
+  border: 2.5px solid var(--psvi-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}
+
+/*
+  Tomt: frågan är inte besvarad. Knappen står i mitten men grå och utan
+  färgad linje, så att den inte ser ut som ett svar — "dra mig", inte
+  "fem". Richard tyckte att en helt tom linje kändes klumpig.
+*/
+.psvi-reglage[data-tom] .psvi-fyllning {
+  visibility: hidden;
+}
+.psvi-reglage[data-tom] .psvi-tumme {
+  border-color: #94A3B8;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.psvi-reglage:has(.psvi-slider:focus-visible) .psvi-tumme {
+  outline: 2px solid #0F172A;
+  outline-offset: 2px;
+}
+
+/*
+  Rörelse i incheckningen — Richards önskemål den 15 oktober, efter
+  Readiness Advisor. Återhållsamt med flit: knappen glider mellan siffrorna
+  i stället för att hoppa, växer medan man håller i den, färgen glider mellan
+  rött, gult och grönt, och texten om vad siffran betyder tonar in.
+
+  Allt ligger inom prefers-reduced-motion: den som valt "minska rörelse" i
+  telefonen får samma sida utan rörelse. Ta bort blocket för att stänga av
+  det; inget annat beror på det.
+
+  @property ovan gör --psvi-color och --psvi-andel till en färg och ett tal i
+  stället för text. Först då kan de övergå mjukt.
+*/
 @keyframes psvi-tona-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: none; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .psvi-slider {
+  .psvi-reglage {
+    transition: --psvi-andel 140ms ease-out, --psvi-color 250ms ease;
+  }
+  .psvi-tumme {
+    transition: transform 150ms ease, box-shadow 150ms ease, border-color 250ms ease;
+  }
+  /*
+    Medan man drar följer knappen fingret direkt — en glidning här hade fått
+    den att släpa efter. När man släpper glider den till närmaste siffra.
+  */
+  .psvi-reglage[data-drar] {
     transition: --psvi-color 250ms ease;
   }
-  .psvi-slider::-webkit-slider-thumb {
-    transition: transform 150ms ease, box-shadow 150ms ease;
-  }
-  .psvi-slider::-moz-range-thumb {
-    transition: transform 150ms ease, box-shadow 150ms ease;
-  }
-  /* Medan man håller i tummen: större, och lyft från spåret. */
-  .psvi-slider:active::-webkit-slider-thumb {
-    transform: scale(1.3);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
-  }
-  .psvi-slider:active::-moz-range-thumb {
+  /* Medan man håller i knappen: större, och lyft från spåret. */
+  .psvi-reglage[data-drar] .psvi-tumme {
     transform: scale(1.3);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
   }
@@ -182,15 +223,6 @@ input.code-input {
   .psvi-fargskifte {
     transition: color 250ms ease;
   }
-}
-
-.psvi-slider:focus-visible::-webkit-slider-thumb {
-  outline: 2px solid #0F172A;
-  outline-offset: 2px;
-}
-.psvi-slider:focus-visible::-moz-range-thumb {
-  outline: 2px solid #0F172A;
-  outline-offset: 2px;
 }
 
 /*

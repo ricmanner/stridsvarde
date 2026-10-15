@@ -31,3 +31,17 @@ test('ett tryck mitt på en siffras plats ger den siffran', async () => {
     assert.equal(vardeVidTryck(x, BREDD, TUMME), v, `siffran ${v}`);
   }
 });
+
+test('under dragningen följer knappen fingret, mellan siffrorna', async () => {
+  /*
+   * Knappen står där fingret är medan man drar och glider till närmaste
+   * siffra när man släpper. Annars hackar den, eller släpar efter (Richard,
+   * iPhone, 15 oktober). Andelen är var på spåret knappens mitt står, 0–1.
+   */
+  const { andelVidTryck } = await import('../src/lib/reglage.ts');
+  assert.equal(andelVidTryck(TUMME / 2, BREDD, TUMME), 0);
+  assert.equal(andelVidTryck(BREDD - TUMME / 2, BREDD, TUMME), 1);
+  assert.equal(andelVidTryck(BREDD / 2, BREDD, TUMME), 0.5);
+  assert.equal(andelVidTryck(-50, BREDD, TUMME), 0);
+  assert.equal(andelVidTryck(BREDD + 50, BREDD, TUMME), 1);
+});

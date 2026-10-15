@@ -29,9 +29,9 @@ function allaBesvarade(svar: Svar): svar is Record<Category, number> {
 }
 
 /**
- * Färgen innan något valts: neutral, eftersom inget svar finns. Slate-500,
- * inte ljusare — strecket i stället för siffran är text och behöver 3:1 mot
- * bakgrunden. Slate-400 underkändes av axe (2,5:1).
+ * Reglagets färg innan något valts: neutral, eftersom inget svar finns. Den
+ * syns knappt — den grå knappen har egen kantfärg i globals.css — men det är
+ * härifrån färgen glider till rött, gult eller grönt vid första valet.
  */
 const OBESVARAD_FARG = '#64748B';
 
@@ -289,10 +289,19 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
           </div>
           <h2 className="mb-10 text-xl font-bold text-slate-900">{cat.question}</h2>
 
-          <div className="mb-3 flex items-baseline gap-2">
-            <span className="psvi-fargskifte text-[64px] font-extrabold leading-none tabular-nums" style={{ color }}>
-              {score ?? '–'}
-            </span>
+          {/*
+           * Tomt läge: strecket i samma storlek som "/10". Det stod först i
+           * siffrans 64 px och såg ut som ett tjockt block (Richard, på
+           * iPhone). Raden behåller siffrans höjd, så att inget hoppar.
+           */}
+          <div className={`mb-3 flex gap-2 ${score === null ? 'h-16 items-end pb-1.5' : 'items-baseline'}`}>
+            {score === null ? (
+              <span className="text-xl text-slate-500">–</span>
+            ) : (
+              <span className="psvi-fargskifte text-[64px] font-extrabold leading-none tabular-nums" style={{ color }}>
+                {score}
+              </span>
+            )}
             <span className="text-xl text-slate-500">/10</span>
             {score !== null && (
               <span className="ml-3">
