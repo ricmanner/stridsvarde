@@ -108,6 +108,10 @@ commit-texten, som skrivs för nästa utvecklare.
   matchar, och de andra tappas tyst. Det kostade tre omtag av samma rättning
   den 25 september.
 - Svenska i kod, kommentarer, gränssnitt och tester. Engelska i commit-texter.
+- **Committa med uttryckliga sökvägar, aldrig `git commit -a`, när något
+  tillfälligt ligger ocommittat** — som `allowedDevOrigins` i `next.config.ts`
+  för att prova på telefonen. Den följde med en dokumentcommit den 15
+  oktober och fick tas bort i en egen.
 
 ## Under hackathonet
 
