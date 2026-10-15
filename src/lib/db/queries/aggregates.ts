@@ -8,6 +8,7 @@ import { serviceDate, serviceDateDaysAgo, shortLabel } from '../../date';
 import { db } from '..';
 import { minResponders } from '../client';
 import { guard, type Guarded, type Period } from '../../privacy';
+import type { Veckounderlag } from '../../veckosammanfattning';
 
 /*
  * All befälsdata kommer härifrån.
@@ -532,3 +533,79 @@ async function directMembersSummary(
 
   return { summary, byDate };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Veckosammanfattning
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Siffrorna bakom veckosammanfattningen (lib/veckosammanfattning.ts):
+ * kategorisnitt för de senaste sju dagarna och de sju före, svarsandelen,
+ * och vilken underenhet som ligger lägst.
+ *
+ * Alltid sju dagar, oavsett vald period — det är en veckorapport till
+ * kompaniets veckomöte.
+ *
+ * Skyddet ligger i SELECT-satsen, som i getUnitCategorySeries: har färre än
+ * k personer svarat en vecka, eller har enheten färre än k medlemmar, kommer
+ * den veckans snitt tillbaka som NULL. Inget tal lämnar databasen som vyn
+ * sedan låter bli att visa.
+ */
+export const getVeckounderlag = cache(async (unitId: number): Promise<Veckounderlag> => {
+  const k = minResponders();
+  const nuFran = serviceDateDaysAgo(6);
+  const nuTill = serviceDate();
+  const forraFran = serviceDateDaysAgo(13);
+  const forraTill = serviceDateDaysAgo(7);
+
+  const kolumner = (suffix: string, fran: string, till: string) =>
+    CAT_KEYS.map(
+      (key) =>
+        `CASE WHEN COUNT(DISTINCT CASE WHEN ci.service_date BETWEEN '${fran}' AND '${till}' THEN ci.user_id END) >= ${k}
+                AND (SELECT COUNT(*) FROM member) >= ${k}
+              THEN AVG(CASE WHEN ci.service_date BETWEEN '${fran}' AND '${till}' THEN ci.${key} END) END AS ${key}_${suffix}`,
+    ).join(',\n           ');
+
+  const [rad] = (await db.all(sql`
+    ${SUBTREE(unitId)},
+    member AS (
+      SELECT u.id AS user_id FROM users u
+       WHERE u.unit_id IN (SELECT unit_id FROM subtree)
+         AND u.role = 'soldat' AND u.active = 1
+    )
+    SELECT (SELECT COUNT(*) FROM member) AS eligible,
+           COUNT(CASE WHEN ci.service_date BETWEEN ${nuFran} AND ${nuTill} THEN 1 END) AS svar,
+           ${sql.raw(kolumner('nu', nuFran, nuTill))},
+           ${sql.raw(kolumner('forra', forraFran, forraTill))}
+      FROM member m
+      LEFT JOIN check_ins ci ON ci.user_id = m.user_id
+                            AND ci.service_date BETWEEN ${forraFran} AND ${nuTill}
+  `)) as Row[];
+
+  const vecka = (suffix: string) =>
+    rad?.[`${CAT_KEYS[0]}_${suffix}`] == null
+      ? null
+      : (Object.fromEntries(CAT_KEYS.map((key) => [key, Number(rad[`${key}_${suffix}`])])) as Record<
+          Category,
+          number
+        >);
+
+  const eligible = Number(rad?.eligible ?? 0);
+
+  // Lägst: ur jämförelsen, som redan har samma skydd. Raden för personer
+  // direkt i enheten är ingen enhet och nämns inte.
+  const { children } = await getChildComparison(unitId, 7);
+  const jamforbara = children.filter((c) => !c.isDirect && c.overall !== null);
+  const lagst =
+    jamforbara.length >= 2
+      ? jamforbara.reduce((a, b) => (b.overall! < a.overall! ? b : a))
+      : null;
+
+  return {
+    eligible,
+    svarsandel: eligible > 0 ? Number(rad?.svar ?? 0) / (eligible * 7) : 0,
+    denna: vecka('nu'),
+    forra: vecka('forra'),
+    lagst: lagst ? { namn: lagst.name, snitt: lagst.overall! } : null,
+  };
+});

@@ -28,6 +28,24 @@ test.describe('plutonchefen', () => {
     }
   });
 
+  test('veckosammanfattningen står överst, och samma text finns i rapporten', async ({ page }) => {
+    // Fysioterapeuternas önskemål den 14 oktober: några meningar till
+    // kompaniets veckomöte, skrivna ur siffrorna — ingen AI.
+    const ruta = page.getByRole('region', { name: 'Senaste veckan' });
+    await expect(ruta).toBeVisible();
+    const rader = await ruta.getByRole('listitem').allInnerTexts();
+    expect(rader[0]).toMatch(/^I snitt svarade \d+ % av de \d+ värnpliktiga varje dag\.$/);
+    // Demons 1. pluton har sömn och kost i rött efter fältövningen.
+    expect(rader.join(' ')).toContain('ligger på röd nivå');
+    // 4. grupp har för få personer, och nämns därför aldrig som lägst.
+    expect(rader.join(' ')).not.toContain('4. grupp');
+    await ingaEnskildaPersoner(page);
+
+    await page.goto('/rapport');
+    const iRapporten = await page.getByRole('region', { name: 'Senaste veckan' }).getByRole('listitem').allInnerTexts();
+    expect(iRapporten).toEqual(rader);
+  });
+
   test('perioden går att byta, och bara till tillåtna värden', async ({ page }) => {
     await page.getByRole('tab', { name: 'Trender' }).click();
     await page.getByRole('link', { name: '21d' }).click();

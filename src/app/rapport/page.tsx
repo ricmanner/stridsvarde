@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 import PrintButton from '@/app/rapport/PrintButton';
+import Veckosammanfattning from '@/components/leader/Veckosammanfattning';
 import { requireRole } from '@/lib/auth/guard';
 import { CATEGORIES, getStatus, statusLabel } from '@/lib/data';
 import { serviceDate, serviceDateDaysAgo } from '@/lib/date';
@@ -9,8 +10,10 @@ import {
   getChildComparison,
   getUnitCategorySeries,
   getUnitOverview,
+  getVeckounderlag,
 } from '@/lib/db/queries/aggregates';
 import { parsePeriod } from '@/lib/privacy';
+import { veckotext } from '@/lib/veckosammanfattning';
 import { homeFor } from '@/lib/roles';
 import { formatScore, procent } from '@/lib/format';
 
@@ -31,10 +34,11 @@ export default async function RapportPage({
   const session = await requireRole('pluton', 'kompani', 'bataljon');
   const period = parsePeriod((await searchParams).period);
 
-  const [overview, series, comparison] = await Promise.all([
+  const [overview, series, comparison, veckounderlag] = await Promise.all([
     getUnitOverview(session.unitId, period),
     getUnitCategorySeries(session.unitId, period),
     getChildComparison(session.unitId, period),
+    getVeckounderlag(session.unitId),
   ]);
 
   const cats = overview.categories;
@@ -82,6 +86,12 @@ export default async function RapportPage({
           Sammanställning {from} – {to} ({period} dagar) · {overview.eligible} värnpliktiga
         </p>
       </header>
+
+      {/* Veckan i ord — det som läses upp på kompaniets veckomöte. Står
+          först, före tabellerna den bygger på. Håller ihop på en sida. */}
+      <div style={{ breakInside: 'avoid' }}>
+        <Veckosammanfattning meningar={veckotext(veckounderlag)} />
+      </div>
 
       {/* ── Sammanfattning ── */}
       <section className="mb-7">

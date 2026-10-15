@@ -7,7 +7,9 @@ import {
   getChildComparison,
   getUnitCategorySeries,
   getUnitOverview,
+  getVeckounderlag,
 } from '@/lib/db/queries/aggregates';
+import { veckotext } from '@/lib/veckosammanfattning';
 import { parsePeriod } from '@/lib/privacy';
 import type { Role } from '@/lib/roles';
 import type { ChildKind } from '@/lib/unit-names';
@@ -41,10 +43,11 @@ export default async function LeaderPageShell({
   // Endast vitlistade perioder — se kommentaren i queries/privacy.ts.
   const period = parsePeriod((await searchParams).period);
 
-  const [overview, series, comparison] = await Promise.all([
+  const [overview, series, comparison, veckounderlag] = await Promise.all([
     getUnitOverview(session.unitId, period),
     getUnitCategorySeries(session.unitId, period),
     getChildComparison(session.unitId, period),
+    getVeckounderlag(session.unitId),
   ]);
 
   // Rådet bygger på aggregatet — finns inget underlag ges inget råd.
@@ -71,6 +74,7 @@ export default async function LeaderPageShell({
           series={series}
           comparison={comparison}
           advice={advice}
+          vecka={veckotext(veckounderlag)}
         />
       </main>
     </div>

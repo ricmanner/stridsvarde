@@ -7,6 +7,7 @@ import { Activity, AlertTriangle, Brain, Download, FileText, Moon, Users, Utensi
 
 import CategoryTrendGrid from '@/components/charts/CategoryTrendGrid';
 import StatusBadge from '@/components/StatusBadge';
+import Veckosammanfattning from '@/components/leader/Veckosammanfattning';
 import Tabs, { Panel } from '@/components/Tabs';
 import ChildFocus from '@/components/leader/ChildFocus';
 import ComparisonGrid from '@/components/leader/ComparisonGrid';
@@ -52,6 +53,8 @@ export interface LeaderDashboardProps {
   series: SeriesPoint[];
   comparison: ChildComparison;
   advice: string | null;
+  /** Veckosammanfattningens meningar (lib/veckosammanfattning.ts). */
+  vecka: string[];
 }
 
 /**
@@ -63,7 +66,7 @@ export interface LeaderDashboardProps {
  * grupper, kompanichefen plutoner, bataljonschefen kompanier, med samma kod.
  */
 export default function LeaderDashboard({
-  levelLabel, childLabel, childKind, period, overview, series, comparison, advice,
+  levelLabel, childLabel, childKind, period, overview, series, comparison, advice, vecka,
 }: LeaderDashboardProps) {
   const pathname = usePathname();
   const [tab, setTab] = useState<'overview' | 'trends' | 'compare'>('overview');
@@ -170,6 +173,10 @@ export default function LeaderDashboard({
         {/* ── ÖVERSIKT ── */}
         {tab === 'overview' && (
           <Panel id="overview">
+            {/* Överst: det plutonchefen tar med till kompaniets veckomöte. Alltid
+                sju dagar, oavsett vald period — det står i rutan. */}
+            <Veckosammanfattning meningar={vecka} />
+
             {/* Perioden står kvar i rubriken, så att en skärmdump säger vad den visar. */}
             <SL>Kategorier — snitt och fördelning över {period} dagar</SL>
             {cats.ok && dist.ok ? (
