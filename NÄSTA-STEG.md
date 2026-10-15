@@ -16,6 +16,9 @@ stora pushen (`3da4b26`) är gröna; den sista, en texträttning på `/status`
 (`02c5a24`), var inte avläst när detta skrevs (GitHubs gräns för
 okontrollerade frågor). 221 enhetstester och 43 webbläsartester.
 
+**Lokalt, inte pushat än:** veckosammanfattningen (se "Gjort den 15
+oktober"). Richard vill samla fler ändringar före nästa push.
+
 **Lokalt, inte committat med flit:** `allowedDevOrigins` i `next.config.ts`,
 så att Richards telefon når utvecklingsservern. Ta bort raden när
 telefonproven är klara.
@@ -368,6 +371,30 @@ ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
   **Så tar du bort det igen:** `git revert --no-edit 0f87bb3 f69b67a`,
   pusha, och tryck "Återställ demon". Bara skjutveckan: `0f87bb3`. Prövat på en egen gren: identiskt med läget före,
   211 tester gröna.
+
+- **Veckosammanfattning i ord**, överst i befälsvyns översikt och i
+  utskriftsrapporten (fysioterapeuternas punkt f). Skriven ur siffrorna med
+  fasta regler, **ingen AI**, och ingenting lämnar appen. Alltid de senaste
+  sju dagarna mot de sju före, oavsett vald period. Exempel för demons
+  1. pluton:
+
+  > I snitt svarade 79 % av de 27 värnpliktiga varje dag.
+  > Sömn samt kost och näring ligger på röd nivå.
+  > Störst förändring mot veckan innan: energinivå, som stigit från 4,2 till 4,7.
+  > Lägst ligger 3. grupp, med 4,1.
+
+  Skyddet ligger i SQL-frågan (`getVeckounderlag`): en vecka med för få
+  svarande kommer tillbaka som NULL, och en för liten grupp nämns aldrig som
+  lägst. **Meningen om vilken enhet som ligger lägst** är omdiskuterad, eftersom
+  den pekar ut en grupp. Den stängs av med `VISA_LAGST = false` i
+  `src/lib/veckosammanfattning.ts`. Fråga cheferna på måndag.
+
+  **Observera:** rutan säger "ligger på röd nivå", och därmed står samma
+  varning nu på fem ställen i befälsvyn (se fynd 1, A eller B). Beslutet om
+  vad som ska bort väger tyngre nu.
+
+  **Så tar du bort det igen:** `git revert --no-edit dbb4500`. Prövat på en
+  egen gren: identiskt med läget före, 221 tester gröna.
 
 - **Ett eget misstag, rättat:** den tillfälliga telefoninställningen
   (`allowedDevOrigins` i `next.config.ts`) följde med en dokumentcommit
