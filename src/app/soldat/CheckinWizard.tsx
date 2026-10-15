@@ -234,6 +234,12 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
   const [scores, setScores] = useState<Svar>(initial ?? EMPTY);
   // Kom den senaste ändringen från en dragning? Då glider inte siffran.
   const [drogs, setDrogs] = useState(false);
+  /*
+   * Kom man till frågan från sammanfattningen? Då leder knappen dit direkt.
+   * Förut fick den som ändrade sömnen trycka Nästa genom kost och energi för
+   * att komma tillbaka — sex tryck för en ändring.
+   */
+  const [franSammanfattning, setFranSammanfattning] = useState(false);
   // Räknare, inte ett ja/nej: varje nytt försök ska ge ett NYTT formulär.
   const [omtag, setOmtag] = useState(0);
 
@@ -275,7 +281,10 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
 
           <button
             type="button"
-            onClick={() => setStep(1)}
+            onClick={() => {
+              setFranSammanfattning(false);
+              setStep(1);
+            }}
             className="cursor-pointer rounded-md bg-slate-900 px-4 py-3.5 text-sm font-semibold tracking-[0.04em] text-white"
           >
             {editing ? 'Fortsätt' : 'Starta incheckning'}
@@ -411,11 +420,22 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
           </button>
           <button
             type="button"
-            onClick={() => setStep(fraga + 1)}
+            onClick={() => {
+              if (franSammanfattning) {
+                setFranSammanfattning(false);
+                setStep(CATEGORIES.length + 1);
+              } else {
+                setStep(fraga + 1);
+              }
+            }}
             disabled={score === null}
             className="flex flex-[2] cursor-pointer items-center justify-center gap-1.5 rounded-md bg-slate-900 py-[13px] text-sm font-semibold tracking-[0.04em] text-white disabled:cursor-not-allowed disabled:bg-slate-300"
           >
-            {fraga === CATEGORIES.length ? 'Sammanfattning' : 'Nästa'}
+            {franSammanfattning
+              ? 'Till sammanfattningen'
+              : fraga === CATEGORIES.length
+                ? 'Sammanfattning'
+                : 'Nästa'}
             <ChevronRight size={16} aria-hidden />
           </button>
         </div>
@@ -451,6 +471,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
           </div>
         </div>
 
+        <p className="mb-2 text-xs text-slate-500">Stämmer något inte? Tryck på raden för att ändra.</p>
         <div className="mb-6 overflow-hidden rounded-md border border-slate-200 bg-white">
           {CATEGORIES.map((cat, i) => (
             /*
@@ -462,7 +483,10 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             <button
               key={cat.key}
               type="button"
-              onClick={() => setStep(i + 1)}
+              onClick={() => {
+                setFranSammanfattning(true);
+                setStep(i + 1);
+              }}
               aria-label={`Ändra ${cat.label}, nu ${scores[cat.key]} av 10`}
               className={`flex w-full cursor-pointer items-center gap-3 px-5 py-3.5 text-left ${
                 i < CATEGORIES.length - 1 ? 'border-b border-slate-100' : ''
@@ -476,6 +500,8 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
                 {scores[cat.key]}
               </span>
               <Marke score={scores[cat.key]} />
+              {/* Pilen säger att raden går att trycka på, som i iPhonens inställningar. */}
+              <ChevronRight size={16} className="-mr-1 shrink-0 text-slate-500" aria-hidden />
             </button>
           ))}
         </div>

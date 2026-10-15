@@ -42,11 +42,24 @@ test('rapporterar sitt mående och får återkoppling', async ({ page }) => {
 
   // Sammanfattningens rader ska gå att rätta med tangentbord — de var
   // tidigare klickbara div:ar som bara fungerade med mus.
+  // Att raderna går att ändra ska synas, inte bara gå.
+  await expect(page.getByText('Stämmer något inte? Tryck på raden för att ändra.')).toBeVisible();
   const rad = page.getByRole('button', { name: /Ändra Sömn, nu \d+ av 10/ });
   await expect(rad).toBeVisible();
   await rad.click();
   await expect(page.locator('input[type="range"]')).toBeVisible();
-  // Man landar på den frågan, inte på sammanfattningen — därav vägen tillbaka.
+
+  // Därifrån går man direkt tillbaka — förut fick man trycka Nästa genom
+  // alla frågor efter den man ändrat.
+  await expect(page.getByRole('button', { name: 'Nästa' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Till sammanfattningen' }).click();
+  await expect(page.getByText(/Bekräfta din incheckning|Bekräfta ändringen/)).toBeVisible();
+
+  // Den vanliga vägen är orörd: börjar man om från fråga 1 står det Nästa.
+  await page.getByRole('button', { name: /Ändra Fysisk form/ }).click();
+  await page.getByRole('button', { name: 'Tillbaka' }).click();
+  await page.getByRole('button', { name: /Starta incheckning|Fortsätt/ }).click();
+  await expect(page.getByRole('button', { name: 'Nästa' })).toBeVisible();
   await tillSammanfattningen(page);
 
   await skickaIncheckning(page);

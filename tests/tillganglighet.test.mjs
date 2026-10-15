@@ -112,9 +112,11 @@ test('sammanfattningens rader går att nå med tangentbord', () => {
   const kod = readFileSync(path.join(APP, 'soldat', 'CheckinWizard.tsx'), 'utf8');
 
   // Raden som låter en rätta ett svar ska vara en knapp, inte en klickbar div.
-  assert.match(kod, /<button[\s\S]{0,400}onClick=\{\(\) => setStep\(i \+ 1\)\}/, 'raden ska vara en knapp');
+  // Klicket sätter sedan den 15 oktober också vägen tillbaka till
+  // sammanfattningen, så det är ett block och inte en rad.
+  assert.match(kod, /<button[\s\S]{0,400}onClick=\{\(\) => \{[\s\S]{0,120}setStep\(i \+ 1\)/, 'raden ska vara en knapp');
   assert.ok(
-    !/<div[^>]*\n?[^>]*onClick=\{\(\) => setStep/.test(kod),
+    !/<div[^>]*\n?[^>]*onClick=\{\(\) => \{?[\s\S]{0,120}setStep/.test(kod),
     'ingen klickbar div kvar i sammanfattningen',
   );
 });
