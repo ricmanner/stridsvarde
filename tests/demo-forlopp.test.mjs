@@ -92,3 +92,17 @@ test('kompanierna skiljer sig åt, med 3. kompani bäst', async () => {
   assert.ok(k1 + 0.5 <= k2, `1. kompani ${k1.toFixed(1)} mot 2. kompani ${k2.toFixed(1)}`);
   assert.ok(k2 + 0.5 <= k3, `2. kompani ${k2.toFixed(1)} mot 3. kompani ${k3.toFixed(1)}`);
 });
+
+test('hela bataljonen: skjutvecka för två veckor sedan syns också i bataljonens kurvor', async () => {
+  /*
+   * Plutonernas historier tar delvis ut varandra i bataljonens snitt, så
+   * bataljonschefens kurvor var nästan raka. En gemensam händelse ger dem
+   * rörelse (Richard, 15 oktober).
+   */
+  const { forlopp } = await import('../src/lib/demo-forlopp.ts');
+  const bataljon = (k, d) => snitt([1, 2, 3, 4, 5, 6, 7, 8, 9].map((p) => forlopp(p, k, d)));
+  for (const k of ['somn', 'energi']) {
+    assert.ok(bataljon(k, 14) < bataljon(k, 19) - 0.8, `${k} ska sjunka under skjutveckan`);
+    assert.ok(bataljon(k, 14) < bataljon(k, 10) - 0.8, `${k} ska komma tillbaka efteråt`);
+  }
+});

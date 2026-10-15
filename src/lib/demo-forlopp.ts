@@ -101,11 +101,23 @@ const PLUTONER: Record<number, Forlopp> = {
   9: () => ({ ovriga: 7.2 }),
 };
 
+/*
+ * Hela bataljonen: skjutvecka för två veckor sedan — tidiga morgnar och långa
+ * dagar på skjutfältet. Lagt ovanpå plutonernas historier.
+ *
+ * Utan den var bataljonschefens egna kurvor nästan raka, eftersom
+ * plutonernas historier tar ut varandra när 219 personer läggs ihop. Richard
+ * ville ha rörelse även där (15 oktober). Det gör visningen bättre, inte
+ * appen.
+ */
+const SKJUTVECKA: Partial<Record<Category, number>> = { somn: 1.5, energi: 1.1, fysisk: 0.6 };
+
 /**
  * Plutonens förväntade snitt för en kategori, `dagarSedan` dagar bakåt
  * (0 är idag). Ett tal på skalan 1–10, inte avrundat.
  */
 export function forlopp(plutonNr: number, kategori: Category, dagarSedan: number): number {
   const p = PLUTONER[plutonNr]?.(dagarSedan) ?? { ovriga: 6.5 };
-  return mellan(p[kategori] ?? p.ovriga, 1, 10);
+  const gemensamt = dipp(dagarSedan, 14, 1.8, SKJUTVECKA[kategori] ?? 0);
+  return mellan((p[kategori] ?? p.ovriga) - gemensamt, 1, 10);
 }
