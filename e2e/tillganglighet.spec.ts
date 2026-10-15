@@ -70,6 +70,12 @@ test('incheckningen, alla steg', async ({ page }) => {
   await oppnaIncheckning(page);
   expect.soft(await granska(page, 'fråga 1')).toEqual([]);
 
+  // Listan över vad siffrorna betyder, öppen.
+  await page.getByRole('button', { name: /Vad betyder siffrorna/ }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  expect.soft(await granska(page, 'fråga 1, info')).toEqual([]);
+  await page.keyboard.press('Escape');
+
   const reglage = page.locator('input[type="range"]');
   await reglage.focus();
   await page.keyboard.press('ArrowLeft');

@@ -55,6 +55,43 @@ test('rapporterar sitt mående och får återkoppling', async ({ page }) => {
   expect(text).toContain('svarsfrekvens');
 });
 
+test('varje fråga säger vad siffran betyder, och info-knappen listar alla nivåer', async ({ page }) => {
+  // Eget konto: P1G1-01 har checkat in i testet ovan, och då börjar reglagen
+  // på de sparade svaren i stället för på 5. Det här testet skickar inget.
+  await loggaIn(page, 'P1G1-05');
+  await oppnaIncheckning(page);
+
+  // Reglaget börjar på 5, alltså gult. Texten står ovanför reglaget och
+  // följer med när det flyttas. Sök i <p>: listan i den stängda rutan har
+  // samma texter, i <span>.
+  const text = (t: string) => page.locator('p', { hasText: t });
+  await expect(text('Stel, öm eller sliten.')).toBeVisible();
+  const reglage = page.locator('input[type="range"]');
+  await reglage.focus();
+  for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight');
+  await expect(text('Kroppen känns bra. Inget som hindrar dig.')).toBeVisible();
+  await expect(text('Stel, öm eller sliten.')).toHaveCount(0);
+  // Skärmläsaren får samma sak som den som ser texten.
+  await expect(reglage).toHaveAttribute('aria-valuetext', /^8 av 10\. Kroppen känns bra/);
+
+  // Info-knappen: alla tre nivåerna, och den man står på är markerad.
+  await page.getByRole('button', { name: 'Vad betyder siffrorna för fysisk form?' }).click();
+  const ruta = page.getByRole('dialog', { name: 'Hur mår din kropp idag?' });
+  await expect(ruta).toBeVisible();
+  for (const niva of ['1–3', '4–6', '7–10']) await expect(ruta.getByText(niva)).toBeVisible();
+  await expect(ruta.locator('[aria-current]')).toContainText('Kroppen känns bra');
+
+  await page.keyboard.press('Escape');
+  await expect(ruta).toBeHidden();
+
+  // Nästa fråga har sina egna texter.
+  await page.getByRole('button', { name: 'Nästa' }).click();
+  await expect(text('Mer pressad än vanligt.')).toBeVisible();
+  await page.getByRole('button', { name: 'Vad betyder siffrorna för psykiskt mående?' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Stäng' }).click();
+  await expect(page.getByRole('dialog')).toBeHidden();
+});
+
 test('den som redan rapporterat skickas till sin återkoppling', async ({ page }) => {
   await loggaIn(page, KODER.varnpliktigKlar);
   await expect(page).toHaveURL(/\/soldat\/dashboard$/);

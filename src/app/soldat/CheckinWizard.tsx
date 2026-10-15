@@ -5,9 +5,11 @@ import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import CategoryIcon from '@/components/CategoryIcon';
 import ScoreSlider from '@/components/ScoreSlider';
+import SkalaInfo from '@/components/SkalaInfo';
 import { CATEGORIES, type Category, getStatus, statusBg, statusLabel, statusTextColor } from '@/lib/data';
 import { submitCheckIn, type CheckInState } from '@/app/actions/checkin';
 import { formatScore, procent } from '@/lib/format';
+import { skaltext } from '@/lib/skala';
 import { TIDSGRÄNS_KLIENT_MS } from '@/lib/tidsgrans';
 
 const EMPTY: Record<Category, number> = { fysisk: 5, psykisk: 5, social: 5, somn: 5, kost: 5, energi: 5 };
@@ -254,10 +256,11 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
               <CategoryIcon namn={cat.icon} size={20} />
             </span>
             <span className={etikett}>{cat.label}</span>
+            <SkalaInfo kategori={cat.key} etikett={cat.label} fraga={cat.question} varde={score} />
           </div>
           <h2 className="mb-10 text-xl font-bold text-slate-900">{cat.question}</h2>
 
-          <div className="mb-8 flex items-baseline gap-2">
+          <div className="mb-3 flex items-baseline gap-2">
             <span className="text-[64px] font-extrabold leading-none tabular-nums" style={{ color }}>
               {score}
             </span>
@@ -267,11 +270,21 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             </span>
           </div>
 
+          {/*
+           * Vad siffran betyder, och den byts medan man drar. Står OVANFÖR
+           * reglaget: under hade tummen täckt den i telefonen. Höjden är satt
+           * för två rader, så att reglaget inte hoppar när texten blir kortare.
+           */}
+          <p className="mb-6 min-h-[2lh] text-sm leading-relaxed text-slate-700">
+            {skaltext(cat.key, score)}
+          </p>
+
           <div className="mb-3">
             <ScoreSlider
               value={score}
               color={color}
               label={cat.question}
+              beskrivning={skaltext(cat.key, score)}
               onChange={(v) => setScores((prev) => ({ ...prev, [cat.key]: v }))}
             />
             <div className="mt-2.5 flex justify-between text-etikett font-semibold">

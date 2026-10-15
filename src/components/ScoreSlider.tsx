@@ -6,6 +6,8 @@ interface Props {
   color: string;
   /** Frågan reglaget besvarar — läses upp av skärmläsare. */
   label: string;
+  /** Vad siffran betyder (lib/skala.ts) — läses upp efter siffran. */
+  beskrivning?: string;
 }
 
 /**
@@ -22,7 +24,7 @@ interface Props {
  * detsamma; stilen ligger i globals.css eftersom pseudo-element för
  * reglagets tumme inte går att sätta med inline-stilar.
  */
-export default function ScoreSlider({ value, onChange, color, label }: Props) {
+export default function ScoreSlider({ value, onChange, color, label, beskrivning }: Props) {
   const pct = ((value - 1) / 9) * 100;
 
   return (
@@ -35,8 +37,9 @@ export default function ScoreSlider({ value, onChange, color, label }: Props) {
       onChange={(e) => onChange(Number(e.target.value))}
       className="psvi-slider"
       aria-label={label}
-      // Skärmläsare läser annars bara siffran. "7 av 10" är begripligt.
-      aria-valuetext={`${value} av 10`}
+      // Skärmläsare läser annars bara siffran. "7 av 10" är begripligt, och
+      // beskrivningen ger samma sak som den som ser texten ovanför reglaget.
+      aria-valuetext={beskrivning ? `${value} av 10. ${beskrivning}` : `${value} av 10`}
       style={
         {
           '--psvi-color': color,
