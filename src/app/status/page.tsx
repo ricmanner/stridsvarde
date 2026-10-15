@@ -196,7 +196,7 @@ export default async function StatusPage({
               <div className="mt-3 rounded-md border border-slate-200 bg-white px-4 py-3">
                 <p className="text-sm font-semibold text-slate-800">Återställ demon</p>
                 <p className="mt-1 text-xs text-slate-500">
-                  Bygger upp demon från grunden: enheter, personer och fjorton dagars
+                  Bygger upp demon från grunden: enheter, personer och tre veckors
                   historik som slutar idag. Allt någon ändrat försvinner — raderade
                   enheter kommer tillbaka, tillagda försvinner. Demokoderna blir
                   desamma och står kvar på inloggningssidan.{' '}

@@ -106,3 +106,14 @@ test('hela bataljonen: skjutvecka för två veckor sedan syns också i bataljone
     assert.ok(bataljon(k, 14) < bataljon(k, 10) - 0.8, `${k} ska komma tillbaka efteråt`);
   }
 });
+
+test('statussidan säger hur lång historiken är', async () => {
+  // Knappen "Återställ demon" sa "fjorton dagars historik" efter att den
+  // blivit tre veckor (15 oktober). Ändras HISTORIK_DAGAR ska texten följa.
+  const { readFileSync } = await import('node:fs');
+  const { HISTORIK_DAGAR } = await import('../src/lib/demo-forlopp.ts');
+  const sida = readFileSync(new URL('../src/app/status/page.tsx', import.meta.url), 'utf8');
+  assert.equal(HISTORIK_DAGAR, 21);
+  assert.match(sida, /tre veckors\s+historik/);
+  assert.doesNotMatch(sida, /fjorton dagars\s+historik/);
+});
