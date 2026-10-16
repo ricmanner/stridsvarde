@@ -105,12 +105,14 @@ export interface NotificationRow {
 
 /**
  * `samtal: false` lämnar samtalsbegärandena utanför — befälsvyn skickar det
- * medan knapparna är avstängda (SAMTALSBEGARAN_PA i lib/support.ts). Raderna
- * ligger kvar i databasen och syns igen när funktionen slås på.
+ * medan knapparna är avstängda (SAMTALSBEGARAN_PA i lib/support.ts).
+ * `larm: false` lämnar de dagliga notiserna om kritisk nivå utanför
+ * (VISA_DAGLIG_LARMNOTIS i lib/varningar.ts). Raderna ligger kvar i databasen
+ * och syns igen när inställningen slås på.
  */
 export async function getUnreadNotifications(
   userId: number,
-  { samtal = true }: { samtal?: boolean } = {},
+  { samtal = true, larm = true }: { samtal?: boolean; larm?: boolean } = {},
 ): Promise<NotificationRow[]> {
   return db
     .select({
@@ -126,6 +128,7 @@ export async function getUnreadNotifications(
         eq(notifications.recipientUserId, userId),
         isNull(notifications.readAt),
         samtal ? undefined : ne(notifications.kind, 'talk_request'),
+        larm ? undefined : ne(notifications.kind, 'red_values'),
       ),
     )
     .orderBy(desc(notifications.createdAt));

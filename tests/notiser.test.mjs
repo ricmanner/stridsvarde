@@ -115,6 +115,35 @@ test('med samtalsbegäran avstängd visas gamla begäranden inte för befälet, 
   assert.ok(alla.includes('En värnpliktig vill prata med dig'));
 });
 
+test('utan dagliga larmnotiser visas notisen om låg svarsfrekvens ändå', async () => {
+  /*
+   * Väg B, 16 oktober: notisen "kritisk nivå" kommer tillbaka varje dag så
+   * länge läget är rött och säger inget som inte redan står i vyn. Notisen
+   * om låg svarsfrekvens säger något som inte syns annars, och står kvar.
+   */
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const befal = await plutonchef(client, org);
+
+  for (const [kind, title] of [
+    ['red_values', 'Pluton 1 ligger på kritisk nivå'],
+    ['low_response', 'Låg svarsfrekvens i Pluton 1'],
+  ]) {
+    await client.execute({
+      sql: `INSERT INTO notifications (recipient_user_id, subject_unit_id, kind, title, body, service_date, created_at)
+            VALUES (?,?,?,?,'…',?,?)`,
+      args: [befal, org.pluton, kind, title, stockholmsDag(), iso()],
+    });
+  }
+
+  const { getUnreadNotifications } = await import('../src/lib/db/queries/notifications.ts');
+  const titlar = (await getUnreadNotifications(befal, { larm: false })).map((n) => n.title);
+  assert.deepEqual(titlar, ['Låg svarsfrekvens i Pluton 1']);
+
+  // Raderna finns kvar och syns igen när inställningen slås på.
+  assert.equal((await getUnreadNotifications(befal, { larm: true })).length, 2);
+});
+
 test('en värnpliktig som bett om samtal går att radera, och begäran försvinner med henne', async () => {
   const { client } = await database();
   const org = await buildOrg(client);

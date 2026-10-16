@@ -46,6 +46,20 @@ test.describe('plutonchefen', () => {
     expect(iRapporten).toEqual(rader);
   });
 
+  test('varningen står inte fem gånger: ingen tröskelruta, och gränserna sägs vara preliminära', async ({ page }) => {
+    // Väg B, 16 oktober (lib/varningar.ts). Demons 1. pluton har sömn och
+    // kost i rött — förut stod det också i en egen ruta under listan.
+    await expect(page.getByRole('heading', { name: /Tröskelvärden/ })).toHaveCount(0);
+    await expect(page.getByText(/Gränserna för grönt, gult och rött är preliminära/)).toBeVisible();
+    // Det röda syns fortfarande: märket överst och i listan.
+    await expect(page.getByText(/\d kategorier? i rött/)).toBeVisible();
+    // Befälsrådet står kvar — det enda som säger vad befälet kan göra.
+    await expect(page.getByRole('heading', { name: 'Befälsråd' })).toBeVisible();
+    // Den dagliga notisen är gömd. Sök i notisrutan: Befälsrådet säger själv
+    // "ligger på kritisk nivå", och det ska stå kvar.
+    await expect(page.locator('[data-notiser]', { hasText: 'kritisk nivå' })).toHaveCount(0);
+  });
+
   test('perioden går att byta, och bara till tillåtna värden', async ({ page }) => {
     await page.getByRole('tab', { name: 'Trender' }).click();
     await page.getByRole('link', { name: '21d' }).click();

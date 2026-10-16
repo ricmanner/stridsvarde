@@ -8,6 +8,7 @@ import { Activity, AlertTriangle, Brain, Download, FileText, Moon, Users, Utensi
 import CategoryTrendGrid from '@/components/charts/CategoryTrendGrid';
 import StatusBadge from '@/components/StatusBadge';
 import Veckosammanfattning from '@/components/leader/Veckosammanfattning';
+import { VISA_TROSKELRUTA } from '@/lib/varningar';
 import Tabs, { Panel } from '@/components/Tabs';
 import ChildFocus from '@/components/leader/ChildFocus';
 import ComparisonGrid from '@/components/leader/ComparisonGrid';
@@ -223,7 +224,18 @@ export default function LeaderDashboard({
               </div>
             )}
 
-            {alerts.length > 0 && cats.ok && (
+            {/* Färgerna i listan ovan bygger på gränser som ingen fastställt än.
+                Stod förut i rutan Tröskelvärden, som är gömd (lib/varningar.ts). */}
+            {!VISA_TROSKELRUTA && cats.ok && (
+              <div className="-mt-2.5 mb-4">
+                <Preliminary>
+                  Gränserna för grönt, gult och rött är preliminära och ska fastställas
+                  tillsammans med Försvarshälsan.
+                </Preliminary>
+              </div>
+            )}
+
+            {VISA_TROSKELRUTA && alerts.length > 0 && cats.ok && (
               <>
                 <SL>Tröskelvärden — kräver åtgärd</SL>
                 <div className="mb-4">
