@@ -40,13 +40,16 @@ export default function ComparisonGrid({
         className="overflow-x-auto rounded-md border border-slate-200 bg-white"
       >
         <table className="w-full min-w-[640px] border-separate border-spacing-0 text-left">
+          {/* Namn, svar och "I rött" bryts inte (whitespace-nowrap): i
+              telefonen blev det "1." / "grupp" och "2 av" / "8", och varje
+              rad dubbelt så hög. Tabellen rullar redan i sidled. */}
           <thead>
             <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
-              <th className="px-4 py-2.5 align-bottom font-bold">Enhet</th>
-              <th className="px-2 py-2.5 text-center align-bottom font-bold">Svarade</th>
+              <th className="whitespace-nowrap px-4 py-2.5 align-bottom font-bold">Enhet</th>
+              <th className="whitespace-nowrap px-2 py-2.5 text-center align-bottom font-bold">Svarade</th>
               <th className="px-1.5 py-2.5 text-center align-bottom font-bold">Snitt</th>
               {/* Flyttad hit från rangordningen, som är gömd (16 oktober). */}
-              <th className="px-2 py-2.5 text-center align-bottom font-bold">I rött</th>
+              <th className="whitespace-nowrap px-2 py-2.5 text-center align-bottom font-bold">I rött</th>
               {CATEGORIES.map((c) => (
                 // Hela namnet, även om det tar två rader — se testet i sprak.test.mjs.
                 // Lika breda, annars blev SÖMN smal och PSYKISKT MÅENDE bred.
@@ -59,7 +62,7 @@ export default function ComparisonGrid({
           <tbody>
             {items.map((child) => (
               <tr key={child.id}>
-                <td className="border-t border-slate-100 px-4 py-2">
+                <td className="whitespace-nowrap border-t border-slate-100 px-4 py-2">
                   <span className="text-sm font-medium text-slate-800">{child.name}</span>
                   {child.isDirect && (
                     <span
@@ -70,7 +73,7 @@ export default function ComparisonGrid({
                     </span>
                   )}
                 </td>
-                <td className="border-t border-slate-100 px-2 py-2 text-center text-xs tabular-nums text-slate-500">
+                <td className="whitespace-nowrap border-t border-slate-100 px-2 py-2 text-center text-xs tabular-nums text-slate-500">
                   {child.responders}/{child.eligible}
                 </td>
                 {child.scores === null || child.overall === null ? (
@@ -83,7 +86,7 @@ export default function ComparisonGrid({
                 ) : (
                   <>
                     <Cell value={child.overall} strong />
-                    <td className="border-t border-slate-100 px-2 py-2 text-center text-xs tabular-nums text-slate-500">
+                    <td className="whitespace-nowrap border-t border-slate-100 px-2 py-2 text-center text-xs tabular-nums text-slate-500">
                       <span className={child.red > 0 ? 'font-semibold text-red-700' : 'text-slate-700'}>{child.red}</span>
                       {' '}av {child.responders}
                     </td>

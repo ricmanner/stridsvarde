@@ -117,6 +117,34 @@ test.describe('plutonchefen', () => {
     expect(rader[0]).toContain('Datum;Svarande');
     expect(csv, 'full flyttalsprecision i filen').not.toMatch(/\d+\.\d{3,}/);
   });
+
+  test('jämförelsen i telefonen: namnen och "I rött" står på en rad', async ({ page }) => {
+    // Granskningen 16 oktober: i 390 px bröts "1. grupp" efter siffran och
+    // "2 av 8" efter "av", så att varje rad blev dubbelt så hög.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole('tab', { name: 'Jämförelse' }).click();
+    const tabell = page.getByRole('region', { name: /Jämförelse mellan/ });
+    await expect(tabell).toBeVisible();
+    const radbrott = await tabell.evaluate((el) => {
+      // Räknar textraderna, inte rutorna: snittet ligger i en egen ruta med
+      // marginal, och den räknades annars som en rad till.
+      const rader = (cell: Element) => {
+        const toppar = new Set<number>();
+        const gå = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
+        for (let n = gå.nextNode(); n; n = gå.nextNode()) {
+          if (!n.textContent?.trim()) continue;
+          const r = document.createRange();
+          r.selectNodeContents(n);
+          for (const x of r.getClientRects()) toppar.add(Math.round(x.top));
+        }
+        return toppar.size;
+      };
+      const huvud = [...el.querySelectorAll('th')].slice(0, 4);
+      const celler = [...el.querySelectorAll('tbody tr')].flatMap((tr) => [...tr.querySelectorAll('td')].slice(0, 4));
+      return [...huvud, ...celler].filter((c) => c.textContent?.trim() && rader(c) > 1).map((c) => c.textContent);
+    });
+    expect(radbrott, 'celler som bryts på två rader').toEqual([]);
+  });
 });
 
 test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {
