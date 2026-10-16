@@ -16,7 +16,10 @@ stora pushen (`3da4b26`) är gröna; den sista, en texträttning på `/status`
 (`02c5a24`), var inte avläst när detta skrevs (GitHubs gräns för
 okontrollerade frågor). 221 enhetstester och 43 webbläsartester.
 
-**Lokalt, inte pushat än:** veckosammanfattningen, väg B för varningarna,
+**Lokalt, inte pushat än:** frågan om hälsa (se "Frågan om hälsa" nedan,
+med driftsättningsordningen), och de nya texterna för skalan.
+
+**Pushat tidigare samma dag:** veckosammanfattningen, väg B för varningarna,
 knapparna nära reglaget på iPad, och fotnoten borttagen (se "Gjort den 15
 oktober"). Väntar på att Richard säger
 "pusha". Ingen "Återställ demon" behövs för dem.
@@ -71,13 +74,51 @@ skiljer inte på vem av dem som sa vad, så alla punkter står som
 |---|---|---|
 | a | Ta bort 112 | **Gjort**, utökat: alla nummer borta |
 | b | Vård via befälet, inga samtalsknappar | **Gjort**: texterna ändrade, knapparna avstängda |
-| c | Ny fråga: sjukdom | Inte gjort. Kräver databasändring. Fråga till mötet; Readiness Advisor har en sådan |
+| c | Ny fråga: sjukdom | **Byggd lokalt 16 oktober** som "Hälsa", inte driftsatt. Se "Frågan om hälsa" nedan |
 | d | Förklaring av siffrorna | **Gjort**, med info-knapp. Därtill: rörelse, tomt reglage, oval knapp |
 | e | Kontrollfråga vid stora hopp | Inte gjort. Fritext avråds; en bekräftelse utan lagring går (1–2 h). Mindre värd nu när reglaget börjar tomt |
 | f | Veckorapport med text | **Gjort**: veckosammanfattning i befälsvyn och rapporten, utan AI |
 | g | Större skillnader i demon | **Gjort**: historier per pluton, skjutvecka för bataljonen, 4. grupp med "Underlag saknas" |
 | h | Svara i efterhand | Inte gjort. Fråga till mötet |
 | i | Befattning per person | Inte gjort. Integritetsrisk. Fråga till mötet |
+
+### Frågan om hälsa — byggd, inte driftsatt (16 oktober)
+
+Fråga 2, direkt efter Fysisk form: **Hälsa — "Hur frisk känner du dig
+idag?"**, där 10 betyder frisk. Skalan: *Sjuk. Feber, infektion eller tydliga
+sjukdomssymtom.* / *Krasslig. Förkylning eller lättare symtom.* / *Frisk.
+Inga sjukdomssymtom.* Rådet vid rött: *"Säg till befälet vid sjukdomskänsla —
+befälet avgör om sjukvård behövs."* Demon: en förkylning sprids i 3. kompani,
+2. pluton den senaste veckan. "Hälsostatus idag" på den värnpliktiges
+översikt heter nu "Samlat mående idag".
+
+**Integriteten:** gamla rapporter saknar svar på hälsa. Alla sammanställningar
+räknar därför bara fullständiga rapporter (`KOMPLETTA` i
+`src/lib/db/queries/aggregates.ts`). Annars hade hälsans snitt kunnat bygga på
+en enda persons svar. Testet `tests/halsa.test.mjs` föll mot den gamla koden.
+En rapport från före frågan räknas som obesvarad också för den värnpliktige.
+
+**Inställningen:** `HALSA_PA` i `src/lib/data.ts`. Avstängd är appen precis
+som förut, och ingen fråga mot databasen nämner kolumnen.
+
+**Driftsättning, i den här ordningen** (prövad hela vägen mot en egen
+databas utan kolumnen den 16 oktober):
+1. Sätt `HALSA_PA = false`, committa och pusha.
+2. Logga in som ADMIN-01, gå till `/status` och tryck **"Uppdatera schemat"**.
+   Det lägger till kolumnen `check_ins.halsa`.
+3. Sätt `HALSA_PA = true`, committa och pusha.
+4. Tryck **"Återställ demon"** på `/status`. Fram till dess säger befälsvyn
+   "Underlag saknas", eftersom alla gamla rapporter saknar hälsa.
+
+Görs den i omvänd ordning, med frågan påslagen före knappen, kraschar varje
+sida som läser incheckningar tills knappen tryckts. Rör inte detta på en
+visningsdag.
+
+**Stäng av igen:** `HALSA_PA = false` och pusha. Kolumnen står kvar och gör
+ingen skada. Gamla svar på hälsa ligger kvar i databasen. **Ta bort koden
+helt:** `git revert` av `21f8bc6`, `8b28f81` och `9f055d1`. Kolumnen ligger
+då kvar i databasen, oanvänd. Radera den inte, enligt regeln om databasens
+struktur.
 
 **Frågor de tror kommer på måndag:** var informationen hamnar, AI,
 säkerhet, och hur appen kommer in i Försvarsmaktens nät. Det mesta har
