@@ -511,7 +511,16 @@ ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
   **Så tar du bort det igen:** `git revert --no-edit e5058fc`. Prövat på en
   egen gren: identiskt med läget före, 241 tester gröna. Före och efter:
   `.playwright-mcp/jamforelse-befalsvy.html` (lokalt). **Inte pushat.**
-  Kvar att diskutera: animationer vid inloggning (Richard, 16 oktober).
+  **Animation (Richards val A):** nyckeltalen räknas upp på 0,7 s efter
+  inloggning, inte vid omladdning, flik- eller periodbyte. Ta bort: `git
+  revert` av committen "Count the four key figures up".
+
+- **Fritt valda datum i befälsvyn — inte gjort, med flit** (16 oktober).
+  Richard frågade om 3 dagar, en månad eller gårdagen. Låsta perioder (7,
+  14, 21) skyddar mot att jämföra två perioder som skiljer en dag och räkna
+  fram en enskilds svar. Gårdagen syns redan under Trender, dag för dag.
+  Möjligt senare: 30 dagar som fjärde låst val när historiken räcker, och en
+  rad "Igår" i Översikt (minst fyra svar). Fråga cheferna på mötet först.
 
 - **Ett eget misstag, rättat:** den tillfälliga telefoninställningen
   (`allowedDevOrigins` i `next.config.ts`) följde med en dokumentcommit
