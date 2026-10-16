@@ -18,7 +18,9 @@ test('röda kategorier nämns vid namn, med en åtgärd var', async () => {
   assert.match(t, /^Sömn samt kost och näring ligger på röd nivå\./);
   assert.match(t, /dygnsrytm/);
   assert.match(t, /måltider/);
-  assert.match(t, /enskilda samtal/);
+  // Borttagen 16 oktober (Richard): befälet vet inte vem som ligger i rött,
+  // så "enskilda samtal" går inte att följa.
+  assert.doesNotMatch(t, /48 timmar/);
 });
 
 test('hälsa i rött handlar om smitta och sjukvård', async () => {

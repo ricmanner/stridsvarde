@@ -276,10 +276,10 @@ export function generateLeaderAdvice(avgScores: Record<Category, number>): strin
     const lista = namn.length === 1 ? namn[0] : `${namn.slice(0, -1).join(', ')}${binde}${namn.at(-1)}`;
     const versal = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
     const atgarder = roda.map((c) => `${versal(BEFALSATGARD[c.key])}.`).join(' ');
-    const samtal = roda.length >= 2 && !roda.some((c) => c.key === 'psykisk')
-      ? ' Med flera kategorier i rött: genomför enskilda samtal inom 48 timmar.'
-      : '';
-    return `${lista} ligger på röd nivå. ${atgarder}${samtal}`;
+    // Här stod "Med flera kategorier i rött: genomför enskilda samtal inom 48
+    // timmar." Borttagen 16 oktober (Richard): befälet vet inte vem som ligger
+    // i rött, så rådet går inte att följa.
+    return `${lista} ligger på röd nivå. ${atgarder}`;
   }
 
   const lagst = aktiva.reduce((a, b) => (avgScores[b.key] < avgScores[a.key] ? b : a));

@@ -449,7 +449,7 @@ export default function LeaderDashboard({
  * Problemanalysen från Skövde konstaterar att det saknas vetenskapligt
  * fastställda gränser för röd, gul och grön. Appens gränser (7 och 4 på en
  * tiogradig skala) och befälsråden sattes i prototypen. På en storskärm framför
- * befäl ser "kräver åtgärd" och "samtal inom 48 timmar" ut som fakta; det ska
+ * befäl ser "kräver åtgärd" och ett råd om samtal ut som fakta; det ska
  * framgå att de inte är det än. Innehållet ändras inte här — det är
  * fackfolkets att fastställa, inte utvecklarens.
  *
