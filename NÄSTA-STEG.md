@@ -16,8 +16,9 @@ stora pushen (`3da4b26`) är gröna; den sista, en texträttning på `/status`
 (`02c5a24`), var inte avläst när detta skrevs (GitHubs gräns för
 okontrollerade frågor). 221 enhetstester och 43 webbläsartester.
 
-**Lokalt, inte pushat än:** veckosammanfattningen (se "Gjort den 15
-oktober"). Richard vill samla fler ändringar före nästa push.
+**Lokalt, inte pushat än:** veckosammanfattningen och väg B för
+varningarna (se "Gjort den 15 oktober"). Väntar på att Richard säger
+"pusha". Ingen "Återställ demon" behövs för dem.
 
 **Lokalt, inte committat med flit:** `allowedDevOrigins` i `next.config.ts`,
 så att Richards telefon når utvecklingsservern. Ta bort raden när
@@ -43,8 +44,8 @@ emot varandra byggs inte två gånger (se "Under hackathonet" i CLAUDE.md).
    grupper som heter så. Ska säga grupp och pluton. Texten byggs i
    `src/lib/db/queries/notifications.ts` av `soldierUnitName`. Ungefär 20
    minuter med test; rekommenderat före måndag.
-3. **Fynd 1, varningen fyra gånger i befälsvyn** — beslut A eller B väntar
-   på Richard, gärna med chefernas syn. Se "Att ta härnäst", punkt 1.
+3. ~~Fynd 1, varningen i befälsvyn.~~ **Avgjort den 16 oktober: väg B**,
+   byggt (se "Gjort den 15 oktober").
 4. **Richards egna, före måndag:** kontrollera i Tursos kontrollpanel i
    vilken region databasen ligger (meddelandet till gruppen säger "inom EU";
    servrarna ligger i Dublin, databasen är okontrollerad); spara loggkoden i
@@ -395,6 +396,20 @@ ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
 
   **Så tar du bort det igen:** `git revert --no-edit dbb4500`. Prövat på en
   egen gren: identiskt med läget före, 221 tester gröna.
+
+- **Varningen står inte längre fem gånger i befälsvyn (väg B, 16
+  oktober).** Den gula notisen *"… ligger på kritisk nivå"* och rutan
+  *Tröskelvärden* är gömda. Meningen om att gränserna är preliminära står
+  under kategorilistan. Kvar: märket *"2 kategorier i rött"*, de röda
+  märkena i listan, veckosammanfattningen och Befälsrådet, som är det enda
+  som säger vad befälet kan göra. Notisen om låg svarsfrekvens står också
+  kvar. I telefonen hamnar veckosammanfattningen en halv skärm högre upp.
+  Notiserna skapas fortfarande i databasen.
+  **Slå på igen:** `VISA_TROSKELRUTA` och `VISA_DAGLIG_LARMNOTIS` i
+  `src/lib/varningar.ts`. **Ta bort helt:** `git revert --no-edit
+  1c1b101`. Prövat på en egen gren: identiskt med läget före, 231 tester
+  gröna. Före- och efterbilder: `.playwright-mcp/jamforelse-varningar.html`
+  (lokalt, inte i förrådet).
 
 - **Ett eget misstag, rättat:** den tillfälliga telefoninställningen
   (`allowedDevOrigins` i `next.config.ts`) följde med en dokumentcommit
@@ -1052,6 +1067,9 @@ fram demodatan och återställa demon.
      Befälsrådet. I telefonen trycker notiserna ner sammanfattningen en halv
      skärm. Störst för intrycket; ett beslut om vilken som står kvar.
 
+     **Avgjort den 16 oktober: väg B** — rutan och den dagliga notisen är
+     gömda (`src/lib/varningar.ts`), Befälsrådet står kvar. Föreslå inte att
+     de tas fram igen utan nytt skäl. Bakgrunden, som den stod:
      **Skissat den 27 september, beslutet vilar på Richard.** Två vägar:
      **A** — göm rutan Tröskelvärden (den upprepar de röda raderna precis
      ovanför) och flytta "gränserna är preliminära" till kategorilistan.
