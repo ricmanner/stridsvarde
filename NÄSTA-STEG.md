@@ -497,6 +497,22 @@ ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
   --no-edit 12415c1`. Före- och efterbilder:
   `.playwright-mcp/jamforelse-ipad-fotnot.html` (lokalt).
 
+- **Befälsvyn omgjord: en fråga per flik, siffror först** (16 oktober,
+  efter fysioterapeuternas "befälen vill ha siffror rakt på sak").
+  **Översikt** (*hur ligger vi, vad behöver jag göra?*): fyra nyckeltal
+  överst; veckan som fyra fält (svarade, störst försämring, störst
+  förbättring, lägst); kategorierna som en tabell, **sämst först**, med
+  snitt, skala 1–10 där förra perioden är en ring, förändringen och antal
+  personer i rött; befälsrådet nämner kategorierna. **Trender** (*åt vilket
+  håll?*): samlat mående först, åtta grafer. **Jämförelse** (*var finns
+  problemen?*): rangordningen gömd (`VISA_RANGORDNING`), "I rött" som kolumn.
+  **Beslut, föreslå inte om:** sämst först i Översikt, fast ordning i de
+  andra flikarna; staplarna som räknade svar är borta; rangordningen göms.
+  **Så tar du bort det igen:** `git revert --no-edit e5058fc`. Prövat på en
+  egen gren: identiskt med läget före, 241 tester gröna. Före och efter:
+  `.playwright-mcp/jamforelse-befalsvy.html` (lokalt). **Inte pushat.**
+  Kvar att diskutera: animationer vid inloggning (Richard, 16 oktober).
+
 - **Ett eget misstag, rättat:** den tillfälliga telefoninställningen
   (`allowedDevOrigins` i `next.config.ts`) följde med en dokumentcommit
   (c9f0d6a) och togs bort i nästa. Den påverkar bara utvecklingsservern.
