@@ -157,9 +157,22 @@ test('knappen på statussidan lägger till exakt det migrationerna gör', async 
     'CREATE TABLE check_ins (user_id integer, service_date text)',
   ); // indexet behöver sin tabell
   for (const runda of [1, 2]) {
-    for (const d of SCHEMA_DDL) await klient.execute(d.ddl);
+    for (const d of SCHEMA_DDL) {
+      /*
+       * En ny kolumn har ingen "IF NOT EXISTS" i SQLite — ALTER TABLE kastar
+       * andra gången. Knappen frågar därför först om kolumnen finns, och
+       * testet gör likadant (health.ts, `kolumn`).
+       */
+      if (d.kolumn) {
+        const kolumner = (await klient.execute(`SELECT name FROM pragma_table_info('${d.kolumn.tabell}')`)).rows;
+        if (kolumner.some((k) => k.name === d.kolumn.namn)) continue;
+      }
+      await klient.execute(d.ddl);
+    }
     assert.ok(runda, 'andra körningen får inte kasta');
   }
+  const kolumner = (await klient.execute(`SELECT name FROM pragma_table_info('check_ins')`)).rows.map((k) => k.name);
+  assert.ok(kolumner.includes('halsa'), 'kolumnen för hälsa ska ha lagts till');
 
   await klient.execute({
     sql: 'INSERT INTO error_log (path, message, created_at) VALUES (?,?,?)',
@@ -190,7 +203,8 @@ test('utan tabellen kraschar ingenting — statussidan säger bara att loggen sa
     assert.equal(s.uppsatt, false, 'statussidan får veta att loggen inte är uppsatt');
     assert.deepEqual(s.rader, []);
   } finally {
-    for (const d of SCHEMA_DDL) await client.execute(d.ddl);
+    // Bara tabellen och indexet togs bort; kolumnen finns redan.
+    for (const d of SCHEMA_DDL.filter((x) => !x.kolumn)) await client.execute(d.ddl);
   }
 });
 
@@ -224,4 +238,30 @@ test('hälsokontrollens felsvar bär aldrig med sig felet ut', async () => {
     assert.ok(!text.includes('eyJ'), `token läckte: ${text}`);
     assert.ok(!text.includes('SQLITE'), `internt felnamn läckte: ${text}`);
   }
+});
+
+test('statussidan ser när kolumnen för hälsa saknas, och knappen lägger till den en gång', async () => {
+  /*
+   * Den delade demon får kolumnen genom knappen "Uppdatera schemat", inte vid
+   * serverstart. Ser knappen inte att kolumnen saknas visas den aldrig.
+   */
+  const { client } = await database();
+  const { missingSchema, applySchema } = await import('../src/lib/db/queries/health.ts');
+
+  await client.execute('ALTER TABLE check_ins DROP COLUMN halsa');
+  assert.deepEqual(await missingSchema(), ['check_ins.halsa']);
+
+  const admin = Number((await client.execute({
+    sql: `INSERT INTO units (name, kind, parent_id, created_at) VALUES ('B', 'bataljon', NULL, ?) RETURNING id`,
+    args: [new Date().toISOString()],
+  })).rows[0].id);
+  const anvandare = Number((await client.execute({
+    sql: `INSERT INTO users (code_hash, label, role, unit_id, active, created_at) VALUES ('h-admin-schema', 'Admin', 'admin', ?, 1, ?) RETURNING id`,
+    args: [admin, new Date().toISOString()],
+  })).rows[0].id);
+
+  assert.deepEqual(await applySchema(anvandare), ['check_ins.halsa']);
+  assert.deepEqual(await missingSchema(), []);
+  // En gång till: inget saknas, och inget kastar.
+  assert.deepEqual(await applySchema(anvandare), []);
 });

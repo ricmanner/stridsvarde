@@ -1,0 +1,1 @@
+ALTER TABLE `check_ins` ADD `halsa` integer;

@@ -150,12 +150,21 @@ async function purge(): Promise<number> {
  * här listan, som statussidan kan lägga till bakom en knapp.
  *
  * Bara sådant som är ofarligt att köra om och som inte rör befintliga rader:
- * nya tabeller och nya index. Allt annat hör hemma i `npm run db:setup`.
+ * nya tabeller, nya index och nya kolumner som får vara tomma. Allt annat
+ * hör hemma i `npm run db:setup`.
+ *
+ * En kolumn har ingen "IF NOT EXISTS" i SQLite: ALTER TABLE kastar andra
+ * gången. Sådana rader bär därför `kolumn`, och knappen frågar först om den
+ * redan finns.
  *
  * Satserna motsvarar migrationerna i drizzle/ ord för ord. Ett test jämför
  * dem, så att en framtida migration inte glöms bort här.
  */
-export const SCHEMA_DDL: Array<{ objekt: string; ddl: string }> = [
+export const SCHEMA_DDL: Array<{
+  objekt: string;
+  ddl: string;
+  kolumn?: { tabell: string; namn: string };
+}> = [
   {
     objekt: 'error_log',
     ddl: `CREATE TABLE IF NOT EXISTS \`error_log\` (
@@ -175,7 +184,20 @@ export const SCHEMA_DDL: Array<{ objekt: string; ddl: string }> = [
     objekt: 'check_ins_date_user',
     ddl: 'CREATE INDEX IF NOT EXISTS `check_ins_date_user` ON `check_ins` (`service_date`,`user_id`)',
   },
+  {
+    // Frågan om hälsa, 16 oktober. Tom för äldre rapporter.
+    objekt: 'check_ins.halsa',
+    ddl: 'ALTER TABLE `check_ins` ADD `halsa` integer',
+    kolumn: { tabell: 'check_ins', namn: 'halsa' },
+  },
 ];
+
+async function kolumnFinns(tabell: string, namn: string): Promise<boolean> {
+  const rader = (await db.all(
+    sql`SELECT name FROM pragma_table_info(${tabell})`,
+  )) as Array<{ name: string }>;
+  return rader.some((r) => r.name === namn);
+}
 
 /** Vad av ovanstående som ännu inte finns i databasen. */
 export async function missingSchema(): Promise<string[]> {
@@ -183,13 +205,21 @@ export async function missingSchema(): Promise<string[]> {
     sql`SELECT name FROM sqlite_master WHERE type IN ('table', 'index')`,
   )) as Array<{ name: string }>;
   const finns = new Set(rader.map((r) => r.name));
-  return SCHEMA_DDL.filter((d) => !finns.has(d.objekt)).map((d) => d.objekt);
+  const saknas: string[] = [];
+  for (const d of SCHEMA_DDL) {
+    const har = d.kolumn ? await kolumnFinns(d.kolumn.tabell, d.kolumn.namn) : finns.has(d.objekt);
+    if (!har) saknas.push(d.objekt);
+  }
+  return saknas;
 }
 
 /** Lägger till det som saknas. Går att köra hur många gånger som helst. */
 export async function applySchema(actorUserId: number): Promise<string[]> {
   const saknas = await missingSchema();
-  for (const d of SCHEMA_DDL) await db.run(sql.raw(d.ddl));
+  for (const d of SCHEMA_DDL) {
+    if (d.kolumn && (await kolumnFinns(d.kolumn.tabell, d.kolumn.namn))) continue;
+    await db.run(sql.raw(d.ddl));
+  }
 
   // Att ändra en delad databas är ett beslut, och beslut loggas.
   await db.insert(auditLog).values({

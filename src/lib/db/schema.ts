@@ -91,6 +91,13 @@ export const checkIns = sqliteTable(
     somn: integer('somn').notNull(),
     kost: integer('kost').notNull(),
     energi: integer('energi').notNull(),
+    /**
+     * "Hur frisk känner du dig idag?" — tillagd den 16 oktober, efter
+     * fysioterapeuterna. Tom för rapporter från före frågan: ett hittat på
+     * värde vore påhittad hälsodata. Sammanställningarna räknar därför varje
+     * fråga för sig, med egen anonymitetsgräns (queries/aggregates.ts).
+     */
+    halsa: integer('halsa'),
     /** Rådet som genererades vid incheckningen, sparat som det såg ut då. */
     advice: text('advice'),
     createdAt: text('created_at').notNull(),
