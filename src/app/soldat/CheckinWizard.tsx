@@ -334,7 +334,13 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col px-6 py-8">
+        {/*
+         * I en telefon fyller frågan skärmen och knapparna hamnar längst ned,
+         * där tummen når dem. Från sm: (en iPad eller dator) följer knapparna
+         * direkt under siffrorna i stället — på en iPad Air stod Nästa annars
+         * 687 px under reglaget (16 oktober).
+         */}
+        <div className="flex flex-1 flex-col px-6 py-8 sm:flex-none">
           <div className="mb-2 flex items-center gap-2.5">
             <span className="text-slate-500">
               <CategoryIcon namn={cat.icon} size={20} />

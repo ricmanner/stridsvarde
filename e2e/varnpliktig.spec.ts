@@ -192,6 +192,23 @@ test('reglaget börjar tomt, och man går inte vidare utan att välja', async ({
   await expect(reglage).toHaveAttribute('aria-valuetext', /^7 av 10/);
 });
 
+test('på en iPad står Nästa och Tillbaka nära reglaget, inte längst ned på skärmen', async ({ page }) => {
+  /*
+   * Incheckningen fyllde hela skärmhöjden och lade knapparna längst ned —
+   * rätt i en telefon, där tummen når nederkanten. På en iPad Air hamnade
+   * Nästa 687 px under reglaget (Richard, 16 oktober; cheferna ska prova
+   * på iPads). Telefonen är oförändrad.
+   */
+  await page.setViewportSize({ width: 820, height: 1180 });
+  await loggaIn(page, 'P1G1-06');
+  await oppnaIncheckning(page);
+
+  const reglage = (await page.locator('.psvi-reglage').boundingBox())!;
+  const nasta = (await page.getByRole('button', { name: 'Nästa' }).boundingBox())!;
+  const avstand = nasta.y - (reglage.y + reglage.height);
+  expect(avstand, `Nästa står ${Math.round(avstand)} px under reglaget`).toBeLessThan(150);
+});
+
 test('den som redan rapporterat skickas till sin återkoppling', async ({ page }) => {
   await loggaIn(page, KODER.varnpliktigKlar);
   await expect(page).toHaveURL(/\/soldat\/dashboard$/);
