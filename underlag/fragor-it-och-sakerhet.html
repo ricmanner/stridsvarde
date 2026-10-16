@@ -1,0 +1,227 @@
+<title>PSVI frågor och svar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+<style>
+  /*
+    Mötesstöd för Richard inför mötet med IT-chef, säkerhetschef och
+    beslutsfattare den 19 oktober 2026. Sakuppgifterna är kontrollerade mot
+    koden den 16 oktober. Inget om ägande eller pengar utöver det neutrala
+    svaret — förrådet kan vara offentligt.
+  */
+  :root {
+    --ground: #f5f6f8;
+    --surface: #ffffff;
+    --ink: #142033;
+    --muted: #586375;
+    --line: #dde2ea;
+    --accent: #1f4e79;
+    --accent-soft: #eaf1f8;
+    --ok: #047857;  --ok-bg: #e8f7f0;
+    --delvis: #a1500a; --delvis-bg: #fdf3e2;
+    --nej: #b42318; --nej-bg: #fdecea;
+    --deras: #2b4c7e; --deras-bg: #e9eff8;
+    --sans: 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --cond: 'IBM Plex Sans Condensed', 'Arial Narrow', var(--sans);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground: #0f141b; --surface: #161d27; --ink: #e6eaf0; --muted: #9aa5b5;
+      --line: #273141; --accent: #8cb6e0; --accent-soft: #1a2737;
+      --ok: #5fd0a3; --ok-bg: #13291f; --delvis: #f0b25e; --delvis-bg: #2d2214;
+      --nej: #f38b80; --nej-bg: #2e1715; --deras: #9ebbe6; --deras-bg: #182436;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #0f141b; --surface: #161d27; --ink: #e6eaf0; --muted: #9aa5b5;
+    --line: #273141; --accent: #8cb6e0; --accent-soft: #1a2737;
+    --ok: #5fd0a3; --ok-bg: #13291f; --delvis: #f0b25e; --delvis-bg: #2d2214;
+    --nej: #f38b80; --nej-bg: #2e1715; --deras: #9ebbe6; --deras-bg: #182436;
+  }
+
+  body { background: var(--ground); color: var(--ink); font: 400 15px/1.55 var(--sans); }
+  .sida { max-width: 46rem; margin: 0 auto; padding-inline: 16px; padding-block: 32px 56px; display: grid; gap: 28px; }
+
+  header { display: grid; gap: 6px; border-bottom: 2px solid var(--ink); padding-bottom: 16px; }
+  .etikett { font: 600 12px/1.3 var(--cond); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h1 { margin: 0; font-size: 26px; line-height: 1.2; font-weight: 700; text-wrap: balance; }
+  .ingress { margin: 0; color: var(--muted); max-width: 62ch; }
+
+  .forst { background: var(--accent-soft); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; display: grid; gap: 10px; }
+  .forst h2 { margin: 0; font-size: 16px; }
+  .forst ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+
+  section { display: grid; gap: 0; }
+  section > h2 { margin: 0 0 8px; font: 600 13px/1.3 var(--cond); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .rad { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; padding: 12px 0; border-top: 1px solid var(--line); align-items: start; }
+  .rad:last-child { border-bottom: 1px solid var(--line); }
+  .fraga { font-weight: 600; text-wrap: balance; }
+  .svar { grid-column: 1 / -1; margin: 0; color: var(--ink); max-width: 64ch; }
+  .lage { font: 600 12px/1 var(--cond); letter-spacing: .04em; padding: 5px 8px; border-radius: 3px; white-space: nowrap; }
+  .lage.ok { color: var(--ok); background: var(--ok-bg); }
+  .lage.delvis { color: var(--delvis); background: var(--delvis-bg); }
+  .lage.nej { color: var(--nej); background: var(--nej-bg); }
+  .lage.deras { color: var(--deras); background: var(--deras-bg); }
+
+  .tva { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 20px; }
+  .tva ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+  .tva h2 { margin: 0 0 8px; font: 600 13px/1.3 var(--cond); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .nyckel { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; color: var(--muted); font-size: 13px; }
+  footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 12px; }
+</style>
+
+<div class="sida">
+  <header>
+    <span class="etikett">FM–PSVI · Möte 19 oktober 2026</span>
+    <h1>Frågor från IT och säkerhet, med korta svar</h1>
+    <p class="ingress">Stöd att ha framför sig. Svaren är kontrollerade mot appens kod den 16 oktober. Det som inte är gjort står som inte gjort.</p>
+    <div class="nyckel" aria-label="Förklaring av märkena">
+      <span class="lage ok">Klart</span><span>finns och fungerar</span>
+      <span class="lage delvis">Delvis</span><span>finns, men inte färdigt</span>
+      <span class="lage nej">Inte gjort</span><span>säg det rakt ut</span>
+      <span class="lage deras">Er bedömning</span><span>deras beslut</span>
+    </div>
+  </header>
+
+  <div class="forst">
+    <h2>Säg själv, innan någon frågar</h2>
+    <ol>
+      <li>Demon ligger hos amerikanska molntjänster, med bara påhittad data. Skarp drift ska ske i Försvarsmaktens egen miljö.</li>
+      <li>Ingen extern säkerhetsgranskning är gjord än.</li>
+      <li>Om en enhets samlade mående är skyddsvärd information är er bedömning, och den avgör var appen får ligga.</li>
+    </ol>
+  </div>
+
+  <section>
+    <h2>Data och drift</h2>
+    <div class="rad">
+      <span class="fraga">Var ligger datan?</span><span class="lage ok">Klart</span>
+      <p class="svar">I demon hos Vercel (servrar) och Turso (databas), båda i Amazons datahall i Irland. All data i demon är påhittad.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Är inte det amerikanska bolag?</span><span class="lage delvis">Delvis</span>
+      <p class="svar">Jo. Amerikansk lag kan ge åtkomst även till data i EU. Därför finns bara påhittad data i demon.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Kan den köras hos er?</span><span class="lage ok">Klart</span>
+      <p class="svar">Ja. Appen anropar inga tjänster utanför sig själv och kan köras på en egen server mot en vanlig databasfil, utan internet.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Säkerhetskopior?</span><span class="lage delvis">Delvis</span>
+      <p class="svar">I demon sker de automatiskt hos Turso. Vid skarp drift gäller er rutin.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Vem sköter driften?</span><span class="lage deras">Er bedömning</span>
+      <p class="svar">Idag jag. Vid skarp drift bestäms det i ett avtal.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Inloggning och säkerhet</h2>
+    <div class="rad">
+      <span class="fraga">Hur loggar man in?</span><span class="lage ok">Klart</span>
+      <p class="svar">Med en engångskod på papper från befälet. Inget personnummer, ingen e-post, inget BankID. Koden sparas bara som ett krypterat avtryck, så en stulen databas ger ingen inloggning.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Kan man gissa sig till en kod?</span><span class="lage ok">Klart</span>
+      <p class="svar">Inloggningen bromsas efter tre felförsök och spärras efter tjugo inom en kvart.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Hur länge är man inloggad?</span><span class="lage ok">Klart</span>
+      <p class="svar">Värnpliktiga 30 dagar, på sin egen telefon. Befäl 12 timmar, eftersom de ofta sitter vid delade datorer.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Är den säkerhetsgranskad?</span><span class="lage nej">Inte gjort</span>
+      <p class="svar">Ingen extern granskning eller intrångstest. Appen har 241 automatiska tester och 46 tester i webbläsare, som körs vid varje ändring.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Är en enhets mående skyddsvärd information?</span><span class="lage deras">Er bedömning</span>
+      <p class="svar">Troligen kan ett kompanis samlade mående säga något om dess förmåga. Bedömningen avgör om appen får ligga på internet eller måste stå i ett skyddat nät.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Vem ser vad</h2>
+    <div class="rad">
+      <span class="fraga">Kan ett befäl se hur en enskild mår?</span><span class="lage ok">Klart</span>
+      <p class="svar">Nej. Befälet ser bara snitt för grupper där minst fyra personer finns och minst fyra har svarat. Skyddet ligger i databasfrågan, inte i vad skärmen väljer att visa.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Ser administratören allt?</span><span class="lage ok">Klart</span>
+      <p class="svar">Nej. Administratören lägger upp enheter och delar ut koder, men når aldrig hälsouppgifterna.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Vad sparas om en värnpliktig?</span><span class="lage ok">Klart</span>
+      <p class="svar">En benämning som förbandet väljer, vilken enhet personen hör till, och de dagliga svaren. Inga namn, personnummer eller telefonnummer.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Åtkomst och Försvarsmaktens nät</h2>
+    <div class="rad">
+      <span class="fraga">Kan bara personal och värnpliktiga komma åt den?</span><span class="lage delvis">Delvis</span>
+      <p class="svar">Idag bara den som har fått en kod. Hårdare skydd kräver Försvarsmaktens egen inloggning eller tjänstetelefoner.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Kan den ligga i Försvarsmaktens nät?</span><span class="lage deras">Er bedömning</span>
+      <p class="svar">Tekniskt ja. Men värnpliktigas privata telefoner når inte det interna nätet. Antingen en tjänst på internet i er regi med stark inloggning, eller tjänstetelefoner.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dataskydd</h2>
+    <div class="rad">
+      <span class="fraga">Hur hanteras hälsodata enligt GDPR?</span><span class="lage nej">Inte gjort</span>
+      <p class="svar">Det är känsliga personuppgifter. Före skarp drift behövs en konsekvensbedömning, en laglig grund och dataskyddsombudets synpunkter.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Hur länge sparas uppgifterna?</span><span class="lage delvis">Delvis</span>
+      <p class="svar">Automatisk gallring är byggd men avstängd, tills dataskyddsombudet anger hur länge uppgifterna får sparas.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Kan en värnpliktig få sina uppgifter raderade?</span><span class="lage ok">Klart</span>
+      <p class="svar">Ja, via administratören. Hälsodata raderas i samma steg som kontot, så att inget blir kvar halvvägs.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Utveckling och ägande</h2>
+    <div class="rad">
+      <span class="fraga">Är den byggd med AI?</span><span class="lage ok">Klart</span>
+      <p class="svar">Koden är skriven med hjälp av en AI-assistent (Claude Code), granskad och testad. Appen själv har ingen AI, och ingenting skickas till någon AI-tjänst.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Bygger den på kod från andra?</span><span class="lage ok">Klart</span>
+      <p class="svar">På öppna bibliotek som Next.js och React, med licenser som MIT och Apache som tillåter den här användningen.</p>
+    </div>
+    <div class="rad">
+      <span class="fraga">Vem äger koden?</span><span class="lage deras">Svar</span>
+      <p class="svar">Jag har utvecklat appen och vill att den kommer till användning hos er. Jag är öppen för olika upplägg och återkommer om det formella.</p>
+    </div>
+  </section>
+
+  <div class="tva">
+    <div>
+      <h2>Fråga tillbaka</h2>
+      <ul>
+        <li>Hur skulle ett sådant här system kunna få godkännande hos er?</li>
+        <li>Vem hos er skulle äga det?</li>
+        <li>Vilken inloggning använder värnpliktiga idag?</li>
+        <li>Kan vi börja med ett pilotförsök med ett kompani?</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Lova inte</h2>
+      <ul>
+        <li>Pris eller ersättning</li>
+        <li>Tidplan för skarp drift</li>
+        <li>Något om ägande</li>
+        <li>Att appen är säker. Säg i stället att den är byggd med säkerhet i fokus men inte granskad.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>Underlag för Richard. Kontrollerat mot koden den 16 oktober 2026. Se även juryfragor.md för frågor om appens funktioner.</footer>
+</div>
