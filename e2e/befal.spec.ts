@@ -39,6 +39,9 @@ test.describe('plutonchefen', () => {
     expect(rader.join(' ')).toContain('ligger på röd nivå');
     // 4. grupp har för få personer, och nämns därför aldrig som lägst.
     expect(rader.join(' ')).not.toContain('4. grupp');
+    // Ingen fotnot om hur texten tagits fram — Richard ville inte ha den på
+    // sidan (16 oktober). Svaret på frågan om AI ges muntligt.
+    await expect(page.getByText(/ingen AI/i)).toHaveCount(0);
     await ingaEnskildaPersoner(page);
 
     await page.goto('/rapport');

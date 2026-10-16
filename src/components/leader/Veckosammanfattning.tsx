@@ -8,6 +8,10 @@ import { CalendarDays } from 'lucide-react';
  * kompaniets veckomöte ska kunna peka på en rad i taget.
  *
  * Rubriken är en h2, som befälsvyns andra avsnitt, och står i samma stil.
+ *
+ * Ingen fotnot om hur texten tas fram. Det stod "ingen AI" under rutan;
+ * Richard ville inte ha det på sidan (16 oktober). Att texten skrivs ur
+ * siffrorna utan AI är ett svar att ge muntligt, se lib/veckosammanfattning.ts.
  */
 export default function Veckosammanfattning({ meningar }: { meningar: string[] }) {
   return (
@@ -31,9 +35,6 @@ export default function Veckosammanfattning({ meningar }: { meningar: string[] }
           ))}
         </ul>
       </div>
-      <p className="mt-1.5 text-etikett leading-relaxed text-slate-500">
-        Sammanställt automatiskt ur enhetens siffror — ingen AI, och ingenting lämnar appen.
-      </p>
     </section>
   );
 }
