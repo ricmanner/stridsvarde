@@ -4,10 +4,11 @@ import { ArrowLeft } from 'lucide-react';
 import PrintButton from '@/app/rapport/PrintButton';
 import Veckosammanfattning from '@/components/leader/Veckosammanfattning';
 import { requireRole } from '@/lib/auth/guard';
-import { CATEGORIES, getStatus, statusLabel } from '@/lib/data';
+import { CATEGORIES, getStatus, personfordelning, roundScore, statusLabel } from '@/lib/data';
 import { serviceDate, serviceDateDaysAgo } from '@/lib/date';
 import {
   getChildComparison,
+  getKategorilage,
   getUnitCategorySeries,
   getUnitOverview,
   getVeckounderlag,
@@ -15,7 +16,7 @@ import {
 import { parsePeriod } from '@/lib/privacy';
 import { veckokort } from '@/lib/veckosammanfattning';
 import { homeFor } from '@/lib/roles';
-import { formatScore, procent } from '@/lib/format';
+import { formatScore, forandring, procent, uppräkningSamt } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,17 +35,25 @@ export default async function RapportPage({
   const session = await requireRole('pluton', 'kompani', 'bataljon');
   const period = parsePeriod((await searchParams).period);
 
-  const [overview, series, comparison, veckounderlag] = await Promise.all([
+  const [overview, series, comparison, veckounderlag, lage] = await Promise.all([
     getUnitOverview(session.unitId, period),
     getUnitCategorySeries(session.unitId, period),
     getChildComparison(session.unitId, period),
     getVeckounderlag(session.unitId),
+    getKategorilage(session.unitId, period),
   ]);
 
   const cats = overview.categories;
   const overall = cats.ok
     ? Object.values(cats.data).reduce((a, b) => a + b, 0) / CATEGORIES.length
     : null;
+
+  // Som befälsvyn: sämst först, och de kategorier som ligger i rött.
+  const rader = cats.ok
+    ? [...CATEGORIES].sort((a, b) => roundScore(cats.data[a.key]) - roundScore(cats.data[b.key]))
+    : [];
+  const roda = cats.ok ? CATEGORIES.filter((c) => getStatus(cats.data[c.key]) === 'red') : [];
+  const harForra = lage.ok && CATEGORIES.some((c) => lage.data[c.key].forra !== null);
 
   // Underenheternas sort, "grupp" för en pluton — ur datan, inte ur rollen.
   const childKind = comparison.children.find((c) => !c.isDirect)?.kind ?? 'underenhet';
@@ -102,15 +111,32 @@ export default async function RapportPage({
           Sammanfattning
         </h2>
         {cats.ok && overall !== null ? (
+          // Samma fyra nyckeltal som överst i befälsvyn (16 oktober). Förut
+          // "Gröna värnpliktiga" och "Röda värnpliktiga", som skärmen inte
+          // längre säger.
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Box label="Samlat mående" value={formatScore(overall)} sub={statusLabel(getStatus(overall))} />
+            <Box
+              label="Samlat mående"
+              value={formatScore(overall)}
+              sub={`${statusLabel(getStatus(overall))} · snitt ${period} dagar`}
+            />
             <Box label="Svarat idag" value={procent(overview.today.pct)} sub={`${overview.today.responders} av ${overview.eligible}`} />
-            {overview.soldierStatus.ok && (
-              <>
-                <Box label="Gröna värnpliktiga" value={String(overview.soldierStatus.data.green)} />
-                <Box label="Röda värnpliktiga" value={String(overview.soldierStatus.data.red)} />
-              </>
-            )}
+            {(() => {
+              if (!overview.soldierStatus.ok) return <Box label="Personer i rött" value="—" sub="underlag saknas" />;
+              const f = personfordelning(overview.soldierStatus.data, overview.eligible);
+              return (
+                <Box
+                  label="Personer i rött"
+                  value={String(f.red)}
+                  sub={`av ${f.total}, på samlat snitt${f.utanSvar > 0 ? ` · ${f.utanSvar} utan svar` : ''}`}
+                />
+              );
+            })()}
+            <Box
+              label="Kategorier i rött"
+              value={String(roda.length)}
+              sub={roda.length === 0 ? `av ${CATEGORIES.length}` : uppräkningSamt(roda.map((c) => c.label.toLowerCase()))}
+            />
           </div>
         ) : (
           <p className="rounded border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-500">
@@ -123,7 +149,7 @@ export default async function RapportPage({
       {cats.ok && (
         <section className="mb-7" style={{ breakInside: 'avoid' }}>
           <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
-            Kategorier
+            Kategorier — de senaste {period} dagarna, sämst först
           </h2>
           <table className="w-full border-collapse text-left text-sm">
             <thead>
@@ -131,21 +157,54 @@ export default async function RapportPage({
                 <th className="py-1.5 font-bold">Kategori</th>
                 <th className="py-1.5 text-right font-bold">Snitt</th>
                 <th className="py-1.5 text-right font-bold">Status</th>
+                <th className="py-1.5 text-right font-bold">Mot perioden före</th>
+                <th className="py-1.5 text-right font-bold">I rött</th>
               </tr>
             </thead>
             <tbody>
-              {CATEGORIES.map((c) => {
+              {rader.map((c) => {
                 const s = cats.data[c.key];
+                const l = lage.ok ? lage.data[c.key] : null;
+                const f = l?.forra != null ? forandring(s, l.forra) : null;
                 return (
                   <tr key={c.key} className="border-b border-slate-100">
                     <td className="py-1.5 text-slate-700">{c.label}</td>
                     <td className="py-1.5 text-right font-bold tabular-nums text-slate-900">{formatScore(s)}</td>
                     <td className="py-1.5 text-right text-slate-600">{statusLabel(getStatus(s))}</td>
+                    <td className="py-1.5 text-right tabular-nums text-slate-600">
+                      {f && l?.forra != null ? (
+                        <>
+                          <span
+                            className={
+                              f.riktning === 'ned'
+                                ? 'font-semibold text-red-700'
+                                : f.riktning === 'upp'
+                                  ? 'font-semibold text-emerald-700'
+                                  : ''
+                            }
+                          >
+                            {f.text}
+                          </span>{' '}
+                          <span className="text-slate-500">från {formatScore(l.forra)}</span>
+                        </>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td className="py-1.5 text-right tabular-nums text-slate-600">
+                      {l ? `${l.iRott} av ${cats.responders}` : '—'}
+                    </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+          <p className="mt-1.5 text-xs text-slate-500">
+            {harForra
+              ? `Mot perioden före: de ${period} dagarna innan. `
+              : `Ingen jämförelse: för få svar under de ${period} dagarna före. `}
+            I rött: personer vars eget snitt ligger under 4, av dem som svarat.
+          </p>
         </section>
       )}
 
@@ -161,7 +220,7 @@ export default async function RapportPage({
                 <th className="py-1.5 font-bold">Enhet</th>
                 <th className="py-1.5 text-right font-bold">Svarande</th>
                 <th className="py-1.5 text-right font-bold">Snitt</th>
-                <th className="py-1.5 text-right font-bold">Grön/Gul/Röd</th>
+                <th className="py-1.5 text-right font-bold">I rött</th>
               </tr>
             </thead>
             <tbody>
@@ -178,8 +237,8 @@ export default async function RapportPage({
                     {c.overall === null
                       ? 'underlag saknas'
                       : c.red === null
-                        ? '–'
-                        : `${c.green} / ${c.yellow} / ${c.red}`}
+                        ? '—'
+                        : `${c.red} av ${c.responders}`}
                   </td>
                 </tr>
               ))}

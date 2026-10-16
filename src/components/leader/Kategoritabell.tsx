@@ -2,7 +2,7 @@ import CategoryIcon from '@/components/CategoryIcon';
 import StatusBadge from '@/components/StatusBadge';
 import { CATEGORIES, type Category, getStatus, roundScore } from '@/lib/data';
 import type { Kategorilage } from '@/lib/db/queries/aggregates';
-import { formatScore } from '@/lib/format';
+import { formatScore, forandring } from '@/lib/format';
 
 /**
  * Kategorierna i befälsvyns översikt: snitt, läge på skalan, förändring mot
@@ -157,7 +157,7 @@ function Skala({ nu, forra }: { nu: number; forra: number | null }) {
   );
 }
 
-/** Förändringen i de tal som visas: pil och färg från ett halvt steg. */
+/** Förändringen i de tal som visas: pil och färg från ett halvt steg (forandring()). */
 function Forandring({ nu, forra, period }: { nu: number; forra: number | null; period: number }) {
   if (forra === null) {
     return (
@@ -167,15 +167,20 @@ function Forandring({ nu, forra, period }: { nu: number; forra: number | null; p
       </span>
     );
   }
-  const steg = Math.round((roundScore(nu) - roundScore(forra)) * 10) / 10;
-  const text =
-    steg <= -0.5 ? (
-      <span className="font-semibold text-red-700">↓ {formatScore(-steg)}</span>
-    ) : steg >= 0.5 ? (
-      <span className="font-semibold text-emerald-700">↑ {formatScore(steg)}</span>
-    ) : (
-      <span className="text-slate-500">{steg === 0 ? '±' : steg > 0 ? '+' : '−'}{formatScore(Math.abs(steg))}</span>
-    );
+  const f = forandring(nu, forra);
+  const text = (
+    <span
+      className={
+        f.riktning === 'ned'
+          ? 'font-semibold text-red-700'
+          : f.riktning === 'upp'
+            ? 'font-semibold text-emerald-700'
+            : 'text-slate-500'
+      }
+    >
+      {f.text}
+    </span>
+  );
   return (
     <span className="text-sm tabular-nums sm:text-right">
       <span className="sr-only">

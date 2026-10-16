@@ -167,6 +167,18 @@ test.describe('plutonchefen', () => {
     await page.goto('/rapport');
     await expect(page.getByText(/I rött visas inte per grupp/)).toBeVisible();
   });
+
+  test('rapporten säger samma sak som skärmen', async ({ page }) => {
+    // Rapporten stod kvar med "Gröna värnpliktiga / Röda värnpliktiga" och
+    // grön/gul/röd per grupp när befälsvyn gjordes om (granskningen 16 oktober).
+    await page.goto('/rapport');
+    const text = await synligText(page);
+    for (const ord of ['personer i rött', 'kategorier i rött', 'mot perioden före', 'sämst först']) {
+      expect(text, `rapporten saknar "${ord}"`).toContain(ord);
+    }
+    expect(text).not.toContain('gröna värnpliktiga');
+    expect(text).not.toContain('grön/gul/röd');
+  });
 });
 
 test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {

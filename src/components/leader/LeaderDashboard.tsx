@@ -25,7 +25,7 @@ import {
 import type { ChildComparison, Kategorilage, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
 import { ALLOWED_PERIODS, type Guarded, type Period } from '@/lib/privacy';
 import { ordformer, type ChildKind } from '@/lib/unit-names';
-import { formatScore, procent } from '@/lib/format';
+import { formatScore, procent, uppräkningSamt } from '@/lib/format';
 
 /** Rangordningen under Jämförelse. Gömd den 16 oktober, se där. */
 const VISA_RANGORDNING = false;
@@ -165,7 +165,7 @@ export default function LeaderDashboard({
                 ? 'underlag saknas'
                 : alerts.length === 0
                   ? `av ${CATEGORIES.length}`
-                  : opprakning(alerts.map((c) => c.label.toLowerCase()))
+                  : uppräkningSamt(alerts.map((c) => c.label.toLowerCase()))
             }
           />
         </dl>
@@ -469,16 +469,6 @@ function Nyckeltal({ etikett, varde, under }: { etikett: string; varde: React.Re
       <dd className="min-h-4 text-xs text-slate-500">{under}</dd>
     </div>
   );
-}
-
-/**
- * "sömn", "sömn och energinivå" — men "sömn samt kost och näring": när ett
- * namn självt innehåller "och" blir det annars oklart var gränsen går.
- */
-function opprakning(namn: string[]): string {
-  if (namn.length <= 1) return namn[0] ?? '';
-  const binde = namn.some((n) => n.includes(' och ')) ? ' samt ' : ' och ';
-  return `${namn.slice(0, -1).join(', ')}${binde}${namn.at(-1)}`;
 }
 
 function SL({ children }: { children: React.ReactNode }) {

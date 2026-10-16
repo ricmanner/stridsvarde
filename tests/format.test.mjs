@@ -72,3 +72,29 @@ test('procent skrivs med mellanslag före tecknet', async () => {
   assert.equal(procent(0), '0 %');
   assert.equal(procent(100), '100 %');
 });
+
+/*
+ * Förändringen mot perioden före, skriven på ett ställe.
+ *
+ * Befälsvyns kategoritabell hade regeln för sig själv. När rapporten fick
+ * samma kolumn (16 oktober) flyttades den hit, så att skärm och papper inte
+ * kan säga olika om samma tal.
+ */
+test('förändringen: pil från ett halvt steg, räknad på de visade talen', async () => {
+  const { forandring } = await import('../src/lib/format.ts');
+  assert.deepEqual(forandring(5.3, 6.0), { steg: -0.7, riktning: 'ned', text: '↓ 0,7' });
+  assert.deepEqual(forandring(4.7, 4.1), { steg: 0.6, riktning: 'upp', text: '↑ 0,6' });
+  assert.equal(forandring(3.3, 3.6).text, '−0,3');
+  assert.equal(forandring(3.6, 3.5).text, '+0,1');
+  assert.equal(forandring(5.7, 5.7).text, '±0,0');
+  // 4,96 visas som 5,0 och 4,54 som 4,5: steget är 0,5, inte 0,42.
+  assert.equal(forandring(4.96, 4.54).riktning, 'upp');
+});
+
+test('kategorinamn räknas upp med "samt" när ett namn själv innehåller "och"', async () => {
+  const { uppräkningSamt } = await import('../src/lib/format.ts');
+  assert.equal(uppräkningSamt(['sömn']), 'sömn');
+  assert.equal(uppräkningSamt(['sömn', 'energinivå']), 'sömn och energinivå');
+  assert.equal(uppräkningSamt(['sömn', 'kost och näring']), 'sömn samt kost och näring');
+  assert.equal(uppräkningSamt(['sömn', 'hälsa', 'energinivå']), 'sömn, hälsa och energinivå');
+});
