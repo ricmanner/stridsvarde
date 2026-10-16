@@ -16,8 +16,21 @@ stora pushen (`3da4b26`) är gröna; den sista, en texträttning på `/status`
 (`02c5a24`), var inte avläst när detta skrevs (GitHubs gräns för
 okontrollerade frågor). 221 enhetstester och 43 webbläsartester.
 
-**Lokalt, inte pushat än:** frågan om hälsa (se "Frågan om hälsa" nedan,
-med driftsättningsordningen), och de nya texterna för skalan.
+**Driftsatt den 16 oktober (kväll): frågan om hälsa är påslagen i demon.**
+Ordningen följdes: `a3d4931` med frågan avstängd, "Uppdatera schemat" (som
+lade till `check_ins.halsa`), `e283d68` med frågan påslagen, och "Återställ
+demon". GitHubs kontroll av `a3d4931` blir röd med flit, eftersom testerna
+förväntar sig frågan. Den som räknas är `e283d68`.
+
+**Testat mot demon efteråt:** rundturen för alla fem konton gick igenom. Ett
+eget, grundligare test (`.playwright-mcp/prodtest.mjs`, lokalt):
+incheckning med sju frågor i iPhone, iPad och dator, med tomt reglage,
+info-ruta, tryck på skalan och vägen tillbaka till sammanfattningen.
+Därtill befälsvyn för BEF-P1, BEF-KP3 och BEF-BAT i dator, telefon och
+iPad, med alla flikar och perioder, rapporten, CSV:n (samma dagssnitt som
+skärmen), behörigheterna och statussidan. Resultat: **inga fel i webbläsaren,
+inga brister i tillgänglighetsgranskningen (axe), ingen sida som scrollar i
+sidled, och inga fel i appen.** Testet använde P1G1-01, -02 och -03.
 
 **Pushat tidigare samma dag:** veckosammanfattningen, väg B för varningarna,
 knapparna nära reglaget på iPad, och fotnoten borttagen (se "Gjort den 15
@@ -74,7 +87,7 @@ skiljer inte på vem av dem som sa vad, så alla punkter står som
 |---|---|---|
 | a | Ta bort 112 | **Gjort**, utökat: alla nummer borta |
 | b | Vård via befälet, inga samtalsknappar | **Gjort**: texterna ändrade, knapparna avstängda |
-| c | Ny fråga: sjukdom | **Byggd lokalt 16 oktober** som "Hälsa", inte driftsatt. Se "Frågan om hälsa" nedan |
+| c | Ny fråga: sjukdom | **Gjort och driftsatt 16 oktober** som "Hälsa", fråga 2. Se "Frågan om hälsa" nedan |
 | d | Förklaring av siffrorna | **Gjort**, med info-knapp. Därtill: rörelse, tomt reglage, oval knapp |
 | e | Kontrollfråga vid stora hopp | Inte gjort. Fritext avråds; en bekräftelse utan lagring går (1–2 h). Mindre värd nu när reglaget börjar tomt |
 | f | Veckorapport med text | **Gjort**: veckosammanfattning i befälsvyn och rapporten, utan AI |
@@ -82,7 +95,7 @@ skiljer inte på vem av dem som sa vad, så alla punkter står som
 | h | Svara i efterhand | Inte gjort. Fråga till mötet |
 | i | Befattning per person | Inte gjort. Integritetsrisk. Fråga till mötet |
 
-### Frågan om hälsa — byggd, inte driftsatt (16 oktober)
+### Frågan om hälsa — driftsatt och påslagen (16 oktober)
 
 Fråga 2, direkt efter Fysisk form: **Hälsa — "Hur frisk känner du dig
 idag?"**, där 10 betyder frisk. Skalan: *Sjuk. Feber, infektion eller tydliga
