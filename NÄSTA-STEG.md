@@ -3,75 +3,94 @@
 Kort överlämning mellan arbetspass. `README.md` beskriver appen, `CLAUDE.md`
 reglerna som styr arbetet — den här filen säger bara **var vi står just nu**.
 
-Senast uppdaterad: 15 oktober 2026.
+Senast uppdaterad: 16 oktober 2026, kväll.
 
 ## Läget
 
-**Pushat och driftsatt den 15 oktober (kväll).** Alla steg i "Gjort den 15
-oktober" ligger ute på demon, och "Återställ demon" är tryckt, så den nya
-demodatan med historier syns. Någon hade lagt till två enheter och åtta
-personer i demon; de försvann vid återställningen, med Richards godkännande.
-`npm run rundtur` mot demon: allt fungerade. GitHubs kontroller för den
-stora pushen (`3da4b26`) är gröna; den sista, en texträttning på `/status`
-(`02c5a24`), var inte avläst när detta skrevs (GitHubs gräns för
-okontrollerade frågor). 221 enhetstester och 43 webbläsartester.
+**Allt är committat, pushat och driftsatt.** Demon på
+<https://fm-psvi-v2.vercel.app> kör hela veckans arbete. 249 enhetstester och
+47 webbläsartester är gröna, liksom GitHubs kontroller till och med
+`dc747ad`. Kontrollera de senaste pusharna med kommandot under
+"Driftsättning" i CLAUDE.md. Rundturen gick igenom, utom P1G1-01, som redan
+checkat in efter ett eget test; nattkörningen öppnar det igen.
 
-**Driftsatt den 16 oktober (kväll): frågan om hälsa är påslagen i demon.**
-Ordningen följdes: `a3d4931` med frågan avstängd, "Uppdatera schemat" (som
-lade till `check_ins.halsa`), `e283d68` med frågan påslagen, och "Återställ
-demon". GitHubs kontroll av `a3d4931` blir röd med flit, eftersom testerna
-förväntar sig frågan. Den som räknas är `e283d68`.
+**Inget arbete pågår.** Inget ligger ocommittat.
 
-**Testat mot demon efteråt:** rundturen för alla fem konton gick igenom. Ett
-eget, grundligare test (`.playwright-mcp/prodtest.mjs`, lokalt):
-incheckning med sju frågor i iPhone, iPad och dator, med tomt reglage,
-info-ruta, tryck på skalan och vägen tillbaka till sammanfattningen.
-Därtill befälsvyn för BEF-P1, BEF-KP3 och BEF-BAT i dator, telefon och
-iPad, med alla flikar och perioder, rapporten, CSV:n (samma dagssnitt som
-skärmen), behörigheterna och statussidan. Resultat: **inga fel i webbläsaren,
-inga brister i tillgänglighetsgranskningen (axe), ingen sida som scrollar i
-sidled, och inga fel i appen.** Testet använde P1G1-01, -02 och -03.
+**Presentation måndag den 19 oktober** för IT-chef, säkerhetschef, officerare
+och beslutsfattare. Några veckor senare: garnisonschefen. De vill få igång
+appen på riktigt snart. Mötesstöd med troliga frågor och ärliga svar:
+`underlag/fragor-it-och-sakerhet.html`, publicerad privat på
+<https://claude.ai/artifact/9J6e5b4Qvj2mJbrDazQPJM>.
 
-**Pushat tidigare samma dag:** veckosammanfattningen, väg B för varningarna,
-knapparna nära reglaget på iPad, och fotnoten borttagen (se "Gjort den 15
-oktober"). Väntar på att Richard säger
-"pusha". Ingen "Återställ demon" behövs för dem.
+**Demon:** Richard sa den 15 oktober att den får ändras ("ingen använder den
+nu"). Fråga ändå före "Återställ demon", som loggar ut alla. Senast
+återställd den 16 oktober, efter att frågan om hälsa slogs på.
 
-Telefoninställningen (`allowedDevOrigins`) är borttagen den 16 oktober.
-Richard testar på telefon, iPad och dator mot den driftsatta demon,
-https://fm-psvi-v2.vercel.app. Inte fmpsvi.netlify.app, som är den gamla
-prototypen.
+### Klart den 15–16 oktober
 
-**Länken är skickad till kollegorna (28 september), och demon är delad.**
-Återställ inte, checka inte in och ändra inget i den driftsatta demon utan att
-fråga Richard först — någon kan vara inne. Den 14 oktober syntes inga spår
-efter kollegorna utom en öppen samtalsbegäran hos kompanichefen.
+Detaljer och vägar tillbaka i "Gjort den 15–16 oktober" längre ned.
 
-**Presentation måndag den 19 oktober, inför officerare och chefer.** Den
-leder i sin tur till ett möte med fler chefer och beslutsfattare. En övning
-med fem fysioterapeuter hölls den 14 oktober; deras synpunkter står i
-"Synpunkter från fysioterapeuterna den 14 oktober" nedan, värderade.
-**Richard har inte valt än vad som görs före måndag.** Önskemål som säger
-emot varandra byggs inte två gånger (se "Under hackathonet" i CLAUDE.md).
+- **Fysioterapeuternas synpunkter:** a, b, c, d, f och g gjorda; e, h och i
+  inte (tabellen nedan säger varför).
+- **Incheckningen:** inga telefonnummer eller samtalsknappar; förklaring av
+  siffrorna under reglaget och i en info-ruta; texter utan "du" och utan
+  omdöme om tjänsten; reglaget börjar tomt; oval knapp som följer fingret och
+  glider; siffran glider in vid ett steg men inte under dragning; "Till
+  sammanfattningen" efter en ändring; knapparna nära reglaget på iPad.
+- **Frågan om hälsa** ("Hur frisk känner du dig idag?"), fråga 2, påslagen
+  (`HALSA_PA` i `src/lib/data.ts`). Bara fullständiga rapporter räknas, så
+  att hälsans snitt aldrig bygger på färre än fyra personer.
+- **Befälsvyn, en fråga per flik.** Översikt: fyra nyckeltal som räknas upp
+  vid inloggning, veckan i fyra fält, kategorierna som tabell med sämst
+  först (snitt, skala med förra perioden, förändring, personer i rött),
+  befälsrådet nämner kategorierna. Trender: samlat mående först. Jämförelse:
+  rangordningen gömd, "I rött" i tabellen. Varningen står inte längre fem
+  gånger (väg B).
+- **Demodatan:** tre veckors historik, en historia per pluton, skjutvecka för
+  bataljonen, förkylning i 3. kompani 2. pluton, och 4. grupp med "Underlag
+  saknas".
+- **Databasen** ligger i Irland (Turso `aws-eu-west-1`), alltså inom EU.
 
-**Nästa uppgift — förslag i ordning, men fråga Richard först:**
+### Nästa uppgift
 
-1. **Fysioterapeuternas synpunkter** — Richard väljer ur listan nedan.
-2. **Samtalsbegäran säger inte vilken grupp.** Hos kompanichefen står
-   "Värnpliktig 02 i 1. grupp har begärt ett samtal" — och kompaniet har tre
-   grupper som heter så. Ska säga grupp och pluton. Texten byggs i
-   `src/lib/db/queries/notifications.ts` av `soldierUnitName`. Ungefär 20
-   minuter med test; rekommenderat före måndag.
-3. ~~Fynd 1, varningen i befälsvyn.~~ **Avgjort den 16 oktober: väg B**,
-   byggt (se "Gjort den 15 oktober").
-4. **Richards egna, före måndag:** ~~kontrollera Tursos region~~ —
-   **gjort den 16 oktober: `aws-eu-west-1`, alltså Irland (Dublin)**, samma
-   region som Vercels servrar. "Inom EU" i meddelandet till gruppen stämmer.
-   Svaret på "var hamnar informationen?": i demon på Amazons datahall i
-   Irland, via Vercel och Turso, och allt är påhittat. Vid skarp drift körs
-   appen på Försvarsmaktens egen infrastruktur. Kvar för Richard: sätt Vercels
-   sparandetid till 1 week (se "Kräver dig"). Loggkoden är sparad (Richard,
-   15 oktober).
+1. **Efter mötet den 19 oktober:** skriv ner vad cheferna sa, med vem som
+   ville vad och varför, värdera varje punkt och låt Richard välja. Bygg inte
+   motstridiga önskemål två gånger. Frågor att ha ställt på mötet:
+   - En fråga i taget eller alla på en sida i incheckningen?
+   - Ska veckan säga vilken enhet som ligger lägst (`VISA_LAGST`)?
+   - Behövs "Igår" eller 30 dagar? Fritt valda datum byggs inte (se nedan).
+   - Svara i efterhand för dagar i fält, och befattning per person
+     (fysioterapeuternas h och i)?
+   - Hur ska appen få godkännande, vem äger den hos dem, och hur loggar
+     värnpliktiga in?
+2. **Richards egna:** sätt Vercels sparandetid till 1 week (se "Kräver
+   dig"); gör förrådet på GitHub privat — han bestämde det den 16 oktober men
+   har inte bekräftat att det är gjort; leta upp hackathonets villkor.
+   Ägande och avtal står i Claudes minne, aldrig i förrådet.
+3. **Möjliga tillägg, värderade:**
+   - en rad "Igår" i Översikt, om minst fyra svarat: 1 h
+   - 30 dagar som fjärde låst period, med längre demodata: 1 h
+   - alla frågor på en sida i incheckningen: en halv till en hel dag
+   - en kontrollfråga vid stora hopp, utan fritext: 1–2 h
+   - klick i handen, bara på Android: en kvart
+   - fysioterapeuterna bör läsa skalans texter och råden om hälsa
+
+### Provat 15–16 oktober och inte fungerat
+
+Längre förklaringar i "Återvändsgränder" längst ned.
+
+- **Rullande siffra som rullar ut och in med oskärpa** — rörig när man drar.
+  Nu glider bara den nya siffran, och bara vid ett steg.
+- **Tom linje utan knapp** i tomt reglage — kändes klumpig. Nu en grå knapp.
+- **Drizzles `insert(checkIns)`** tar med alla kolumner och kraschade varje
+  incheckning innan kolumnen för hälsa fanns. Rapporter skrivs nu med
+  uttryckliga kolumner.
+- **Egna regler för reglagets tumme per webbläsare** slogs ihop av bygget och
+  kastades av Chrome. Nu ritas knappen av appen.
+- **Fritt valda datum i befälsvyn** — byggs inte: två perioder som skiljer en
+  dag räcker för att räkna fram en enskilds svar.
+- **Testa på telefonen mot utvecklingsservern** kräver `allowedDevOrigins`
+  och går sönder när filen läggs undan. Testa mot den driftsatta demon.
 
 ### Synpunkter från fysioterapeuterna den 14 oktober
 
@@ -290,7 +309,7 @@ GitHub förblir offentligt tills vidare; mörkt läge inte nu (fråga om
 ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
 "1. gruppen".
 
-### Gjort den 15 oktober
+### Gjort den 15–16 oktober
 
 - **Stödrutan utan telefonnummer och utan samtalsknappar.** Richards beslut
   efter fysioterapeuternas övning (se "Synpunkter från fysioterapeuterna",
@@ -1163,7 +1182,7 @@ fram demodatan och återställa demon.
    tagna och gjorda (se "Gjort den 26 september"). Resten ligger kvar:
 
    - ~~Reglaget står på 5 och är märkt GUL innan man rört det.~~ Löst den 15
-     oktober: reglaget börjar tomt (se "Gjort den 15 oktober").
+     oktober: reglaget börjar tomt (se "Gjort den 15–16 oktober").
    - **I telefonen syns inte vilken roll man är inloggad som.** Rollen visas
      först från `sm:` och uppåt. Den som provar fem koder i rad tappar bort
      sig. Liten rättning.
@@ -1261,7 +1280,7 @@ fram demodatan och återställa demon.
    är Richards.
 
 5. ~~Skavank i incheckningen: vägen tillbaka till sammanfattningen.~~ Gjort
-   den 15 oktober (se "Gjort den 15 oktober").
+   den 15 oktober (se "Gjort den 15–16 oktober").
 
 6. **Resten av nätverksfelen.** Incheckningen är klar, men den var bara den
    första av flera skrivvägar. Utan tidsgräns står ännu inloggningen
@@ -1436,6 +1455,36 @@ koden direkt vid första start, innan du gör något annat.**
 ## Återvändsgränder — prova inte om igen
 
 Sådant som såg ut som förbättringar och inte var det. Varje rad kostade tid.
+
+**Från 15–16 oktober:**
+
+- **En rullande siffra som rullar ut och in, med oskärpa och studs.** Snygg
+  vid ett tryck, rörig när man drar — siffran byts många gånger i sekunden.
+  Nu glider bara den nya siffran in, kort, och inte alls under dragning.
+- **Ett tomt reglage utan knapp.** Richard provade på iPhone: klumpigt. En
+  grå knapp i mitten visar var man drar utan att se ut som ett svar.
+- **Egna CSS-regler för reglagets tumme, en per webbläsare.** Bygget slog
+  ihop dem till en selektorlista med Firefox pseudo-element, och Chrome
+  kastade hela regeln. Tummens stil går inte heller att läsa ut med
+  `getComputedStyle` i Chrome. Knappen ritas nu av appen, under reglaget.
+- **Drizzles `insert(checkIns)`.** Tar med alla kolumner i schemat, också en
+  som ännu inte finns i den delade databasen, och kraschade varje incheckning
+  i ett driftsättningsprov. Skriv rapporter med uttryckliga kolumner.
+- **`git stash` för att pröva ett test mot gammal kod, utan att rensa
+  `.next`.** Byggets cache behöll den nya stilmallen, och testet gick
+  felaktigt igenom.
+- **Att fråga GitHub om kontrollerna om och om igen.** Spärras efter ett tag
+  utan inloggning. Fråga en gång efter en kvart.
+- **Att testa på telefonen mot utvecklingsservern.** Kräver
+  `allowedDevOrigins` i `next.config.ts`, som lätt följer med i en commit och
+  slutar fungera när filen läggs undan. Testa mot den driftsatta demon.
+- **Fritt valda datum i befälsvyn.** Föreslogs av Richard; byggs inte. Två
+  perioder som skiljer sig med en dag räcker för att räkna fram en enskild
+  persons svar.
+- **Tillgänglighetsgranskning mitt i en rörelse.** axe mätte texten medan den
+  tonade in och underkände kontrasten. Granskningen väntar nu ut rörelserna.
+
+**Äldre:**
 
 - **Vercel kan missa en push.** GitHub fick den och körde sina kontroller,
   men inget bygge startade. En tom commit (`git commit --allow-empty`) väckte
