@@ -21,9 +21,10 @@ knapparna nära reglaget på iPad, och fotnoten borttagen (se "Gjort den 15
 oktober"). Väntar på att Richard säger
 "pusha". Ingen "Återställ demon" behövs för dem.
 
-**Lokalt, inte committat med flit:** `allowedDevOrigins` i `next.config.ts`,
-så att Richards telefon når utvecklingsservern. Ta bort raden när
-telefonproven är klara.
+Telefoninställningen (`allowedDevOrigins`) är borttagen den 16 oktober.
+Richard testar på telefon, iPad och dator mot den driftsatta demon,
+https://fm-psvi-v2.vercel.app. Inte fmpsvi.netlify.app, som är den gamla
+prototypen.
 
 **Länken är skickad till kollegorna (28 september), och demon är delad.**
 Återställ inte, checka inte in och ändra inget i den driftsatta demon utan att
@@ -63,6 +64,20 @@ skiljer inte på vem av dem som sa vad, så alla punkter står som
 "fysioterapeuterna". **(1)** och **(2)** är deras prioritering: 1 är viktigt,
 2 kan vänta. Värderingen och tiden är Claudes, kontrollerade mot koden den
 15 oktober.
+
+**Läget den 16 oktober:**
+
+| # | Önskemål | Läge |
+|---|---|---|
+| a | Ta bort 112 | **Gjort**, utökat: alla nummer borta |
+| b | Vård via befälet, inga samtalsknappar | **Gjort**: texterna ändrade, knapparna avstängda |
+| c | Ny fråga: sjukdom | Inte gjort. Kräver databasändring. Fråga till mötet; Readiness Advisor har en sådan |
+| d | Förklaring av siffrorna | **Gjort**, med info-knapp. Därtill: rörelse, tomt reglage, oval knapp |
+| e | Kontrollfråga vid stora hopp | Inte gjort. Fritext avråds; en bekräftelse utan lagring går (1–2 h). Mindre värd nu när reglaget börjar tomt |
+| f | Veckorapport med text | **Gjort**: veckosammanfattning i befälsvyn och rapporten, utan AI |
+| g | Större skillnader i demon | **Gjort**: historier per pluton, skjutvecka för bataljonen, 4. grupp med "Underlag saknas" |
+| h | Svara i efterhand | Inte gjort. Fråga till mötet |
+| i | Befattning per person | Inte gjort. Integritetsrisk. Fråga till mötet |
 
 **Frågor de tror kommer på måndag:** var informationen hamnar, AI,
 säkerhet, och hur appen kommer in i Försvarsmaktens nät. Det mesta har
