@@ -60,7 +60,18 @@ commit-texten, som skrivs för nästa utvecklare.
   behåller hellre något i onödan än ångrar en radering.
 - **Svara alltid på svenska**, också mitt i ett långt arbete.
 - **Visa före och efter med skärmdumpar** vid allt som syns, och säg hur det
-  ångras — innan push.
+  ångras — innan push. Bäst: en jämförelsesida med bilderna sida vid sida i
+  `.playwright-mcp/` (lokalt, utanför förrådet), öppnad med `open`.
+- **Skissa innan du bygger något som syns.** En HTML-sida med alternativen
+  sida vid sida och demons riktiga siffror. Han väljer, och kombinerar gärna
+  ("ta A och B").
+- **Han provar själv på iPhone, iPad och dator** mot den driftsatta demon,
+  <https://fm-psvi-v2.vercel.app> — inte fmpsvi.netlify.app, som är den gamla
+  prototypen. Pusha när han vill prova; utvecklingsservern når inte telefonen.
+- **Siffror rakt på sak, rörelse med måtta.** Befälen är kräsna. Rörelse ska
+  kännas mjuk men aldrig rörig — den första rullande siffran fick göras om.
+- **Ägande, pengar och avtal skrivs aldrig i förrådet.** Det är offentligt på
+  GitHub.
 - **Säg emot honom när ett förslag inte passar appen.** Han vill ha kritik,
   inte medhåll. Men när han har bestämt: följ beslutet och skriv ner det i
   `NÄSTA-STEG.md`, så att det inte föreslås igen.
@@ -113,12 +124,10 @@ commit-texten, som skrivs för nästa utvecklare.
   för att prova på telefonen. Den följde med en dokumentcommit den 15
   oktober och fick tas bort i en egen.
 
-## Under hackathonet
+## Inför och under visningar
 
-*Tidsbegränsat avsnitt — ta bort det när hackathonet är över.*
-
-Appen visas för befäl och fysioterapeuter som kommer att be om ändringar på
-plats, ibland motstridiga: en vill ta bort samtalsknappen, nästa vill ha kvar
+Appen visas för befäl, fysioterapeuter och beslutsfattare som ber om ändringar,
+ibland motstridiga: en vill ta bort samtalsknappen, nästa vill ha kvar
 den. Då gäller tre saker utöver det vanliga.
 
 - **Göm hellre än ta bort.** Stäng av funktionen, radera den inte. Att sätta
@@ -183,13 +192,18 @@ utskriftsrapporten och 64 px på incheckningens siffra.
   skulle falla gick igenom (15 oktober). `rm -rf .next` först.
 - Kör inte `npm run build` medan `next dev` är igång i samma mapp: dev-servern
   serverade efter det en stilmall utan de senaste reglerna.
+- Text med versaler via CSS kommer ur `innerText` med versaler. Jämför utan
+  skiftläge, annars ser det ut som att texten saknas.
+- Testerna och egna prov använder demons P1G1-konton, och ett konto som
+  checkat in skickas till översikten. Rundturen behöver P1G1-01 ledigt; prova
+  själv med P1G1-04 till -08. Nattkörningen öppnar dem igen.
 
 ## Innan något driftsätts
 
 ```bash
 npm test && npm run typecheck && npx eslint src tests scripts e2e && npm run build
 lsof -ti:3100 | xargs kill   # en server som ligger kvar ger gamla resultat
-npm run e2e         # 41 tester i webbläsare, inklusive tillgänglighet (axe)
+npm run e2e         # 47 tester i webbläsare, inklusive tillgänglighet (axe)
 npm run rundtur     # klickar igenom appen som alla fem demokonton
 ```
 
@@ -235,6 +249,11 @@ curl -s "https://api.github.com/repos/ricmanner/stridsvarde/commits/$(git rev-pa
 # ta id:t för "webblasare" och hämta /check-runs/<id>/annotations
 ```
 
+Fråga en gång, efter ungefär en kvart, i bakgrunden — fråga inte om och om
+igen: GitHub spärrar frågor utan inloggning efter ett tag. `gh` finns inte
+installerat. Blir förrådet privat fungerar frågan inte alls; då syns
+resultatet under fliken Actions på GitHub.
+
 Utöver koden ligger fem miljövariabler och hemligheten `CRON_SECRET` i Vercel,
 satta enbart för produktion. `CRON_SECRET` driver nattkörningen som håller
 demodatan aktuell — beskriven i `NÄSTA-STEG.md`, inklusive hur den stängs av.
@@ -246,3 +265,9 @@ Schemat ändras i `src/lib/db/schema.ts`, sedan `npx drizzle-kit generate` och
 serverstart: administratören uppdaterar schemat från `/status`. Läggs en
 migration till måste `SCHEMA_DDL` i `src/lib/db/queries/health.ts` följa med —
 ett test jämför dem.
+
+**En ny kolumn kräver en ordning vid driftsättning.** Koden får bara nämna den
+bakom en inställning, och rapporter skrivs med uttryckliga kolumner (Drizzles
+`insert` tar med alla kolumner i schemat och kraschar innan kolumnen finns).
+Driftsätt avstängd → "Uppdatera schemat" på `/status` → slå på och driftsätt →
+"Återställ demon". Prövat med frågan om hälsa, se `NÄSTA-STEG.md`.
