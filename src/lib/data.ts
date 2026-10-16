@@ -14,7 +14,7 @@ export type Category = 'fysisk' | 'halsa' | 'psykisk' | 'social' | 'somn' | 'kos
  * När den är på räknar befälsvyerna bara fullständiga rapporter, se KOMPLETTA
  * i queries/aggregates.ts.
  */
-export const HALSA_PA = true;
+export const HALSA_PA = false;
 
 const ALLA_KATEGORIER: Array<{
   key: Category;
