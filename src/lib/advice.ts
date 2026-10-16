@@ -1,4 +1,5 @@
 import { CATEGORIES, type Category, getStatus, type Status } from './data';
+import { formatScore } from './format';
 
 /*
  * Vad ett värde BETYDER — inte vad man ska göra åt det.
@@ -246,15 +247,44 @@ export function generateSoldierAdvice(scores: Record<Category, number>): string 
  * system som ska granskas av Försvarsmakten. Råden nedan beskriver vad datan
  * visar och vad man kan göra åt det, utan att åberopa forskning vi inte har.
  */
-export function generateLeaderAdvice(avgScores: Record<Category, number>): string {
-  const overall = Object.values(avgScores).reduce((a, b) => a + b, 0) / Object.values(avgScores).length;
-  const redCount = Object.values(avgScores).filter(v => getStatus(v) === 'red').length;
+/*
+ * En åtgärd per kategori, för befälet. Utan källhänvisningar och procent,
+ * av samma skäl som ovan: bara det vi kan stå för.
+ */
+const BEFALSATGARD: Record<Category, string> = {
+  fysisk: 'se över träningsbelastningen och ge tid för återhämtning',
+  halsa: 'håll koll på smitta i gruppen och låt den som är sjuk få en bedömning av sjukvården',
+  psykisk: 'genomför enskilda samtal och påminn om vilket stöd som finns',
+  social: 'se över sammanhållningen i grupperna och hur nya tas emot',
+  somn: 'se över dygnsrytmen och möjligheten till ostörd sömn',
+  kost: 'säkerställ tid och tillgång till måltider, också under övning',
+  energi: 'se över belastning och vila under de närmaste dagarna',
+};
 
-  if (redCount >= 2) {
-    return `Enheten ligger på kritisk nivå i ${redCount} kategorier. Det är ett tydligt tecken på att belastningen behöver ses över. Rekommendation: genomför enskilda samtal inom 48 timmar och justera träningsbelastningen tills värdena vänder.`;
+/**
+ * Nämner de röda kategorierna vid namn, med en åtgärd för var och en. Det
+ * hade tre fasta texter och sa "kritisk nivå i 2 kategorier" utan att säga
+ * vilka (genomgången 16 oktober). Utan rött nämns den lägsta kategorin.
+ */
+export function generateLeaderAdvice(avgScores: Record<Category, number>): string {
+  const aktiva = CATEGORIES.filter((c) => c.key in avgScores);
+  const roda = aktiva.filter((c) => getStatus(avgScores[c.key]) === 'red');
+
+  if (roda.length > 0) {
+    const namn = roda.map((c, i) => (i === 0 ? c.label : c.label.toLowerCase()));
+    const binde = namn.some((n) => n.includes(' och ')) ? ' samt ' : ' och ';
+    const lista = namn.length === 1 ? namn[0] : `${namn.slice(0, -1).join(', ')}${binde}${namn.at(-1)}`;
+    const versal = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+    const atgarder = roda.map((c) => `${versal(BEFALSATGARD[c.key])}.`).join(' ');
+    const samtal = roda.length >= 2 && !roda.some((c) => c.key === 'psykisk')
+      ? ' Med flera kategorier i rött: genomför enskilda samtal inom 48 timmar.'
+      : '';
+    return `${lista} ligger på röd nivå. ${atgarder}${samtal}`;
   }
-  if (getStatus(overall) === 'green') {
-    return `Enheten rapporterar genomgående god hälsa. Fortsätt prioritera återhämtning och sammanhållning — det är de faktorer som är lättast att tappa när tempot ökar.`;
+
+  const lagst = aktiva.reduce((a, b) => (avgScores[b.key] < avgScores[a.key] ? b : a));
+  if (getStatus(avgScores[lagst.key]) === 'green') {
+    return 'Alla kategorier ligger på grön nivå. Fortsätt prioritera återhämtning och sammanhållning — det är det som är lättast att tappa när tempot ökar.';
   }
-  return `Enheten visar varierat mående utan kritiska nivåer. Håll koll på de kategorier som ligger gult och fånga upp dem tidigt, innan de utvecklas åt fel håll.`;
+  return `Ingen kategori ligger på röd nivå. Lägst är ${lagst.label.toLowerCase()}, med ${formatScore(avgScores[lagst.key])}. Fånga upp det innan det blir rött: ${BEFALSATGARD[lagst.key]}.`;
 }

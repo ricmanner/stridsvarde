@@ -623,3 +623,90 @@ export const getVeckounderlag = cache(async (unitId: number): Promise<Veckounder
     lagst: lagst ? { namn: lagst.name, snitt: lagst.overall! } : null,
   };
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Kategoriernas läge: förra perioden och personer i rött
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface Kategorilage {
+  /** Snittet perioden före, lika lång. null: för få svar då. */
+  forra: number | null;
+  /** Personer vars eget snitt i kategorin ligger i rött den här perioden. */
+  iRott: number;
+}
+
+/**
+ * Det befälsvyns kategoritabell visar utöver snittet: förra periodens snitt
+ * och hur många personer som ligger i rött i varje kategori.
+ *
+ * Ersätter staplarna som räknade svar ("123 gula svar"). Richard, 16 oktober:
+ * befälen vill ha siffror rakt på sak, och en chef tänker i personer, inte i
+ * svar. En person räknas på sitt eget avrundade snitt i kategorin, med samma
+ * avrundning som färgerna (roundScoreSql), så "i rött" och märket bredvid
+ * aldrig säger emot varandra.
+ *
+ * Skyddet: under k svarande eller k medlemmar kommer inget tillbaka alls
+ * (guard), och förra periodens snitt är NULL i SELECT-satsen när den perioden
+ * hade för få svarande.
+ */
+export const getKategorilage = cache(
+  async (unitId: number, days: Period): Promise<Guarded<Record<Category, Kategorilage>>> => {
+    const k = minResponders();
+    const fran = serviceDateDaysAgo(days - 1);
+    const till = serviceDate();
+    const forraFran = serviceDateDaysAgo(2 * days - 1);
+    const forraTill = serviceDateDaysAgo(days);
+
+    const egnaSnitt = CAT_KEYS.map((key) => `AVG(ci.${key}) AS ${key}`).join(', ');
+    const iRott = CAT_KEYS.map(
+      // Delfrågor, inte FROM ps: utan svar alls ska raden ändå komma tillbaka,
+      // så att guard() kan säga "inga svar" i stället för "för liten enhet".
+      (key) => `(SELECT SUM(CASE WHEN ${roundScoreSql(`ps.${key}`)} < ${YELLOW_MIN} THEN 1 ELSE 0 END) FROM ps) AS ${key}_rott`,
+    ).join(',\n             ');
+    const forra = CAT_KEYS.map(
+      (key) =>
+        `(SELECT CASE WHEN f.n >= ${k} AND (SELECT COUNT(*) FROM member) >= ${k} THEN f.${key} END FROM forra f) AS ${key}_forra`,
+    ).join(',\n             ');
+
+    const [rad] = (await db.all(sql`
+      ${SUBTREE(unitId)},
+      member AS (
+        SELECT u.id AS user_id FROM users u
+         WHERE u.unit_id IN (SELECT unit_id FROM subtree)
+           AND u.role = 'soldat' AND u.active = 1
+      ),
+      ps AS (
+        SELECT ci.user_id, ${sql.raw(egnaSnitt)}
+          FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
+         WHERE ci.service_date BETWEEN ${fran} AND ${till}
+         GROUP BY ci.user_id
+      ),
+      forra AS (
+        SELECT COUNT(DISTINCT ci.user_id) AS n, ${sql.raw(egnaSnitt)}
+          FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
+         WHERE ci.service_date BETWEEN ${forraFran} AND ${forraTill}
+      )
+      SELECT (SELECT COUNT(*) FROM member) AS eligible,
+             (SELECT COUNT(*) FROM ps) AS responders,
+             ${sql.raw(iRott)},
+             ${sql.raw(forra)}
+    `)) as Row[];
+
+    const eligible = Number(rad?.eligible ?? 0);
+    const responders = Number(rad?.responders ?? 0);
+    const data =
+      responders > 0
+        ? (Object.fromEntries(
+            CAT_KEYS.map((key) => [
+              key,
+              {
+                forra: rad[`${key}_forra`] == null ? null : Number(rad[`${key}_forra`]),
+                iRott: Number(rad[`${key}_rott`] ?? 0),
+              },
+            ]),
+          ) as Record<Category, Kategorilage>)
+        : null;
+
+    return guard(data, responders, eligible, k);
+  },
+);

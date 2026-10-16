@@ -13,7 +13,7 @@ import {
   getVeckounderlag,
 } from '@/lib/db/queries/aggregates';
 import { parsePeriod } from '@/lib/privacy';
-import { veckotext } from '@/lib/veckosammanfattning';
+import { veckokort } from '@/lib/veckosammanfattning';
 import { homeFor } from '@/lib/roles';
 import { formatScore, procent } from '@/lib/format';
 
@@ -90,7 +90,7 @@ export default async function RapportPage({
       {/* Veckan i ord — det som läses upp på kompaniets veckomöte. Står
           först, före tabellerna den bygger på. Håller ihop på en sida. */}
       <div style={{ breakInside: 'avoid' }}>
-        <Veckosammanfattning meningar={veckotext(veckounderlag)} />
+        <Veckosammanfattning kort={veckokort(veckounderlag)} />
       </div>
 
       {/* ── Sammanfattning ── */}

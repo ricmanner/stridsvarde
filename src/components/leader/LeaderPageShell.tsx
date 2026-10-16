@@ -5,11 +5,12 @@ import { generateLeaderAdvice } from '@/lib/advice';
 import { requireRole } from '@/lib/auth/guard';
 import {
   getChildComparison,
+  getKategorilage,
   getUnitCategorySeries,
   getUnitOverview,
   getVeckounderlag,
 } from '@/lib/db/queries/aggregates';
-import { veckotext } from '@/lib/veckosammanfattning';
+import { veckokort } from '@/lib/veckosammanfattning';
 import { parsePeriod } from '@/lib/privacy';
 import type { Role } from '@/lib/roles';
 import type { ChildKind } from '@/lib/unit-names';
@@ -43,10 +44,11 @@ export default async function LeaderPageShell({
   // Endast vitlistade perioder — se kommentaren i queries/privacy.ts.
   const period = parsePeriod((await searchParams).period);
 
-  const [overview, series, comparison, veckounderlag] = await Promise.all([
+  const [overview, series, comparison, lage, veckounderlag] = await Promise.all([
     getUnitOverview(session.unitId, period),
     getUnitCategorySeries(session.unitId, period),
     getChildComparison(session.unitId, period),
+    getKategorilage(session.unitId, period),
     getVeckounderlag(session.unitId),
   ]);
 
@@ -73,8 +75,9 @@ export default async function LeaderPageShell({
           overview={overview}
           series={series}
           comparison={comparison}
+          lage={lage}
           advice={advice}
-          vecka={veckotext(veckounderlag)}
+          vecka={veckokort(veckounderlag)}
         />
       </main>
     </div>

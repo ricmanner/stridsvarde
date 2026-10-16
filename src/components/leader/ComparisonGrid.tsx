@@ -43,8 +43,10 @@ export default function ComparisonGrid({
           <thead>
             <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
               <th className="px-4 py-2.5 align-bottom font-bold">Enhet</th>
-              <th className="px-2 py-2.5 text-center align-bottom font-bold">Svar</th>
+              <th className="px-2 py-2.5 text-center align-bottom font-bold">Svarade</th>
               <th className="px-1.5 py-2.5 text-center align-bottom font-bold">Snitt</th>
+              {/* Flyttad hit från rangordningen, som är gömd (16 oktober). */}
+              <th className="px-2 py-2.5 text-center align-bottom font-bold">I rött</th>
               {CATEGORIES.map((c) => (
                 // Hela namnet, även om det tar två rader — se testet i sprak.test.mjs.
                 // Lika breda, annars blev SÖMN smal och PSYKISKT MÅENDE bred.
@@ -72,7 +74,7 @@ export default function ComparisonGrid({
                   {child.responders}/{child.eligible}
                 </td>
                 {child.scores === null || child.overall === null ? (
-                  <td colSpan={CATEGORIES.length + 1} className="border-t border-slate-100 px-4 py-2 text-center text-xs text-slate-500">
+                  <td colSpan={CATEGORIES.length + 2} className="border-t border-slate-100 px-4 py-2 text-center text-xs text-slate-500">
                     {/* En nyskapad enhet saknar inte underlag — den saknar folk. */}
                     {child.eligible === 0
                       ? 'Inga värnpliktiga placerade här ännu'
@@ -81,6 +83,10 @@ export default function ComparisonGrid({
                 ) : (
                   <>
                     <Cell value={child.overall} strong />
+                    <td className="border-t border-slate-100 px-2 py-2 text-center text-xs tabular-nums text-slate-500">
+                      <span className={child.red > 0 ? 'font-semibold text-red-700' : 'text-slate-700'}>{child.red}</span>
+                      {' '}av {child.responders}
+                    </td>
                     {CATEGORIES.map((c) => (
                       <Cell key={c.key} value={child.scores![c.key]} label={c.label} />
                     ))}

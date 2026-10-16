@@ -11,6 +11,8 @@ export interface CategoryRow {
   key: string;
   label: string;
   scores: Record<Category, number> | null;
+  /** Dagens samlade snitt, när ett kort för det ska visas (`samlat`). */
+  overall?: number | null;
 }
 
 /**
@@ -26,6 +28,7 @@ export default function CategoryTrendGrid({
   ariaPrefix,
   summary,
   summaryLabel,
+  samlat = false,
 }: {
   rows: CategoryRow[];
   ariaPrefix: string;
@@ -37,19 +40,50 @@ export default function CategoryTrendGrid({
    */
   summary?: Record<Category, number> | null;
   summaryLabel?: string;
+  /**
+   * Ett första kort för det samlade måendet. Befälsvyn visar det: helheten
+   * först, sedan frågorna. Med sju frågor blir det åtta kort, två jämna rader
+   * på dator — förut stod det sjunde ensamt (16 oktober).
+   */
+  samlat?: boolean;
 }) {
+  const kort = [
+    ...(samlat
+      ? [{
+          key: 'samlat',
+          label: 'Samlat mående',
+          varde: (r: CategoryRow) => r.overall ?? null,
+          snitt: summary ? CATEGORIES.reduce((a, c) => a + summary[c.key], 0) / CATEGORIES.length : null,
+        }]
+      : []),
+    ...CATEGORIES.map((cat) => ({
+      key: cat.key,
+      label: cat.label,
+      varde: (r: CategoryRow) => r.scores?.[cat.key] ?? null,
+      snitt: summary ? summary[cat.key] : null,
+    })),
+  ];
+
   return (
     <div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {CATEGORIES.map((cat) => {
-          const data = rows.map((r) => ({ key: r.key, label: r.label, value: r.scores?.[cat.key] ?? null }));
+      <div className={`grid gap-3 sm:grid-cols-2 ${samlat ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
+        {kort.map((k) => {
+          const data = rows.map((r) => ({ key: r.key, label: r.label, value: k.varde(r) }));
           const senaste = [...data].reverse().find((d) => d.value !== null)?.value ?? null;
-          const visat = summary ? summary[cat.key] : senaste;
+          const visat = summary ? k.snitt : senaste;
 
           return (
-            <div key={cat.key} className="rounded-md border border-slate-200 bg-white px-3 pb-2 pt-3">
-              <div className="mb-1 flex items-center justify-between gap-2 px-1">
-                <span className="truncate text-xs font-semibold text-slate-800">{cat.label}</span>
+            <div
+              key={k.key}
+              className={`rounded-md border bg-white px-3 pb-2 pt-3 ${k.key === 'samlat' ? 'border-slate-300' : 'border-slate-200'}`}
+            >
+              {/*
+                Namnet och snittet på var sin rad, i alla kort: bredvid snittet
+                kapades "Kost och näring" till "Kost och …", och bröts bara de
+                långa namnen hamnade graferna på olika höjd (16 oktober).
+              */}
+              <div className="mb-1 flex flex-col items-start gap-0.5 px-1">
+                <span className="text-xs font-semibold text-slate-800">{k.label}</span>
                 {visat !== null && visat !== undefined ? (
                   <span className="flex shrink-0 items-center gap-1.5">
                     <span className="text-etikett text-slate-500">{summary ? summaryLabel ?? 'snitt' : 'senast'}</span>
@@ -60,7 +94,7 @@ export default function CategoryTrendGrid({
                   <span className="text-etikett text-slate-500">Underlag saknas</span>
                 )}
               </div>
-              <ScoreTrendChart data={data} height={130} compact ariaLabel={`${ariaPrefix}: ${cat.label}`} />
+              <ScoreTrendChart data={data} height={130} compact ariaLabel={`${ariaPrefix}: ${k.label}`} />
             </div>
           );
         })}

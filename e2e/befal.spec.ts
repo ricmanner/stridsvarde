@@ -28,25 +28,45 @@ test.describe('plutonchefen', () => {
     }
   });
 
-  test('veckosammanfattningen står överst, och samma text finns i rapporten', async ({ page }) => {
-    // Fysioterapeuternas önskemål den 14 oktober: några meningar till
-    // kompaniets veckomöte, skrivna ur siffrorna — ingen AI.
-    const ruta = page.getByRole('region', { name: 'Senaste veckan' });
-    await expect(ruta).toBeVisible();
-    const rader = await ruta.getByRole('listitem').allInnerTexts();
-    expect(rader[0]).toMatch(/^I snitt svarade \d+ % av de \d+ värnpliktiga varje dag\.$/);
-    // Demons 1. pluton har sömn och kost i rött efter fältövningen.
-    expect(rader.join(' ')).toContain('ligger på röd nivå');
+  test('översikten: nyckeltal, veckan i fyra fält, och kategorierna med sämst först', async ({ page }) => {
+    /*
+     * Richard, 16 oktober: befälen vill ha siffror rakt på sak. Fyra
+     * nyckeltal överst, veckan som fyra fält med jämförelsen synlig, och
+     * kategorierna som en tabell i stället för staplar som räknade svar.
+     */
+    const dl = page.locator('dl').first();
+    for (const etikett of ['Samlat mående', 'Svarat idag', 'Personer i rött', 'Kategorier i rött']) {
+      await expect(dl.getByText(etikett, { exact: true })).toBeVisible();
+    }
+
+    const vecka = page.getByRole('region', { name: 'Senaste veckan' });
+    await expect(vecka).toContainText('7 dagar jämfört med de 7 före');
+    const falt = await vecka.locator('dt').allInnerTexts();
+    expect(falt.map((t) => t.toLowerCase())).toEqual(['svarade i snitt', 'störst försämring', 'störst förbättring', 'lägst']);
     // 4. grupp har för få personer, och nämns därför aldrig som lägst.
-    expect(rader.join(' ')).not.toContain('4. grupp');
-    // Ingen fotnot om hur texten tagits fram — Richard ville inte ha den på
-    // sidan (16 oktober). Svaret på frågan om AI ges muntligt.
+    await expect(vecka).not.toContainText('4. grupp');
+    // Ingen fotnot om hur texten tagits fram (16 oktober).
     await expect(page.getByText(/ingen AI/i)).toHaveCount(0);
+
+    // Inga staplar med "gröna svar" kvar, och sämst först: sömn eller kost
+    // överst i demons 1. pluton efter fältövningen.
+    expect(await synligText(page)).not.toContain('gröna svar');
+    const forsta = await page.locator('li', { hasText: /Snitt/ }).first().innerText();
+    expect(forsta).toMatch(/Sömn|Kost och näring/);
+    await expect(page.getByText(/av dem som svarat/)).toBeVisible();
     await ingaEnskildaPersoner(page);
 
+    // Samma fyra fält i rapporten.
     await page.goto('/rapport');
-    const iRapporten = await page.getByRole('region', { name: 'Senaste veckan' }).getByRole('listitem').allInnerTexts();
-    expect(iRapporten).toEqual(rader);
+    const iRapporten = await page.getByRole('region', { name: 'Senaste veckan' }).locator('dt').allInnerTexts();
+    expect(iRapporten.map((t) => t.toLowerCase())).toEqual(falt.map((t) => t.toLowerCase()));
+  });
+
+  test('jämförelsen: ingen rangordning, och "I rött" står i tabellen', async ({ page }) => {
+    await page.getByRole('tab', { name: 'Jämförelse' }).click();
+    await expect(page.getByRole('tabpanel')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Rangordning' })).toHaveCount(0);
+    await expect(page.getByRole('columnheader', { name: 'I rött' })).toBeVisible();
   });
 
   test('varningen står inte fem gånger: ingen tröskelruta, och gränserna sägs vara preliminära', async ({ page }) => {
@@ -54,8 +74,9 @@ test.describe('plutonchefen', () => {
     // kost i rött — förut stod det också i en egen ruta under listan.
     await expect(page.getByRole('heading', { name: /Tröskelvärden/ })).toHaveCount(0);
     await expect(page.getByText(/Gränserna för grönt, gult och rött är preliminära/)).toBeVisible();
-    // Det röda syns fortfarande: märket överst och i listan.
-    await expect(page.getByText(/\d kategorier? i rött/)).toBeVisible();
+    // Det röda syns fortfarande: nyckeltalet överst och märkena i tabellen.
+    await expect(page.locator('dl').first().getByText('Kategorier i rött', { exact: true })).toBeVisible();
+    await expect(page.getByText(/sömn samt kost och näring/i).first()).toBeVisible();
     // Befälsrådet står kvar — det enda som säger vad befälet kan göra.
     await expect(page.getByRole('heading', { name: 'Befälsråd' })).toBeVisible();
     // Den dagliga notisen är gömd. Sök i notisrutan: Befälsrådet säger själv
@@ -77,8 +98,9 @@ test.describe('plutonchefen', () => {
 
   test('graferna ritas, inte bara rubrikerna', async ({ page }) => {
     await page.getByRole('tab', { name: 'Trender' }).click();
-    // En liten graf per fråga — sju med hälsa.
-    await expect(page.locator('.recharts-surface')).toHaveCount(FRAGOR);
+    // Samlat mående först, sedan en liten graf per fråga — åtta med hälsa.
+    await expect(page.locator('.recharts-surface')).toHaveCount(FRAGOR + 1);
+    await expect(page.getByRole('img', { name: /Trend för enheten: Samlat mående/ })).toBeVisible();
     await expect(page.getByRole('img', { name: /Trend för enheten: Sömn/ })).toBeVisible();
 
     await page.getByRole('tab', { name: 'Jämförelse' }).click();

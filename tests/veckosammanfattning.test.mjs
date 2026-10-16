@@ -1,10 +1,11 @@
 /**
- * Veckosammanfattningen — några meningar om senaste veckan, överst i
- * befälsvyn och i rapporten.
+ * Veckan i korthet — fyra rutor överst i befälsvyn och i rapporten.
  *
- * Fysioterapeuterna bad den 14 oktober om en kort text till plutonchefens
- * kompanimöte. Den skrivs ur siffrorna, utan AI: inget lämnar appen, och
- * texten kan aldrig säga något siffrorna inte säger.
+ * Fysioterapeuterna bad den 14 oktober om en kort sammanfattning till
+ * plutonchefens kompanimöte. Den var först fyra meningar; Richard ville ha
+ * siffror rakt på sak, och jämförelsen med förra veckan syntes inte (16
+ * oktober). Nu: svarsfrekvens, störst försämring, störst förbättring och
+ * lägst enhet. Skrivet ur siffrorna, utan AI.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -20,70 +21,48 @@ const grund = {
   lagst: null,
 };
 
-test('svarsfrekvensen och antalet först', async () => {
-  const { veckotext } = await import('../src/lib/veckosammanfattning.ts');
-  assert.equal(veckotext(grund)[0], 'I snitt svarade 82 % av de 27 värnpliktiga varje dag.');
+test('svarsfrekvensen räknas i hela procent', async () => {
+  const { veckokort } = await import('../src/lib/veckosammanfattning.ts');
+  const k = veckokort(grund);
+  assert.equal(k.svarsprocent, 82);
+  assert.equal(k.eligible, 27);
 });
 
-test('röda kategorier nämns, med "samt" när ett namn självt innehåller "och"', async () => {
-  const { veckotext } = await import('../src/lib/veckosammanfattning.ts');
-  const t = veckotext({ ...grund, denna: { ...lika(6), somn: 3.2, kost: 3.6 } });
-  assert.ok(t.includes('Sömn samt kost och näring ligger på röd nivå.'), t.join(' | '));
+test('störst försämring och störst förbättring, i de tal som visas', async () => {
+  const { veckokort } = await import('../src/lib/veckosammanfattning.ts');
+  const k = veckokort({
+    ...grund,
+    forra: { ...lika(6), halsa: 6.04, energi: 4.2 },
+    denna: { ...lika(6), halsa: 5.33, energi: 4.84 },
+  });
+  assert.deepEqual(k.forsamring, { kategori: 'Hälsa', fran: 6.0, till: 5.3 });
+  assert.deepEqual(k.forbattring, { kategori: 'Energinivå', fran: 4.2, till: 4.8 });
 });
 
-test('utan rött nämns det gula, och utan gult sägs det att allt är grönt', async () => {
-  const { veckotext } = await import('../src/lib/veckosammanfattning.ts');
-  const gul = veckotext({ ...grund, denna: { ...lika(7.5), somn: 5.1 } });
-  assert.ok(gul.includes('Ingen kategori ligger på röd nivå. Sömn ligger på gul nivå.'), gul.join(' | '));
-  const gron = veckotext({ ...grund, denna: lika(7.5), forra: lika(7.5) });
-  assert.ok(gron.includes('Alla kategorier ligger på grön nivå.'), gron.join(' | '));
+test('förändringar under ett halvt steg räknas inte', async () => {
+  const { veckokort } = await import('../src/lib/veckosammanfattning.ts');
+  const k = veckokort({ ...grund, denna: { ...lika(6), somn: 6.4, kost: 5.6 } });
+  assert.equal(k.forsamring, null);
+  assert.equal(k.forbattring, null);
+  assert.equal(k.jamforbar, true);
 });
 
-test('är alla gula räknas de inte upp, men den lägsta nämns', async () => {
-  // På kompani- och bataljonsnivå är ofta alla sex gula. Uppräkningen blev en
-  // mening utan information (sett i demon den 15 oktober).
-  const { veckotext } = await import('../src/lib/veckosammanfattning.ts');
-  const t = veckotext({ ...grund, denna: { ...lika(6), somn: 5.12 } });
-  assert.ok(t.includes('Ingen kategori ligger på röd nivå. Alla ligger på gul nivå, lägst sömn med 5,1.'), t.join(' | '));
+test('för få svar: inga tal alls, och ingen jämförelse med en tunn vecka', async () => {
+  const { veckokort } = await import('../src/lib/veckosammanfattning.ts');
+  const tom = veckokort({ ...grund, svarsandel: 0.1, denna: null });
+  assert.equal(tom.underlag, false);
+  assert.equal(tom.forsamring, null);
+
+  const utanForra = veckokort({ ...grund, forra: null });
+  assert.equal(utanForra.underlag, true);
+  assert.equal(utanForra.jamforbar, false);
+  assert.equal(utanForra.forsamring, null);
 });
 
-test('texten och färgen avrundar likadant: 3,96 är 4,0 och gult, inte rött', async () => {
-  const { veckotext } = await import('../src/lib/veckosammanfattning.ts');
-  const t = veckotext({ ...grund, denna: { ...lika(7.5), somn: 3.96 } });
-  assert.ok(t.includes('Ingen kategori ligger på röd nivå. Sömn ligger på gul nivå.'), t.join(' | '));
-});
-
-test('största förändringen mot veckan innan, i de siffror som visas', async () => {
-  const { veckotext } = await import('../src/lib/veckosammanfattning.ts');
-  const upp = veckotext({ ...grund, forra: { ...lika(6), energi: 3.9 }, denna: { ...lika(6), energi: 5.04 } });
-  assert.ok(
-    upp.includes('Störst förändring mot veckan innan: energinivå, som stigit från 3,9 till 5,0.'),
-    upp.join(' | '),
-  );
-  const ned = veckotext({ ...grund, forra: { ...lika(6), somn: 4.8 }, denna: { ...lika(6), somn: 3.9 } });
-  assert.ok(ned.some((m) => m.includes('sömn, som sjunkit från 4,8 till 3,9')), ned.join(' | '));
-});
-
-test('små förändringar räknas inte som förändringar', async () => {
-  const { veckotext } = await import('../src/lib/veckosammanfattning.ts');
-  const t = veckotext({ ...grund, forra: lika(6), denna: { ...lika(6), somn: 6.4 } });
-  assert.ok(t.includes('Inga stora förändringar mot veckan innan.'), t.join(' | '));
-});
-
-test('för få svar ger inga tal — varken denna vecka eller i en jämförelse', async () => {
-  const { veckotext } = await import('../src/lib/veckosammanfattning.ts');
-  const tom = veckotext({ ...grund, svarsandel: 0.1, denna: null, forra: lika(6) });
-  assert.deepEqual(tom.slice(1), ['Underlag saknas — för få svar för att sammanfatta veckan.']);
-
-  const utanForra = veckotext({ ...grund, forra: null });
-  assert.ok(utanForra.includes('Veckan innan har för få svar för att jämföra.'), utanForra.join(' | '));
-});
-
-test('enheten som ligger lägst, bara när det finns något att jämföra', async () => {
-  const { veckotext } = await import('../src/lib/veckosammanfattning.ts');
-  const t = veckotext({ ...grund, lagst: { namn: '3. grupp', snitt: 4.44 } });
-  assert.equal(t.at(-1), 'Lägst ligger 3. grupp, med 4,4.');
-  assert.ok(!veckotext(grund).some((m) => m.startsWith('Lägst')));
+test('enheten som ligger lägst, avrundad som allt annat', async () => {
+  const { veckokort } = await import('../src/lib/veckosammanfattning.ts');
+  assert.deepEqual(veckokort({ ...grund, lagst: { namn: '3. grupp', snitt: 4.44 } }).lagst, { namn: '3. grupp', snitt: 4.4 });
+  assert.equal(veckokort(grund).lagst, null);
 });
 
 /*

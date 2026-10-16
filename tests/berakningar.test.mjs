@@ -427,7 +427,10 @@ test('fördelningen överst räknar in dem som inte svarat', async () => {
   const vy = readFileSync('src/components/leader/LeaderDashboard.tsx', 'utf8');
   assert.match(vy, /personfordelning\(/, 'befälsvyn räknar inte in dem som inte svarat');
   assert.match(vy, /utan svar/);
-  assert.match(vy, /värnpliktiga · eget snitt/, 'stapeln säger inte vad den räknar');
+  // Sedan 16 oktober ett nyckeltal i stället för en stapel: "Personer i
+  // rött", räknat mot hela enheten.
+  assert.match(vy, /Personer i rött/, 'nyckeltalet säger inte vad det räknar');
+  assert.match(vy, /av \$\{f\.total\}/, 'nyckeltalet räknas inte mot hela enheten');
 });
 
 /*

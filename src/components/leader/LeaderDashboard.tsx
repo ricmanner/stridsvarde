@@ -5,30 +5,29 @@ import Link, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AlertTriangle, Download, FileText } from 'lucide-react';
 
-import CategoryIcon from '@/components/CategoryIcon';
-
 import CategoryTrendGrid from '@/components/charts/CategoryTrendGrid';
 import StatusBadge from '@/components/StatusBadge';
+import Kategoritabell from '@/components/leader/Kategoritabell';
 import Veckosammanfattning from '@/components/leader/Veckosammanfattning';
 import { VISA_TROSKELRUTA } from '@/lib/varningar';
+import type { Veckokort } from '@/lib/veckosammanfattning';
 import Tabs, { Panel } from '@/components/Tabs';
 import ChildFocus from '@/components/leader/ChildFocus';
 import ComparisonGrid from '@/components/leader/ComparisonGrid';
 import Suppressed from '@/components/leader/Suppressed';
 import {
   CATEGORIES,
+  type Category,
   getStatus,
   personfordelning,
-  statusColor,
-  statusOrd,
-  statusSvar,
-  type Personfordelning,
-  type Status,
 } from '@/lib/data';
-import type { ChildComparison, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
-import { ALLOWED_PERIODS, type Period } from '@/lib/privacy';
+import type { ChildComparison, Kategorilage, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
+import { ALLOWED_PERIODS, type Guarded, type Period } from '@/lib/privacy';
 import { ordformer, type ChildKind } from '@/lib/unit-names';
 import { formatScore, procent } from '@/lib/format';
+
+/** Rangordningen under Jämförelse. Gömd den 16 oktober, se där. */
+const VISA_RANGORDNING = false;
 
 const FLIKAR = [
   { id: 'overview', etikett: 'Översikt' },
@@ -46,9 +45,11 @@ export interface LeaderDashboardProps {
   overview: UnitOverview;
   series: SeriesPoint[];
   comparison: ChildComparison;
+  /** Förra periodens snitt och personer i rött, per kategori. */
+  lage: Guarded<Record<Category, Kategorilage>>;
   advice: string | null;
-  /** Veckosammanfattningens meningar (lib/veckosammanfattning.ts). */
-  vecka: string[];
+  /** Veckan i korthet (lib/veckosammanfattning.ts). */
+  vecka: Veckokort;
 }
 
 /**
@@ -60,14 +61,13 @@ export interface LeaderDashboardProps {
  * grupper, kompanichefen plutoner, bataljonschefen kompanier, med samma kod.
  */
 export default function LeaderDashboard({
-  levelLabel, childLabel, childKind, period, overview, series, comparison, advice, vecka,
+  levelLabel, childLabel, childKind, period, overview, series, comparison, lage, advice, vecka,
 }: LeaderDashboardProps) {
   const pathname = usePathname();
   const [tab, setTab] = useState<'overview' | 'trends' | 'compare'>('overview');
   // Lokala konstanter så att TypeScript kan smalna av unionen korrekt —
   // narrowing på en egenskap (overview.distribution.ok) håller inte genom JSX.
   const cats = overview.categories;
-  const dist = overview.distribution;
 
   const overall = cats.ok
     ? Object.values(cats.data).reduce((a, b) => a + b, 0) / CATEGORIES.length
@@ -101,50 +101,73 @@ export default function LeaderDashboard({
             <PeriodPicker current={period} pathname={pathname} />
           </div>
         </div>
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-5 gap-y-3">
-          <div>
-            <div className="flex items-baseline gap-2">
-              {overall !== null ? (
-                <>
-                  <span className="text-2xl font-extrabold tabular-nums text-slate-900">
-                    {formatScore(overall)}
-                  </span>
-                  <StatusBadge status={getStatus(overall)} />
-                </>
+        {/*
+          Fyra nyckeltal, samma i alla flikar. Ersätter en rad med snittet, en
+          liten stapel över personerna och rubriken "27 VÄRNPLIKTIGA · EGET
+          SNITT", som ingen förstod (16 oktober). Siffror rakt på sak; färg
+          bara där talet är rött.
+        */}
+        <dl className="mx-auto grid max-w-5xl grid-cols-2 overflow-hidden rounded-md border border-slate-200 lg:grid-cols-4">
+          <Nyckeltal
+            etikett="Samlat mående"
+            varde={
+              overall !== null ? (
+                <span className="flex items-center gap-2">
+                  {formatScore(overall)} <StatusBadge status={getStatus(overall)} />
+                </span>
               ) : (
-                <span className="text-sm text-slate-500">Underlag saknas</span>
-              )}
-            </div>
-          </div>
-
-          <div className="hidden h-9 w-px bg-slate-200 sm:block" />
-
-          {/*
-            Undanhållen fördelning ger bara antalet värnpliktiga — inte heller
-            hur många som saknar svar, se personfordelning().
-          */}
-          {overview.soldierStatus.ok ? (
-            <>
-              <Fordelning f={personfordelning(overview.soldierStatus.data, overview.eligible)} />
-              {/* Först från lg: mellan sm och lg bryts det som följer till nästa rad, och då står strecket ensamt. */}
-              <div className="hidden h-9 w-px bg-slate-200 lg:block" />
-            </>
-          ) : (
-            <span className="text-xs text-slate-500">{overview.eligible} värnpliktiga</span>
-          )}
-          <span className="text-xs text-slate-500">
-            {procent(overview.today.pct)} svarat idag ({overview.today.responders}/{overview.eligible})
-          </span>
-
-          {alerts.length > 0 && (
-            <div className="flex items-center gap-1.5 rounded border border-red-200 bg-red-50 px-2.5 py-1 sm:ml-auto">
-              <AlertTriangle size={13} className="text-red-700" aria-hidden />
-              <span className="text-etikett font-bold text-red-700">
-                {alerts.length} kategori{alerts.length > 1 ? 'er' : ''} i rött
-              </span>
-            </div>
-          )}
-        </div>
+                '–'
+              )
+            }
+            under={overall !== null ? `snitt ${period} dagar` : cats.ok ? '' : 'underlag saknas'}
+          />
+          <Nyckeltal
+            etikett="Svarat idag"
+            varde={procent(overview.today.pct)}
+            under={`${overview.today.responders} av ${overview.eligible}`}
+          />
+          {(() => {
+            /*
+              Undanhållen fördelning ger inget antal, inte heller hur många som
+              saknar svar — se personfordelning().
+            */
+            if (!overview.soldierStatus.ok) {
+              return <Nyckeltal etikett="Personer i rött" varde="–" under="underlag saknas" />;
+            }
+            const f = personfordelning(overview.soldierStatus.data, overview.eligible);
+            return (
+              <Nyckeltal
+                etikett="Personer i rött"
+                varde={<span className={f.red > 0 ? 'text-red-700' : ''}>{f.red}</span>}
+                // "På samlat snitt": tabellen nedan räknar per kategori, och
+                // utan det ser 3 här och 20 under sömn ut att säga emot varandra.
+                // Antalet utan svar står kvar: utan det ser en enhet där hälften
+                // tystnat lika frisk ut som en där alla svarat.
+                under={`av ${f.total}, på samlat snitt${f.utanSvar > 0 ? ` · ${f.utanSvar} utan svar` : ''}`}
+              />
+            );
+          })()}
+          <Nyckeltal
+            etikett="Kategorier i rött"
+            varde={
+              cats.ok ? (
+                <span className={`flex items-center gap-1.5 ${alerts.length > 0 ? 'text-red-700' : ''}`}>
+                  {alerts.length > 0 && <AlertTriangle size={18} aria-hidden />}
+                  {alerts.length}
+                </span>
+              ) : (
+                '–'
+              )
+            }
+            under={
+              !cats.ok
+                ? 'underlag saknas'
+                : alerts.length === 0
+                  ? `av ${CATEGORIES.length}`
+                  : opprakning(alerts.map((c) => c.label.toLowerCase()))
+            }
+          />
+        </dl>
       </div>
 
       {/* ── Flikar ── */}
@@ -169,51 +192,22 @@ export default function LeaderDashboard({
           <Panel id="overview">
             {/* Överst: det plutonchefen tar med till kompaniets veckomöte. Alltid
                 sju dagar, oavsett vald period — det står i rutan. */}
-            <Veckosammanfattning meningar={vecka} />
+            <Veckosammanfattning kort={vecka} />
 
             {/* Perioden står kvar i rubriken, så att en skärmdump säger vad den visar. */}
-            <SL>Kategorier — snitt och fördelning över {period} dagar</SL>
-            {cats.ok && dist.ok ? (
-              <div className="mb-4 overflow-hidden rounded-md border border-slate-200 bg-white">
-                {CATEGORIES.map((cat, i) => {
-                  const score = cats.data[cat.key];
-                  const d = dist.data[cat.key];
-                  const total = d.green + d.yellow + d.red || 1;
-                  return (
-                    <div
-                      key={cat.key}
-                      className={`px-4 py-3.5 sm:px-5 ${i < CATEGORIES.length - 1 ? 'border-b border-slate-100' : ''}`}
-                    >
-                      <div className="mb-2 flex items-center gap-2.5">
-                        <span className="text-slate-400"><CategoryIcon namn={cat.icon} size={15} /></span>
-                        <span className="flex-1 text-xs text-slate-600">{cat.label}</span>
-                        <span className="mr-1.5 text-sm font-bold tabular-nums text-slate-900">
-                          {formatScore(score)}
-                        </span>
-                        <StatusBadge status={getStatus(score)} size="sm" />
-                      </div>
-                      <div className="mb-1.5 flex h-1.5 overflow-hidden rounded-full">
-                        <div style={{ width: `${(d.green / total) * 100}%`, background: '#059669' }} />
-                        <div style={{ width: `${(d.yellow / total) * 100}%`, background: '#D97706' }} />
-                        <div style={{ width: `${(d.red / total) * 100}%`, background: '#DC2626' }} />
-                      </div>
-                      <div className="flex gap-3 text-etikett">
-                        <span className="font-semibold text-emerald-700">{d.green} <span className="font-normal text-slate-500">{statusSvar('green', d.green)}</span></span>
-                        <span className="font-semibold text-amber-700">{d.yellow} <span className="font-normal text-slate-500">{statusSvar('yellow', d.yellow)}</span></span>
-                        <span className="font-semibold text-red-700">{d.red} <span className="font-normal text-slate-500">{statusSvar('red', d.red)}</span></span>
-                      </div>
-                    </div>
-                  );
-                })}
+            <SL>Kategorier — de senaste {period} dagarna, sämst först</SL>
+            {cats.ok ? (
+              <div className="mb-4">
+                <Kategoritabell
+                  snitt={cats.data}
+                  lage={lage.ok ? lage.data : null}
+                  svarande={cats.responders}
+                  period={period}
+                />
               </div>
             ) : (
               <div className="mb-4">
-                {(() => {
-                  const blocked = !cats.ok ? cats : dist.ok ? null : dist;
-                  return blocked ? (
-                    <Suppressed text={blocked.message} />
-                  ) : null;
-                })()}
+                <Suppressed text={cats.message} />
               </div>
             )}
 
@@ -276,18 +270,19 @@ export default function LeaderDashboard({
         {/* ── TRENDER ── */}
         {tab === 'trends' && (
           <Panel id="trends">
-            <SL>Kategoritrender — {period} dagar</SL>
+            <SL>Utvecklingen dag för dag — de senaste {period} dagarna</SL>
 
             <div className="mb-6">
               <CategoryTrendGrid
-                rows={series.map(p => ({ key: p.date, label: p.label, scores: p.scores }))}
+                rows={series.map(p => ({ key: p.date, label: p.label, scores: p.scores, overall: p.overall }))}
                 ariaPrefix="Trend för enheten"
+                samlat
                 summary={cats.ok ? cats.data : null}
                 summaryLabel={`snitt ${period} d`}
               />
             </div>
 
-            <SL>Svarsunderlag per dag</SL>
+            <SL>Hur många som svarade, dag för dag</SL>
             {/*
               Rullningsbar yta = tangentbordsåtkomst. I telefonbredd blir
               tabellen bredare än skärmen och får en egen vågrät rullning; utan
@@ -298,14 +293,14 @@ export default function LeaderDashboard({
             <div
               tabIndex={0}
               role="region"
-              aria-label="Svarsunderlag per dag"
+              aria-label="Hur många som svarade, dag för dag"
               className="mb-4 overflow-x-auto rounded-md border border-slate-200 bg-white"
             >
               <table className="w-full min-w-[420px] text-left">
                 <thead className="bg-slate-50">
                   <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
                     <th className="px-4 py-2.5 font-bold">Dag</th>
-                    <th className="px-4 py-2.5 text-center font-bold">Svar</th>
+                    <th className="px-4 py-2.5 text-center font-bold">Svarade</th>
                     <th className="px-4 py-2.5 text-center font-bold">Andel</th>
                     <th className="px-4 py-2.5 text-right font-bold">Snitt</th>
                   </tr>
@@ -338,7 +333,7 @@ export default function LeaderDashboard({
         {/* ── JÄMFÖRELSE ── */}
         {tab === 'compare' && (
           <Panel id="compare">
-            <SL>Jämförelse mellan {childLabel} — {period} dagar</SL>
+            <SL>{childLabel.charAt(0).toUpperCase() + childLabel.slice(1)} jämförda — de senaste {period} dagarna</SL>
 
             {visibleChildren.length === 0 ? (
               <Suppressed
@@ -363,6 +358,15 @@ export default function LeaderDashboard({
                   />
                 </div>
 
+                {/*
+                  Rangordningen är gömd (16 oktober): den visade samma snitt
+                  som tabellen ovanför, sorterade från bäst till sämst, och
+                  bjöd in till tävling eller skuld. Dess enda egna uppgift,
+                  hur många i varje enhet som ligger i rött, står nu som en
+                  kolumn i tabellen. VISA_RANGORDNING = true tar fram den igen.
+                */}
+                {VISA_RANGORDNING && (
+                  <>
                 <SL>Rangordning</SL>
                 {/* Samma sak som tabellen på Trender — se kommentaren där. */}
                 <div
@@ -375,7 +379,7 @@ export default function LeaderDashboard({
                     <thead className="bg-slate-50">
                       <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
                         <th className="px-4 py-2.5 font-bold">Enhet</th>
-                        <th className="px-4 py-2.5 text-center font-bold">Svar</th>
+                        <th className="px-4 py-2.5 text-center font-bold">Svarade</th>
                         <th className="px-4 py-2.5 text-center font-bold">Gröna</th>
                         <th className="px-4 py-2.5 text-center font-bold">Gula</th>
                         <th className="px-4 py-2.5 text-center font-bold">Röda</th>
@@ -425,6 +429,8 @@ export default function LeaderDashboard({
                     </tbody>
                   </table>
                 </div>
+                  </>
+                )}
               </>
             )}
             <PrivacyFooter />
@@ -436,59 +442,6 @@ export default function LeaderDashboard({
   );
 }
 
-/*
- * Textfärgerna är statusTextColor() som klasser, samma som fördelningen under
- * varje kategori: talen är text och behöver 4,5:1, stapeln bara 3:1.
- */
-const FORDELNING_TEXT: Record<Status, string> = {
-  green: 'text-emerald-700',
-  yellow: 'text-amber-700',
-  red: 'text-red-700',
-};
-
-/**
- * Hela enheten som en stapel, efter var och ens eget snitt.
- *
- * Ersätter tre fristående tal ("● 1 Grön ● 22 Gula ● 1 Röd"). De bröts var för
- * sig i telefonen, så att röd hamnade ensam på raden under, och de sa varken
- * vad de räknade eller hur stor del av enheten de var. Stapeln har samma form
- * som den under varje kategori, så sidan läses på ett sätt.
- *
- * De som inte svarat under perioden är grå: grått är "ingen uppgift", inte en
- * status. Stapeln är dold för skärmläsare — talen under säger samma sak i text.
- */
-function Fordelning({ f }: { f: Personfordelning }) {
-  const statusar: Status[] = ['green', 'yellow', 'red'];
-
-  return (
-    <div className="w-full sm:w-72">
-      <p className="mb-1.5 text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
-        {f.total} värnpliktiga · eget snitt
-      </p>
-      <div className="mb-1.5 flex h-2 overflow-hidden rounded-full" aria-hidden>
-        {statusar.map((s) => (
-          <div key={s} style={{ width: `${(f[s] / f.total) * 100}%`, background: statusColor(s) }} />
-        ))}
-        {/* slate-300: neutral, så att den inte läses som en fjärde status */}
-        <div style={{ width: `${(f.utanSvar / f.total) * 100}%`, background: '#CBD5E1' }} />
-      </div>
-      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-        {statusar.map((s) => (
-          <span key={s}>
-            <span className={`text-base font-bold tabular-nums ${FORDELNING_TEXT[s]}`}>{f[s]}</span>{' '}
-            <span className="text-xs text-slate-500">{statusOrd(s, f[s])}</span>
-          </span>
-        ))}
-        {f.utanSvar > 0 && (
-          <span>
-            <span className="text-base font-bold tabular-nums text-slate-700">{f.utanSvar}</span>{' '}
-            <span className="text-xs text-slate-500">utan svar</span>
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
 
 /**
  * Säger rakt ut att gränser och råd inte är fastställda.
@@ -502,6 +455,27 @@ function Fordelning({ f }: { f: Personfordelning }) {
  */
 function Preliminary({ children }: { children: React.ReactNode }) {
   return <p className="mt-1.5 text-etikett leading-relaxed text-slate-500">{children}</p>;
+}
+
+/** Ett nyckeltal i rubrikraden. Ramas in av rutnätet, som veckans fält. */
+function Nyckeltal({ etikett, varde, under }: { etikett: string; varde: React.ReactNode; under: string }) {
+  return (
+    <div className="flex flex-col gap-1 border-slate-100 px-4 py-3 sm:px-5 [&:nth-child(odd)]:border-r [&:nth-child(-n+2)]:border-b lg:[&:nth-child(-n+2)]:border-b-0 lg:[&:not(:last-child)]:border-r">
+      <dt className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">{etikett}</dt>
+      <dd className="text-2xl font-extrabold leading-tight tabular-nums text-slate-900">{varde}</dd>
+      <dd className="min-h-4 text-xs text-slate-500">{under}</dd>
+    </div>
+  );
+}
+
+/**
+ * "sömn", "sömn och energinivå" — men "sömn samt kost och näring": när ett
+ * namn självt innehåller "och" blir det annars oklart var gränsen går.
+ */
+function opprakning(namn: string[]): string {
+  if (namn.length <= 1) return namn[0] ?? '';
+  const binde = namn.some((n) => n.includes(' och ')) ? ' samt ' : ' och ';
+  return `${namn.slice(0, -1).join(', ')}${binde}${namn.at(-1)}`;
 }
 
 function SL({ children }: { children: React.ReactNode }) {

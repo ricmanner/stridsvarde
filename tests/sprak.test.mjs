@@ -392,9 +392,14 @@ test('fördelningen under varje kategori säger att den räknar svar', async () 
   assert.equal(statusSvar('red', 1), 'rött svar');
   assert.equal(statusSvar('red', 0), 'röda svar');
 
-  const kod = synligText('src/components/leader/LeaderDashboard.tsx');
-  assert.match(kod, /statusSvar\('green', d\.green\)/, 'fördelningsraden säger inte vad den räknar');
-  assert.ok(!/statusOrd\('green', d\.green\)/.test(kod), 'fördelningsraden använder personordet');
+  /*
+   * Sedan den 16 oktober visar befälsvyn inga staplar som räknar svar, utan
+   * en tabell som räknar personer i rött. Den måste säga det, och den får
+   * inte blanda in svar igen.
+   */
+  const tabell = synligText('src/components/leader/Kategoritabell.tsx');
+  assert.match(tabell, /personer vars eget snitt ligger under 4, av dem som svarat/, 'tabellen säger inte vad "I rött" räknar');
+  assert.ok(!/gröna svar|statusSvar/.test(synligText('src/components/leader/LeaderDashboard.tsx')), 'svar och personer blandas igen');
 });
 
 /*
