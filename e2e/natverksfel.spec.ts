@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { KODER, loggaIn, oppnaIncheckning } from './hjalp';
+import { FRAGOR, KODER, loggaIn, oppnaIncheckning } from './hjalp';
 
 /**
  * Vad som händer när nätet inte svarar.
@@ -33,14 +33,14 @@ const RIMLIG_VANTAN = 20_000;
  * kontot svarat idag eller inte, annars går det inte att köra om.
  */
 async function fyllIIncheckningen(page: Page, varde: number): Promise<void> {
-  for (let fraga = 1; fraga <= 6; fraga++) {
+  for (let fraga = 1; fraga <= FRAGOR; fraga++) {
     const reglage = page.locator('input[type="range"]');
     await expect(reglage).toBeVisible();
     await reglage.focus();
     await page.keyboard.press('Home'); // till 1, oavsett var det stod
     for (let i = 1; i < varde; i++) await page.keyboard.press('ArrowRight');
     await expect(reglage).toHaveValue(String(varde));
-    await page.getByRole('button', { name: fraga === 6 ? 'Sammanfattning' : 'Nästa' }).click();
+    await page.getByRole('button', { name: fraga === FRAGOR ? 'Sammanfattning' : 'Nästa' }).click();
   }
   await expect(page.getByText(/Bekräfta din incheckning|Bekräfta ändringen/)).toBeVisible();
 }

@@ -9,6 +9,7 @@ import {
   getOwnHistory,
   getOwnResponseFrequency,
   getTodayCheckIn,
+  svarIRad,
 } from '@/lib/db/queries/checkins';
 import { aktivSamtalsbegaran } from '@/lib/db/queries/notifications';
 
@@ -32,14 +33,7 @@ export default async function SoldatDashboardPage() {
     aktivSamtalsbegaran(session.id),
   ]);
 
-  const toScores = (r: typeof today): Record<Category, number> => ({
-    fysisk: r.fysisk,
-    psykisk: r.psykisk,
-    social: r.social,
-    somn: r.somn,
-    kost: r.kost,
-    energi: r.energi,
-  });
+  const toScores = (r: typeof today): Record<Category, number> => svarIRad(r);
 
   const scores = toScores(today);
 

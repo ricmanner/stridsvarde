@@ -25,6 +25,11 @@ export const SKALA: Record<Category, Record<Status, string>> = {
     yellow: 'Stel, öm eller sliten. Känns i kroppen.',
     green: 'Kroppen känns bra. Inga besvär.',
   },
+  halsa: {
+    red: 'Sjuk. Feber, infektion eller tydliga sjukdomssymtom.',
+    yellow: 'Krasslig. Förkylning eller lättare symtom.',
+    green: 'Frisk. Inga sjukdomssymtom.',
+  },
   psykisk: {
     red: 'Tungt. Oro, nedstämdhet eller stress som tar mycket kraft.',
     yellow: 'Mer pressad än vanligt. Tankarna tar energi.',

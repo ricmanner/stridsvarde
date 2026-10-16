@@ -117,3 +117,14 @@ test('statussidan säger hur lång historiken är', async () => {
   assert.match(sida, /tre veckors\s+historik/);
   assert.doesNotMatch(sida, /fjorton dagars\s+historik/);
 });
+
+test('hälsa: en förkylning sprids i 3. kompani, 2. pluton den senaste veckan', async () => {
+  // Visar cheferna varför frågan om hälsa behövs: smitta syns i gruppen
+  // innan sjukskrivningarna kommer (16 oktober).
+  const { forlopp } = await import('../src/lib/demo-forlopp.ts');
+  assert.ok(forlopp(8, 'halsa', 12) > 7, 'friskt för två veckor sedan');
+  assert.ok(forlopp(8, 'halsa', 0) < 4, 'rött idag');
+  assert.ok(forlopp(8, 'halsa', 3) < forlopp(8, 'halsa', 6), 'sjunker under veckan');
+  // Övriga plutoner i 3. kompani är friska.
+  for (const p of [7, 9]) assert.ok(forlopp(p, 'halsa', 0) >= 7, `pluton ${p}`);
+});

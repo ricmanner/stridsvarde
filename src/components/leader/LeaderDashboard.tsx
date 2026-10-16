@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import Link, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Activity, AlertTriangle, Brain, Download, FileText, Moon, Users, Utensils, Zap } from 'lucide-react';
+import { AlertTriangle, Download, FileText } from 'lucide-react';
+
+import CategoryIcon from '@/components/CategoryIcon';
 
 import CategoryTrendGrid from '@/components/charts/CategoryTrendGrid';
 import StatusBadge from '@/components/StatusBadge';
@@ -33,15 +35,6 @@ const FLIKAR = [
   { id: 'trends', etikett: 'Trender' },
   { id: 'compare', etikett: 'Jämförelse' },
 ] as const;
-
-const ICONS: Record<string, React.ReactNode> = {
-  Activity: <Activity size={15} strokeWidth={1.5} />,
-  Brain: <Brain size={15} strokeWidth={1.5} />,
-  Users: <Users size={15} strokeWidth={1.5} />,
-  Moon: <Moon size={15} strokeWidth={1.5} />,
-  Utensils: <Utensils size={15} strokeWidth={1.5} />,
-  Zap: <Zap size={15} strokeWidth={1.5} />,
-};
 
 export interface LeaderDashboardProps {
   levelLabel: string;
@@ -192,7 +185,7 @@ export default function LeaderDashboard({
                       className={`px-4 py-3.5 sm:px-5 ${i < CATEGORIES.length - 1 ? 'border-b border-slate-100' : ''}`}
                     >
                       <div className="mb-2 flex items-center gap-2.5">
-                        <span className="text-slate-400">{ICONS[cat.icon]}</span>
+                        <span className="text-slate-400"><CategoryIcon namn={cat.icon} size={15} /></span>
                         <span className="flex-1 text-xs text-slate-600">{cat.label}</span>
                         <span className="mr-1.5 text-sm font-bold tabular-nums text-slate-900">
                           {formatScore(score)}

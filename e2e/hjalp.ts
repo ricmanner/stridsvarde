@@ -8,6 +8,12 @@ import { expect, type Page } from '@playwright/test';
  * så det går att gå igenom incheckningen med dem.
  */
 
+/**
+ * Antal frågor i incheckningen: sju sedan frågan om hälsa (HALSA_PA i
+ * src/lib/data.ts, 16 oktober). Stängs den av blir det sex igen.
+ */
+export const FRAGOR = 7;
+
 export const KODER = {
   varnpliktig: 'P1G1-01',
   varnpliktigKlar: 'P1G2-01', // har redan rapporterat idag

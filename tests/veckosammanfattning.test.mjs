@@ -11,7 +11,7 @@ import test from 'node:test';
 
 import { buildOrg, checkIn, database } from './setup.mjs';
 
-const lika = (v) => ({ fysisk: v, psykisk: v, social: v, somn: v, kost: v, energi: v });
+const lika = (v) => ({ fysisk: v, halsa: v, psykisk: v, social: v, somn: v, kost: v, energi: v });
 const grund = {
   eligible: 27,
   svarsandel: 0.82,

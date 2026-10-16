@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { ingaEnskildaPersoner, KODER, loggaIn, synligText } from './hjalp';
+import { FRAGOR, ingaEnskildaPersoner, KODER, loggaIn, synligText } from './hjalp';
 
 /**
  * Befälsvyn: tre flikar, tre nivåer, och den gräns som hela appen vilar på —
@@ -77,8 +77,8 @@ test.describe('plutonchefen', () => {
 
   test('graferna ritas, inte bara rubrikerna', async ({ page }) => {
     await page.getByRole('tab', { name: 'Trender' }).click();
-    // Sex små grafer, en per kategori.
-    await expect(page.locator('.recharts-surface')).toHaveCount(6);
+    // En liten graf per fråga — sju med hälsa.
+    await expect(page.locator('.recharts-surface')).toHaveCount(FRAGOR);
     await expect(page.getByRole('img', { name: /Trend för enheten: Sömn/ })).toBeVisible();
 
     await page.getByRole('tab', { name: 'Jämförelse' }).click();

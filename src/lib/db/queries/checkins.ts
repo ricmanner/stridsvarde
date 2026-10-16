@@ -1,8 +1,8 @@
 import 'server-only';
 
-import { and, eq, gte, sql } from 'drizzle-orm';
+import { and, eq, gte, isNotNull, sql } from 'drizzle-orm';
 
-import type { Category } from '../../data';
+import { CATEGORIES, type Category, HALSA_PA } from '../../data';
 import { daysBetween, serviceDate, serviceDateDaysAgo } from '../../date';
 import { db } from '..';
 import { checkIns, users } from '../schema';
@@ -17,7 +17,25 @@ export interface CheckInRow {
   somn: number;
   kost: number;
   energi: number;
+  /** Bara när HALSA_PA; annars nämns kolumnen aldrig (se data.ts). */
+  halsa?: number | null;
   advice: string | null;
+}
+
+/*
+ * En rapport räknas bara om alla aktiva frågor är besvarade. När frågan om
+ * hälsa slogs på saknade äldre rapporter ett svar på den; de räknas som
+ * obesvarade, och den som rapporterat idag får svara igen. Samma regel som i
+ * befälsvyerna (KOMPLETTA i aggregates.ts), så att den värnpliktige och
+ * befälet räknar på samma rapporter.
+ */
+const KOMPLETT = HALSA_PA ? isNotNull(checkIns.halsa) : undefined;
+
+/** Svaren i en rapport, för de frågor som är aktiva. */
+export function svarIRad(rad: CheckInRow): Record<Category, number> {
+  return Object.fromEntries(
+    CATEGORIES.map((c) => [c.key, Number(rad[c.key as keyof CheckInRow])]),
+  ) as Record<Category, number>;
 }
 
 const COLUMNS = {
@@ -28,6 +46,7 @@ const COLUMNS = {
   somn: checkIns.somn,
   kost: checkIns.kost,
   energi: checkIns.energi,
+  ...(HALSA_PA ? { halsa: checkIns.halsa } : {}),
   advice: checkIns.advice,
 };
 
@@ -36,7 +55,7 @@ export async function getTodayCheckIn(userId: number): Promise<CheckInRow | null
   const [row] = await db
     .select(COLUMNS)
     .from(checkIns)
-    .where(and(eq(checkIns.userId, userId), eq(checkIns.serviceDate, serviceDate())))
+    .where(and(eq(checkIns.userId, userId), eq(checkIns.serviceDate, serviceDate()), KOMPLETT))
     .limit(1);
 
   return row ?? null;
@@ -77,7 +96,7 @@ export async function getOwnHistory(userId: number, days: number): Promise<Check
     .select(COLUMNS)
     .from(checkIns)
     .where(
-      and(eq(checkIns.userId, userId), gte(checkIns.serviceDate, serviceDateDaysAgo(days - 1))),
+      and(eq(checkIns.userId, userId), gte(checkIns.serviceDate, serviceDateDaysAgo(days - 1)), KOMPLETT),
     )
     .orderBy(checkIns.serviceDate);
 }
@@ -101,7 +120,7 @@ export async function getOwnResponseFrequency(
   const [row] = await db
     .select({ n: sql<number>`count(*)` })
     .from(checkIns)
-    .where(and(eq(checkIns.userId, userId), gte(checkIns.serviceDate, fran)));
+    .where(and(eq(checkIns.userId, userId), gte(checkIns.serviceDate, fran), KOMPLETT));
   const [start] = await db
     .select({
       skapad: users.createdAt,

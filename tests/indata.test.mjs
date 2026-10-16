@@ -118,7 +118,7 @@ test('ogiltiga värden i en incheckning kan inte sparas', async () => {
    * heltal 1–10. Ändras den i data.ts måste kontrollen i actionen ändras med.
    */
   const { CATEGORIES } = await import('../src/lib/data.ts');
-  assert.equal(CATEGORIES.length, 6);
+  assert.equal(CATEGORIES.length, 7); // med hälsa, 16 oktober
 
   const action = (await import('node:fs')).readFileSync('src/app/actions/checkin.ts', 'utf8');
   assert.match(action, /Number\.isInteger\(raw\)/, 'heltal krävs');
@@ -126,7 +126,7 @@ test('ogiltiga värden i en incheckning kan inte sparas', async () => {
 
   // Databasen ska inte heller tro att 99 är ett giltigt svar.
   const { saveCheckIn } = await import('../src/lib/db/queries/checkins.ts');
-  await saveCheckIn(soldat, { fysisk: 9, psykisk: 9, social: 9, somn: 9, kost: 9, energi: 9 }, '');
+  await saveCheckIn(soldat, { fysisk: 9, halsa: 9, psykisk: 9, social: 9, somn: 9, kost: 9, energi: 9 }, '');
   const [rad] = (
     await client.execute({ sql: 'SELECT fysisk FROM check_ins WHERE user_id = ?', args: [soldat] })
   ).rows;

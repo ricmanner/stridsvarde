@@ -92,7 +92,8 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
             {/* Dagens två nyckeltal */}
             <div className="mb-4 grid grid-cols-2 gap-2.5">
               <MetricCard
-                label="Hälsostatus idag"
+                // Hette "Hälsostatus idag" — krockade med frågan "Hälsa" (16 oktober).
+                label="Samlat mående idag"
                 value={formatScore(overall)}
                 sub={<StatusBadge status={overallStatus} />}
                 trend={trend}

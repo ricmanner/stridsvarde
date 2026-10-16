@@ -5,7 +5,7 @@ import { sql } from 'drizzle-orm';
 import { generateSoldierAdvice } from '../advice';
 import { hashCode } from '../auth/codes';
 import { serviceDateDaysAgo } from '../date';
-import type { Category } from '../data';
+import { CATEGORIES, type Category } from '../data';
 import { forlopp, HISTORIK_DAGAR } from '../demo-forlopp';
 import { db, environment, isSeedDemoData } from './client';
 import { auditLog, checkIns, units, users } from './schema';
@@ -30,7 +30,9 @@ function seedFrom(s: string): number {
   return h >>> 0;
 }
 
-const CATS: Category[] = ['fysisk', 'psykisk', 'social', 'somn', 'kost', 'energi'];
+// De aktiva frågorna — med hälsa när HALSA_PA. Avstängd skrivs kolumnen
+// aldrig, så återställningen fungerar också innan kolumnen finns.
+const CATS: Category[] = CATEGORIES.map((c) => c.key);
 
 /*
  * Plutonerna har två nummer, och de får inte blandas ihop.

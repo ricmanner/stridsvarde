@@ -16,6 +16,10 @@ const categoryContext: Record<Category, { yellow: string; red: string }> = {
     yellow: 'Belastningen är hög i förhållande till din återhämtning. Kroppen hinner inte ikapp mellan passen.',
     red: 'Kroppen signalerar att något behöver åtgärdas. Kör du vidare som vanligt riskerar du en skada som tar veckor i stället för dagar.',
   },
+  halsa: {
+    yellow: 'Lättare symtom tar kraft, också när de verkar små. Kroppen återhämtar sig sämre medan den bekämpar något.',
+    red: 'Sjukdomssymtom på den här nivån behöver bedömas av någon annan. Belastning medan kroppen är sjuk kan förlänga sjukdomen.',
+  },
   psykisk: {
     yellow: 'Mental belastning smyger sig på. Den är betydligt lättare att vända nu än om några veckor.',
     red: 'Det här är en nivå där du behöver stöd från någon annan. Det är inte svaghet — det är så det fungerar för alla.',
@@ -44,6 +48,11 @@ const actionTips: Record<Category, Record<Status, string[]>> = {
     green: ['Stretcha 5–10 minuter efter varje pass', 'Drick 2–3 liter vatten om dagen'],
     yellow: ['Sänk intensiteten i nästa träningspass', 'Gör fem minuters rörlighetsträning i kväll', 'Välj vila framför extra rep om du är osäker'],
     red: ['Vila från tung belastning idag', 'Säg till ditt befäl, som ordnar kontakt med sjukvården', 'Informera din gruppchef om besvären'],
+  },
+  halsa: {
+    green: ['Tvätta händerna ofta — smitta sprids snabbt på logementet', 'Drick ordentligt även när det är kallt ute'],
+    yellow: ['Säg till befälet att du känner dig krasslig', 'Vila när det går och drick mycket', 'Håll avstånd till kamrater om du hostar eller nyser'],
+    red: ['Säg till befälet vid sjukdomskänsla — befälet avgör om sjukvård behövs', 'Tvinga dig inte igenom fysisk belastning', 'Håll avstånd till kamrater så att smittan inte sprids'],
   },
   psykisk: {
     green: ['Ta två minuters djupandning om stressen ökar', 'Håll kontakten med kamrater — det skyddar'],
@@ -102,7 +111,8 @@ const catLabel = Object.fromEntries(
  * krisen hamnade längre ned. Vid lika värden ska det som kan skada mest väga
  * tyngst, inte det som råkar stå först i koden.
  */
-const SEVERITY: Category[] = ['psykisk', 'fysisk', 'somn', 'social', 'energi', 'kost'];
+// Hälsa efter psykiskt mående: sjukdom kan behöva sjukvård, och smittar.
+const SEVERITY: Category[] = ['psykisk', 'halsa', 'fysisk', 'somn', 'social', 'energi', 'kost'];
 
 function byUrgency(scores: Record<Category, number>): [Category, number][] {
   return (Object.entries(scores) as [Category, number][]).sort(

@@ -126,12 +126,17 @@ export async function buildOrg(client) {
 }
 
 /** Låter angivna soldater checka in en given dag, alla med samma värde. */
+/**
+ * En fullständig rapport, med svar på alla frågor — också hälsa, som lades
+ * till den 16 oktober. Rapporter utan den räknas inte i sammanställningarna;
+ * se tests/halsa.test.mjs för hur gamla rapporter prövas.
+ */
 export async function checkIn(client, userIds, date, value) {
   for (const id of userIds) {
     await client.execute({
-      sql: `INSERT INTO check_ins (user_id, service_date, fysisk, psykisk, social, somn, kost, energi, created_at)
-            VALUES (?,?,?,?,?,?,?,?,?)`,
-      args: [id, date, value, value, value, value, value, value, iso()],
+      sql: `INSERT INTO check_ins (user_id, service_date, fysisk, halsa, psykisk, social, somn, kost, energi, created_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?)`,
+      args: [id, date, value, value, value, value, value, value, value, iso()],
     });
   }
 }

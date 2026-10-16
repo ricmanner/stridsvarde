@@ -18,7 +18,8 @@ import test from 'node:test';
 
 import { buildOrg, database } from './setup.mjs';
 
-const CATS = ['fysisk', 'psykisk', 'social', 'somn', 'kost', 'energi'];
+// Med hälsa sedan den 16 oktober (HALSA_PA i data.ts). Följer appens ordning.
+const CATS = ['fysisk', 'halsa', 'psykisk', 'social', 'somn', 'kost', 'energi'];
 const K = 4;
 const iso = () => new Date().toISOString();
 
@@ -75,8 +76,8 @@ async function insertSoldier(client, unitId, active = 1) {
 /** Sparar ett svar både i databasen och i testets egen lista. */
 async function answer(client, raw, person, date, values) {
   await client.execute({
-    sql: `INSERT INTO check_ins (user_id, service_date, fysisk, psykisk, social, somn, kost, energi, created_at)
-          VALUES (?,?,?,?,?,?,?,?,?)`,
+    sql: `INSERT INTO check_ins (user_id, service_date, ${CATS.join(', ')}, created_at)
+          VALUES (?,?,${CATS.map(() => '?').join(',')},?)`,
     args: [person.id, date, ...CATS.map((c) => values[c]), iso()],
   });
   raw.push({ ...person, date, ...values });
@@ -136,7 +137,7 @@ function expectedAggregate(rows) {
   for (const r of rows) {
     const p = perPerson.get(r.id) ?? { sum: 0, count: 0 };
     p.sum += rowSum(r);
-    p.count += 6;
+    p.count += CATS.length;
     perPerson.set(r.id, p);
   }
   const personStatus = { green: 0, yellow: 0, red: 0 };
@@ -191,7 +192,7 @@ test('befälens siffror stämmer med de råa svaren — 7, 14 och 21 dagar', asy
       assert.equal(ov.categories.ok, true, `${label}: ska visas`);
       for (const c of CATS) check(ov.categories.data[c], e.sums[c], e.n, `${label}, ${c}`);
       const header = Object.values(ov.categories.data).reduce((a, b) => a + b, 0) / CATEGORIES.length;
-      check(header, e.total, e.n * 6, `${label}, samlat snitt i sidhuvudet`);
+      check(header, e.total, e.n * CATS.length, `${label}, samlat snitt i sidhuvudet`);
 
       // Gröna/gula/röda personer, efter var och ens eget snitt
       assert.deepEqual(ov.soldierStatus.data, e.personStatus, `${label}: gröna/gula/röda personer`);
@@ -216,7 +217,7 @@ test('befälens siffror stämmer med de råa svaren — 7, 14 och 21 dagar', asy
           assert.equal(p.overall, null);
         } else {
           for (const c of CATS) check(p.scores[c], d.sums[c], d.n, `${label}, ${p.date}, ${c}`);
-          check(p.overall, d.total, d.n * 6, `${label}, ${p.date}, snitt`);
+          check(p.overall, d.total, d.n * CATS.length, `${label}, ${p.date}, snitt`);
         }
       }
     }
@@ -240,8 +241,8 @@ test('befälens siffror stämmer med de råa svaren — 7, 14 och 21 dagar', asy
       if (e.responders < K) {
         assert.equal(got.overall, null, `${label}: ska döljas`);
       } else {
-        check(got.overall, e.total, e.n * 6, `${label}, snitt`);
-        assert.equal(got.status, statusOf(e.total, e.n * 6), `${label}: märke`);
+        check(got.overall, e.total, e.n * CATS.length, `${label}, snitt`);
+        assert.equal(got.status, statusOf(e.total, e.n * CATS.length), `${label}: märke`);
         for (const c of CATS) check(got.scores[c], e.sums[c], e.n, `${label}, ${c}`);
         assert.deepEqual(
           { green: got.green, yellow: got.yellow, red: got.red },
@@ -256,7 +257,7 @@ test('befälens siffror stämmer med de råa svaren — 7, 14 och 21 dagar', asy
         if (day.responders < K) {
           assert.equal(row[name], null, `${label}, ${row.date}: under tröskeln ska döljas`);
         } else {
-          check(row[name], day.total, day.n * 6, `${label}, ${row.date}`);
+          check(row[name], day.total, day.n * CATS.length, `${label}, ${row.date}`);
         }
       }
     }
@@ -267,7 +268,7 @@ test('befälens siffror stämmer med de råa svaren — 7, 14 och 21 dagar', asy
     for (const [plutonId, name] of [[org.pluton, 'Pluton 1'], [pluton2, 'Pluton 2']]) {
       const e = expectedAggregate(inWindow.filter((r) => r.pluton === plutonId));
       const got = kcmp.children.find((c) => c.id === plutonId);
-      check(got.overall, e.total, e.n * 6, `${name} i kompaniets jämförelse, ${period} d`);
+      check(got.overall, e.total, e.n * CATS.length, `${name} i kompaniets jämförelse, ${period} d`);
     }
   }
 });
@@ -321,11 +322,11 @@ test('avrundningen ger samma tal och färg som räknat för hand', async () => {
   ]) {
     const e = expectedAggregate(raw);
     const ov = await agg.getUnitOverview(unit, 7);
-    const header = Object.values(ov.categories.data).reduce((x, y) => x + y, 0) / 6;
-    check(header, e.total, e.n * 6, `fälla ${name}: samlat snitt`);
+    const header = Object.values(ov.categories.data).reduce((x, y) => x + y, 0) / CATS.length;
+    check(header, e.total, e.n * CATS.length, `fälla ${name}: samlat snitt`);
     const today = (await agg.getUnitCategorySeries(unit, 7)).at(-1);
     const t = expectedAggregate(raw.filter((r) => r.date === TODAY));
-    check(today.overall, t.total, t.n * 6, `fälla ${name}: dagens snitt`);
+    check(today.overall, t.total, t.n * CATS.length, `fälla ${name}: dagens snitt`);
   }
 
   // 14 dagar: fällan med exakt 6,95 bygger på tio dagars svar.
@@ -333,7 +334,7 @@ test('avrundningen ger samma tal och färg som räknat för hand', async () => {
   for (const g of [a, b, c]) {
     const e = expectedAggregate(g.raw);
     const got = cmp.children.find((x) => x.id === g.unit);
-    check(got.overall, e.total, e.n * 6, `jämförelse, enhet ${g.unit}`);
+    check(got.overall, e.total, e.n * CATS.length, `jämförelse, enhet ${g.unit}`);
     assert.deepEqual({ green: got.green, yellow: got.yellow, red: got.red }, e.personStatus, `jämförelse, enhet ${g.unit}: personer`);
   }
 });
@@ -355,7 +356,7 @@ test('den värnpliktiges egen sida stämmer med hens egna svar', async () => {
     for (const [i, h] of history.entries()) {
       for (const c of CATS) assert.equal(h[c], mine[i][c], `${h.serviceDate}, ${c}`);
       const scores = Object.fromEntries(CATS.map((c) => [c, h[c]]));
-      assertShown({ value: avgScore(scores), formatScore, getStatus }, rowSum(mine[i]), 6, `${h.serviceDate}: dagens snitt`);
+      assertShown({ value: avgScore(scores), formatScore, getStatus }, rowSum(mine[i]), CATS.length, `${h.serviceDate}: dagens snitt`);
     }
 
     const freq = await getOwnResponseFrequency(id, 14);
@@ -377,7 +378,7 @@ test('den värnpliktiges egen sida stämmer med hens egna svar', async () => {
     assert.equal(ownTrend(history.map((h) => Object.fromEntries(CATS.map((c) => [c, h[c]])))), want, `riktning för ${id}`);
   }
 
-  // "Hälsostatus idag" färgas efter visat snitt, inte efter ett heltal.
+  // "Samlat mående idag" färgas efter visat snitt, inte efter ett heltal.
   // 6,5 är gult: gränsen för grönt är 7.
   const halv = { fysisk: 7, psykisk: 6, social: 7, somn: 6, kost: 7, energi: 6 };
   assert.equal(formatScore(avgScore(halv)), '6,5');
@@ -452,8 +453,8 @@ test('närvaron räknas från den dag personen fanns', async () => {
     ]);
   const checkaIn = (id, dagar) =>
     client.execute({
-      sql: `INSERT INTO check_ins (user_id, service_date, fysisk, psykisk, social, somn, kost, energi, created_at)
-            VALUES (?,?,5,5,5,5,5,5,?)`,
+      sql: `INSERT INTO check_ins (user_id, service_date, fysisk, halsa, psykisk, social, somn, kost, energi, created_at)
+            VALUES (?,?,5,5,5,5,5,5,5,?)`,
       args: [id, daysAgo(dagar), iso()],
     });
 

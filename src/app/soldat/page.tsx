@@ -4,7 +4,7 @@ import AppHeader from '@/components/AppHeader';
 import { requireRole } from '@/lib/auth/guard';
 import type { Category } from '@/lib/data';
 import { longDateLabel, serviceDate } from '@/lib/date';
-import { getTodayCheckIn } from '@/lib/db/queries/checkins';
+import { getTodayCheckIn, svarIRad } from '@/lib/db/queries/checkins';
 
 import SoldatCheckin from './CheckinWizard';
 
@@ -28,16 +28,7 @@ export default async function SoldatPage({
   const editing = Boolean(today) && redigera === '1';
   if (today && !editing) redirect('/soldat/dashboard');
 
-  const initial: Record<Category, number> | undefined = today
-    ? {
-        fysisk: today.fysisk,
-        psykisk: today.psykisk,
-        social: today.social,
-        somn: today.somn,
-        kost: today.kost,
-        energi: today.energi,
-      }
-    : undefined;
+  const initial: Record<Category, number> | undefined = today ? svarIRad(today) : undefined;
 
   return (
     <div className="flex min-h-dvh flex-col">

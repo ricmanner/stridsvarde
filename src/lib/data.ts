@@ -1,18 +1,38 @@
-export type Category = 'fysisk' | 'psykisk' | 'social' | 'somn' | 'kost' | 'energi';
+export type Category = 'fysisk' | 'halsa' | 'psykisk' | 'social' | 'somn' | 'kost' | 'energi';
 
-export const CATEGORIES: Array<{
+/*
+ * Frågan om hälsa — "Hur frisk känner du dig idag?" — tillagd den 16 oktober
+ * efter fysioterapeuterna, som verkligen ville ha den. Avstängd lämnar den
+ * appen precis som förut: listan nedan har då sex frågor, och ingen fråga mot
+ * databasen nämner kolumnen.
+ *
+ * Det sista spelar roll vid driftsättning. Kolumnen läggs till i den delade
+ * databasen med knappen "Uppdatera schemat" på /status — finns koden ute med
+ * frågan påslagen innan dess, kraschar varje sida som läser incheckningar.
+ * Driftsätt därför med `false`, tryck på knappen, slå sedan på.
+ *
+ * När den är på räknar befälsvyerna bara fullständiga rapporter, se KOMPLETTA
+ * i queries/aggregates.ts.
+ */
+export const HALSA_PA = true;
+
+const ALLA_KATEGORIER: Array<{
   key: Category;
   label: string;
   icon: string; // Lucide icon name
   question: string;
 }> = [
-  { key: 'fysisk',  label: 'Fysisk form',      icon: 'Activity',  question: 'Hur mår din kropp idag?' },
-  { key: 'psykisk', label: 'Psykiskt mående',   icon: 'Brain',     question: 'Hur mår du mentalt?' },
-  { key: 'social',  label: 'Social trivsel',    icon: 'Users',     question: 'Hur trivs du i gruppen?' },
-  { key: 'somn',    label: 'Sömn',              icon: 'Moon',      question: 'Hur sov du i natt?' },
-  { key: 'kost',    label: 'Kost och näring',   icon: 'Utensils',  question: 'Hur äter du under tjänsten?' },
-  { key: 'energi',  label: 'Energinivå',        icon: 'Zap',       question: 'Hur är din energi just nu?' },
+  { key: 'fysisk',  label: 'Fysisk form',      icon: 'Activity',    question: 'Hur mår din kropp idag?' },
+  // Direkt efter fysisk form, så att frågorna om kroppen står ihop.
+  { key: 'halsa',   label: 'Hälsa',             icon: 'Thermometer', question: 'Hur frisk känner du dig idag?' },
+  { key: 'psykisk', label: 'Psykiskt mående',   icon: 'Brain',       question: 'Hur mår du mentalt?' },
+  { key: 'social',  label: 'Social trivsel',    icon: 'Users',       question: 'Hur trivs du i gruppen?' },
+  { key: 'somn',    label: 'Sömn',              icon: 'Moon',        question: 'Hur sov du i natt?' },
+  { key: 'kost',    label: 'Kost och näring',   icon: 'Utensils',    question: 'Hur äter du under tjänsten?' },
+  { key: 'energi',  label: 'Energinivå',        icon: 'Zap',         question: 'Hur är din energi just nu?' },
 ];
+
+export const CATEGORIES = HALSA_PA ? ALLA_KATEGORIER : ALLA_KATEGORIER.filter((c) => c.key !== 'halsa');
 
 export interface CheckIn {
   id: string;

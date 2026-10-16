@@ -62,6 +62,8 @@ const PLUTONER: Record<number, Forlopp> = {
     somn: 3.6 + mellan((d - 5) / 5, 0, 1) - dipp(d, 7, 1.8, 1.8),
     kost: 3.9 - dipp(d, 7, 2, 1.0),
     energi: 5.2 - dipp(d, 7, 2, 2.4),
+    // Några blev sjuka efter övningen, några dagar senare.
+    halsa: 6.2 - dipp(d, 4, 2, 1.4),
   }),
   /*
    * 1. kompani, 2. pluton — psykiskt mående och trivsel sjunker sakta under
@@ -97,7 +99,15 @@ const PLUTONER: Record<number, Forlopp> = {
 
   /* 3. kompani — genomgående bäst, med 1. pluton något lägre i kost. */
   7: () => ({ ovriga: 7.2, kost: 5.8 }),
-  8: () => ({ ovriga: 7.5 }),
+  /*
+   * 3. kompani, 2. pluton — en förkylning sprids den senaste veckan. Hälsan
+   * går från frisk till röd, och orken följer efter. Visar varför frågan om
+   * hälsa behövs: smittan syns i gruppen innan sjukskrivningarna kommer.
+   */
+  8: (d) => {
+    const sjuk = skifte(d, 3.5, 1);
+    return { ovriga: 7.5, halsa: 7.6 - 4.0 * sjuk, energi: 7.5 - 1.5 * sjuk };
+  },
   9: () => ({ ovriga: 7.2 }),
 };
 

@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-import { KODER, loggaIn, oppnaIncheckning, skickaIncheckning, synligText } from './hjalp';
+import { FRAGOR, KODER, loggaIn, oppnaIncheckning, skickaIncheckning, synligText } from './hjalp';
 
 /** Klickar sig fram till sammanfattningen, varifrån man än står. */
 async function tillSammanfattningen(page: import('@playwright/test').Page) {
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i <= FRAGOR; i++) {
     const sammanfattning = page.getByRole('button', { name: 'Sammanfattning' });
     if (await sammanfattning.isVisible()) {
       await sammanfattning.click();
@@ -28,14 +28,14 @@ test('rapporterar sitt mående och får återkoppling', async ({ page }) => {
 
   // Sex frågor. Skjutreglaget styrs med tangentbord — samma väg som den som
   // inte använder mus, och stabilare än att dra i ett reglage.
-  for (let fraga = 1; fraga <= 6; fraga++) {
+  for (let fraga = 1; fraga <= FRAGOR; fraga++) {
     const reglage = page.locator('input[type="range"]');
     await expect(reglage).toBeVisible();
     await reglage.focus();
     // Från mitten (5) upp till 8, så att värdena inte blir röda och drar in
     // stödrutan — den prövas i ett eget test.
     for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight');
-    await page.getByRole('button', { name: fraga === 6 ? 'Sammanfattning' : 'Nästa' }).click();
+    await page.getByRole('button', { name: fraga === FRAGOR ? 'Sammanfattning' : 'Nästa' }).click();
   }
 
   await expect(page.getByText(/Bekräfta din incheckning|Bekräfta ändringen/)).toBeVisible();
@@ -64,7 +64,7 @@ test('rapporterar sitt mående och får återkoppling', async ({ page }) => {
 
   await skickaIncheckning(page);
   const text = await synligText(page);
-  expect(text).toContain('hälsostatus idag');
+  expect(text).toContain('samlat mående idag');
   expect(text).toContain('svarsfrekvens');
 });
 
@@ -102,8 +102,9 @@ test('varje fråga säger vad siffran betyder, och info-knappen listar alla niv�
   await page.getByRole('button', { name: 'Nästa' }).click();
   await reglage.focus();
   await page.keyboard.press('ArrowRight');
-  await expect(text('Mer pressad än vanligt.')).toBeVisible();
-  await page.getByRole('button', { name: 'Vad betyder siffrorna för psykiskt mående?' }).click();
+  // Fråga 2 är hälsa sedan den 16 oktober.
+  await expect(text('Krasslig. Förkylning eller lättare symtom.')).toBeVisible();
+  await page.getByRole('button', { name: 'Vad betyder siffrorna för hälsa?' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Stäng' }).click();
   await expect(page.getByRole('dialog')).toBeHidden();
 });
@@ -246,11 +247,11 @@ test('låga värden ger stödrutan, som hänvisar till befälet', async ({ page 
   await oppnaIncheckning(page);
 
   // Lägsta värdet på varje fråga: det här är personen appen finns för.
-  for (let fraga = 1; fraga <= 6; fraga++) {
+  for (let fraga = 1; fraga <= FRAGOR; fraga++) {
     const reglage = page.locator('input[type="range"]');
     await reglage.focus();
     for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowLeft');
-    await page.getByRole('button', { name: fraga === 6 ? 'Sammanfattning' : 'Nästa' }).click();
+    await page.getByRole('button', { name: fraga === FRAGOR ? 'Sammanfattning' : 'Nästa' }).click();
   }
   await skickaIncheckning(page);
 

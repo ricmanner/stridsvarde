@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
-import { KODER, loggaIn, oppnaIncheckning } from './hjalp';
+import { FRAGOR, KODER, loggaIn, oppnaIncheckning } from './hjalp';
 
 /**
  * Tillgänglighet mätt av axe, inte av mina antaganden.
@@ -88,10 +88,10 @@ test('incheckningen, alla steg', async ({ page }) => {
 
   // Reglaget börjar tomt, så varje fråga måste besvaras för att gå vidare.
   const reglage = page.locator('input[type="range"]');
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= FRAGOR; i++) {
     await reglage.focus();
     await page.keyboard.press('ArrowLeft');
-    await page.getByRole('button', { name: i === 6 ? 'Sammanfattning' : 'Nästa' }).click();
+    await page.getByRole('button', { name: i === FRAGOR ? 'Sammanfattning' : 'Nästa' }).click();
   }
   expect.soft(await granska(page, 'sammanfattning')).toEqual([]);
 });

@@ -7,7 +7,7 @@ import { serviceDate, serviceDateDaysAgo } from '../../date';
 import { db } from '..';
 import { minResponders } from '../client';
 import { notifications } from '../schema';
-import { getUnitOverview } from './aggregates';
+import { getUnitOverview, KOMPLETTA } from './aggregates';
 import { formatScore, procent } from '../../format';
 
 /*
@@ -54,7 +54,7 @@ async function responseRateFor(
     )
     SELECT (SELECT COUNT(*) FROM member) AS eligible,
            (SELECT COUNT(DISTINCT ci.user_id)
-              FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+              FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
              WHERE ci.service_date = ${date}) AS responders
   `)) as Record<string, number>[];
 

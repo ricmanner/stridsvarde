@@ -280,7 +280,7 @@ test('en kategori har ett namn, hämtat ur CATEGORIES', async () => {
   const { getSoldierTips } = await import('../src/lib/advice.ts');
 
   // Lågt på allt: då ger varje kategori ett kort, och alla titlar går att läsa.
-  const lagt = { fysisk: 2, psykisk: 2, social: 2, somn: 2, kost: 2, energi: 2 };
+  const lagt = { fysisk: 2, halsa: 2, psykisk: 2, social: 2, somn: 2, kost: 2, energi: 2 };
   const titlar = new Map(getSoldierTips(lagt).map((t) => [t.category, t.title]));
 
   for (const cat of CATEGORIES) {

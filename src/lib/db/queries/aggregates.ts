@@ -30,6 +30,20 @@ const CAT_KEYS = CATEGORIES.map((c) => c.key);
 
 /** "(ci.fysisk + ci.psykisk + ...) / 6.0" — byggs ur CATEGORIES så att en ny
  *  kategori automatiskt räknas med i stället för att glömmas bort i SQL. */
+/*
+ * Rapporterna befälsvyerna räknar på: bara de där alla aktiva frågor är
+ * besvarade.
+ *
+ * Frågan om hälsa lades till i efterhand, och äldre rapporter saknar svar på
+ * den. Räknades de med kunde hälsans snitt en dag bygga på en enda persons
+ * svar medan anonymitetsgränsen räknade fyra som checkat in — befälet hade
+ * sett en enskilds hälsa. Med bara fullständiga rapporter vilar varje snitt
+ * på samma personer som gränsen räknar. Testat i tests/halsa.test.mjs.
+ *
+ * Utan frågan om hälsa är villkoret alltid sant och ändrar ingenting.
+ */
+export const KOMPLETTA = `(SELECT * FROM check_ins WHERE ${CAT_KEYS.map((k) => `${k} IS NOT NULL`).join(' AND ')})`;
+
 const OVERALL_EXPR = `(${CAT_KEYS.map((k) => `ci.${k}`).join(' + ')}) / ${CAT_KEYS.length}.0`;
 
 /**
@@ -107,7 +121,7 @@ export const getUnitCategorySeries = cache(
                COUNT(*) AS responders,
                ${sql.raw(avgCols)},
                AVG(${sql.raw(OVERALL_EXPR)}) AS overall
-          FROM check_ins ci
+          FROM ${sql.raw(KOMPLETTA)} ci
           JOIN member m ON m.user_id = ci.user_id
          WHERE ci.service_date BETWEEN ${from} AND ${to}
          GROUP BY ci.service_date
@@ -187,7 +201,7 @@ export const getUnitOverview = cache(
              COUNT(DISTINCT ci.user_id)                           AS responders,
              ${sql.raw(avgCols)},
              ${sql.raw(bucketCols)}
-        FROM check_ins ci
+        FROM ${sql.raw(KOMPLETTA)} ci
         JOIN member m ON m.user_id = ci.user_id
        WHERE ci.service_date BETWEEN ${from} AND ${to}
     `)) as Row[];
@@ -206,7 +220,7 @@ export const getUnitOverview = cache(
            AND u.role = 'soldat' AND u.active = 1
       )
       SELECT COUNT(DISTINCT ci.user_id) AS n
-        FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+        FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
        WHERE ci.service_date = ${to}
     `)) as Row[];
 
@@ -222,7 +236,7 @@ export const getUnitOverview = cache(
       ),
       per_soldier AS (
         SELECT ci.user_id, AVG(${sql.raw(OVERALL_EXPR)}) AS avg_score
-          FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+          FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
          WHERE ci.service_date BETWEEN ${from} AND ${to}
          GROUP BY ci.user_id
       )
@@ -334,7 +348,7 @@ export const getChildComparison = cache(
       ${childCte},
       per_soldier AS (
         SELECT m.child_id, ci.user_id, AVG(${sql.raw(OVERALL_EXPR)}) AS avg_score
-          FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+          FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
          WHERE ci.service_date BETWEEN ${from} AND ${to}
          GROUP BY m.child_id, ci.user_id
       ),
@@ -343,7 +357,7 @@ export const getChildComparison = cache(
                COUNT(DISTINCT ci.user_id) AS responders,
                ${sql.raw(avgCols)},
                AVG(${sql.raw(OVERALL_EXPR)}) AS overall
-          FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+          FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
          WHERE ci.service_date BETWEEN ${from} AND ${to}
          GROUP BY m.child_id
       ),
@@ -406,7 +420,7 @@ export const getChildComparison = cache(
         SELECT m.child_id, ci.service_date AS d,
                COUNT(DISTINCT ci.user_id) AS responders,
                AVG(${sql.raw(OVERALL_EXPR)}) AS overall
-          FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+          FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
          WHERE ci.service_date BETWEEN ${from} AND ${to}
          GROUP BY m.child_id, ci.service_date
       )
@@ -478,7 +492,7 @@ async function directMembersSummary(
     WITH ${member},
     per_soldier AS (
       SELECT ci.user_id, AVG(${sql.raw(OVERALL_EXPR)}) AS avg_score
-        FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+        FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
        WHERE ci.service_date BETWEEN ${from} AND ${to}
        GROUP BY ci.user_id
     )
@@ -489,7 +503,7 @@ async function directMembersSummary(
            (SELECT COUNT(*) FROM per_soldier WHERE ${sql.raw(roundScoreSql('avg_score'))} >= ${GREEN_MIN}) AS green,
            (SELECT COUNT(*) FROM per_soldier WHERE ${sql.raw(roundScoreSql('avg_score'))} >= ${YELLOW_MIN} AND ${sql.raw(roundScoreSql('avg_score'))} < ${GREEN_MIN}) AS yellow,
            (SELECT COUNT(*) FROM per_soldier WHERE ${sql.raw(roundScoreSql('avg_score'))} < ${YELLOW_MIN}) AS red
-      FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+      FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
      WHERE ci.service_date BETWEEN ${from} AND ${to}
   `)) as Row[];
 
@@ -522,7 +536,7 @@ async function directMembersSummary(
     SELECT ci.service_date AS date,
            CASE WHEN COUNT(DISTINCT ci.user_id) >= ${k}
                 THEN AVG(${sql.raw(OVERALL_EXPR)}) END AS overall
-      FROM check_ins ci JOIN member m ON m.user_id = ci.user_id
+      FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
      WHERE ci.service_date BETWEEN ${from} AND ${to}
      GROUP BY ci.service_date
   `)) as Row[];
@@ -578,7 +592,7 @@ export const getVeckounderlag = cache(async (unitId: number): Promise<Veckounder
            ${sql.raw(kolumner('nu', nuFran, nuTill))},
            ${sql.raw(kolumner('forra', forraFran, forraTill))}
       FROM member m
-      LEFT JOIN check_ins ci ON ci.user_id = m.user_id
+      LEFT JOIN ${sql.raw(KOMPLETTA)} ci ON ci.user_id = m.user_id
                             AND ci.service_date BETWEEN ${forraFran} AND ${nuTill}
   `)) as Row[];
 

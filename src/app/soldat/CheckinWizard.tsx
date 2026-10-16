@@ -22,7 +22,7 @@ import { TIDSGRÄNS_KLIENT_MS } from '@/lib/tidsgrans';
  */
 type Svar = Record<Category, number | null>;
 
-const EMPTY: Svar = { fysisk: null, psykisk: null, social: null, somn: null, kost: null, energi: null };
+const EMPTY: Svar = { fysisk: null, halsa: null, psykisk: null, social: null, somn: null, kost: null, energi: null };
 
 function allaBesvarade(svar: Svar): svar is Record<Category, number> {
   return CATEGORIES.every((c) => svar[c.key] !== null);
@@ -221,7 +221,7 @@ interface Props {
 }
 
 /**
- * Incheckningen: sex frågor, en i taget, och en sammanfattning.
+ * Incheckningen: en fråga i taget (sex, eller sju med hälsa) och en sammanfattning.
  *
  * Skriven i Tailwind som resten av appen. Tidigare låg varje mått som ett
  * inline-objekt, vilket gjorde brytpunkter omöjliga och ledde till att
@@ -258,7 +258,7 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             <p className="text-sm leading-relaxed text-slate-500">
               {editing
                 ? 'Dina tidigare svar är förifyllda. Ändra det som blivit fel — den gamla rapporten skrivs över.'
-                : 'Besvara sex frågor om ditt mående. Tar ungefär två minuter. Ditt befäl ser bara sammanställd data för hela gruppen.'}
+                : `Besvara ${CATEGORIES.length === 7 ? 'sju' : 'sex'} frågor om ditt mående. Tar ungefär två minuter. Ditt befäl ser bara sammanställd data för hela gruppen.`}
             </p>
           </div>
 
@@ -452,7 +452,9 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
   // ── Sammanfattning ────────────────────────────────────────────────────────
   // Alltid sant här (se forstaObesvarade ovan); kontrollen ger rätt typ.
   if (!allaBesvarade(scores)) return null;
-  const helhet = Object.values(scores).reduce((a, b) => a + b, 0) / CATEGORIES.length;
+  // Över de aktiva frågorna, inte alla nycklar: frågan om hälsa finns i
+  // svaren också när den är avstängd (som null), se HALSA_PA i data.ts.
+  const helhet = CATEGORIES.reduce((a, c) => a + scores[c.key], 0) / CATEGORIES.length;
 
   return (
     <div className="flex flex-1 flex-col bg-slate-50">

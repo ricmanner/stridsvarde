@@ -1,4 +1,4 @@
-import { Activity, Brain, Moon, Users, Utensils, Zap } from 'lucide-react';
+import { Activity, Brain, Moon, Thermometer, Users, Utensils, Zap } from 'lucide-react';
 
 /**
  * Ikonen för en kategori, på ett ställe.
@@ -8,7 +8,7 @@ import { Activity, Brain, Moon, Users, Utensils, Zap } from 'lucide-react';
  * CATEGORIES hade behövt läggas till på alla tre, och den som glömde en fick
  * ett tomt hål i just den vyn.
  */
-const IKONER = { Activity, Brain, Users, Moon, Utensils, Zap } as const;
+const IKONER = { Activity, Thermometer, Brain, Users, Moon, Utensils, Zap } as const;
 
 export default function CategoryIcon({
   namn,
