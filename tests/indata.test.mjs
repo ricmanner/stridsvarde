@@ -68,7 +68,7 @@ test('dubbelklick på skicka ger en rapport, inte två', async () => {
   const { saveCheckIn } = await import('../src/lib/db/queries/checkins.ts');
   const soldat = soldater['Grupp A'][0];
 
-  const varden = { fysisk: 5, psykisk: 5, social: 5, somn: 5, kost: 5, energi: 5 };
+  const varden = { fysisk: 5, halsa: 5, psykisk: 5, social: 5, somn: 5, kost: 5, energi: 5 };
   await saveCheckIn(soldat, varden, 'råd');
   await saveCheckIn(soldat, varden, 'råd');
 

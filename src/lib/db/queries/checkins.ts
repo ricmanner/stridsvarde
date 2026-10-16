@@ -75,13 +75,19 @@ export async function saveCheckIn(
 ): Promise<void> {
   const now = new Date().toISOString();
 
-  await db
-    .insert(checkIns)
-    .values({ userId, serviceDate: serviceDate(), ...scores, advice, createdAt: now })
-    .onConflictDoUpdate({
-      target: [checkIns.userId, checkIns.serviceDate],
-      set: { ...scores, advice },
-    });
+  /*
+   * Uttryckliga kolumner, bara de aktiva frågornas. Drizzles insert(checkIns)
+   * tar med ALLA kolumner i schemat — också halsa, som NULL — och då kraschar
+   * varje incheckning i en databas där kolumnen ännu inte lagts till, även
+   * med frågan avstängd. Upptäckt i ett driftsättningsprov den 16 oktober.
+   */
+  const kolumner = CATEGORIES.map((c) => c.key);
+  await db.run(sql`
+    INSERT INTO check_ins (user_id, service_date, ${sql.raw(kolumner.join(', '))}, advice, created_at)
+    VALUES (${userId}, ${serviceDate()}, ${sql.join(kolumner.map((k) => sql`${scores[k] ?? null}`), sql`, `)}, ${advice}, ${now})
+    ON CONFLICT (user_id, service_date) DO UPDATE SET
+      ${sql.raw(kolumner.map((k) => `${k} = excluded.${k}`).join(', '))}, advice = excluded.advice
+  `);
 }
 
 /**

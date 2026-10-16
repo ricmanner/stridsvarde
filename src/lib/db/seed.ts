@@ -370,7 +370,26 @@ async function seedInTransaction(tx: Tx, demo: boolean = isSeedDemoData()): Prom
     }
   }
 
-  await insertChunked(checkInRows, (chunk) => tx.insert(checkIns).values(chunk));
+  /*
+   * Uttryckliga kolumner, som i saveCheckIn(): Drizzles insert tar med alla
+   * kolumner i schemat, och då misslyckas "Återställ demon" i en databas där
+   * kolumnen för hälsa ännu inte lagts till.
+   */
+  await insertChunked(checkInRows, (chunk) =>
+    tx.run(sql`
+      INSERT INTO check_ins (user_id, service_date, ${sql.raw(CATS.join(', '))}, advice, created_at)
+      VALUES ${sql.join(
+        chunk.map(
+          (r) =>
+            sql`(${r.userId}, ${r.serviceDate}, ${sql.join(
+              CATS.map((c) => sql`${r[c]}`),
+              sql`, `,
+            )}, ${r.advice}, ${r.createdAt})`,
+        ),
+        sql`, `,
+      )}
+    `),
+  );
 
   console.log(
     '\n  Demodata seedad: %d enheter, %d soldater, %d incheckningar',

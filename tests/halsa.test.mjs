@@ -71,3 +71,33 @@ test('med fyra fullständiga rapporter visas hälsan, som snitt', async () => {
   assert.equal(ov.categories.data.halsa, 6);
   assert.equal((await getVeckounderlag(org.grupper['Grupp B'])).denna?.halsa, 6);
 });
+
+test('rapporter skrivs med uttryckliga kolumner — så att det går att driftsätta före kolumnen', async () => {
+  /*
+   * Provat den 16 oktober mot en databas utan kolumnen, med frågan avstängd:
+   * varje incheckning misslyckades. Drizzles insert(checkIns) tar med ALLA
+   * kolumner i schemat, också halsa som NULL, och då kraschar det i den
+   * delade demon fram till att knappen "Uppdatera schemat" tryckts. Skrivs
+   * bara de aktiva frågornas kolumner fungerar ordningen i data.ts.
+   */
+  const { readFileSync } = await import('node:fs');
+  for (const fil of ['src/lib/db/queries/checkins.ts', 'src/lib/db/seed.ts']) {
+    assert.doesNotMatch(readFileSync(fil, 'utf8'), /\.insert\(checkIns\)/, `${fil} skriver alla kolumner`);
+  }
+});
+
+test('incheckningen sparar och skriver över, med svar på alla aktiva frågor', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const [a] = org.soldater['Grupp A'];
+  const { saveCheckIn, getTodayCheckIn } = await import('../src/lib/db/queries/checkins.ts');
+
+  const svar = (v) => ({ fysisk: v, halsa: v, psykisk: v, social: v, somn: v, kost: v, energi: v });
+  await saveCheckIn(a, svar(3), 'första');
+  await saveCheckIn(a, svar(8), 'rättelse');
+
+  const rader = (await client.execute({ sql: 'SELECT halsa, fysisk, advice FROM check_ins WHERE user_id = ?', args: [a] })).rows;
+  assert.equal(rader.length, 1, 'en rättelse skriver över, den dubblerar inte');
+  assert.deepEqual([Number(rader[0].halsa), Number(rader[0].fysisk), rader[0].advice], [8, 8, 'rättelse']);
+  assert.equal((await getTodayCheckIn(a))?.halsa, 8);
+});
