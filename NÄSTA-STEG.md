@@ -16,8 +16,9 @@ stora pushen (`3da4b26`) är gröna; den sista, en texträttning på `/status`
 (`02c5a24`), var inte avläst när detta skrevs (GitHubs gräns för
 okontrollerade frågor). 221 enhetstester och 43 webbläsartester.
 
-**Lokalt, inte pushat än:** veckosammanfattningen och väg B för
-varningarna (se "Gjort den 15 oktober"). Väntar på att Richard säger
+**Lokalt, inte pushat än:** veckosammanfattningen, väg B för varningarna,
+knapparna nära reglaget på iPad, och fotnoten borttagen (se "Gjort den 15
+oktober"). Väntar på att Richard säger
 "pusha". Ingen "Återställ demon" behövs för dem.
 
 **Lokalt, inte committat med flit:** `allowedDevOrigins` i `next.config.ts`,
@@ -46,11 +47,14 @@ emot varandra byggs inte två gånger (se "Under hackathonet" i CLAUDE.md).
    minuter med test; rekommenderat före måndag.
 3. ~~Fynd 1, varningen i befälsvyn.~~ **Avgjort den 16 oktober: väg B**,
    byggt (se "Gjort den 15 oktober").
-4. **Richards egna, före måndag:** kontrollera i Tursos kontrollpanel i
-   vilken region databasen ligger (meddelandet till gruppen säger "inom EU";
-   servrarna ligger i Dublin, databasen är okontrollerad); spara loggkoden i
-   en lösenordshanterare; sätt Vercels sparandetid till 1 week (se "Kräver
-   dig"). Loggkoden är sparad (Richard, 15 oktober).
+4. **Richards egna, före måndag:** ~~kontrollera Tursos region~~ —
+   **gjort den 16 oktober: `aws-eu-west-1`, alltså Irland (Dublin)**, samma
+   region som Vercels servrar. "Inom EU" i meddelandet till gruppen stämmer.
+   Svaret på "var hamnar informationen?": i demon på Amazons datahall i
+   Irland, via Vercel och Turso, och allt är påhittat. Vid skarp drift körs
+   appen på Försvarsmaktens egen infrastruktur. Kvar för Richard: sätt Vercels
+   sparandetid till 1 week (se "Kräver dig"). Loggkoden är sparad (Richard,
+   15 oktober).
 
 ### Synpunkter från fysioterapeuterna den 14 oktober
 
@@ -384,6 +388,9 @@ ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
   > Störst förändring mot veckan innan: energinivå, som stigit från 4,2 till 4,7.
   > Lägst ligger 3. grupp, med 4,1.
 
+  **Ingen fotnot om AI på sidan** (Richard, 16 oktober, commit `e03cd62`):
+  att texten skrivs ur siffrorna är ett svar att ge muntligt.
+
   Skyddet ligger i SQL-frågan (`getVeckounderlag`): en vecka med för få
   svarande kommer tillbaka som NULL, och en för liten grupp nämns aldrig som
   lägst. **Meningen om vilken enhet som ligger lägst** är omdiskuterad, eftersom
@@ -410,6 +417,16 @@ ljusdisciplin först); inga externa skills installeras; "1. grupp", inte
   1c1b101`. Prövat på en egen gren: identiskt med läget före, 231 tester
   gröna. Före- och efterbilder: `.playwright-mcp/jamforelse-varningar.html`
   (lokalt, inte i förrådet).
+
+- **Knapparna i incheckningen nära reglaget på iPad** (16 oktober).
+  Cheferna ska prova appen på iPads. Frågan fyllde hela skärmhöjden och
+  lade Nästa och Tillbaka längst ned, vilket är rätt i en telefon, där tummen
+  når nederkanten. Uppmätt avstånd från reglaget till Nästa: iPad mini 531,
+  iPad Air 687 och iPad Pro 12,9″ 873 px. Från `sm:` (bredare än en
+  telefon) följer knapparna nu 103 px under reglaget, också liggande.
+  Telefonen är oförändrad (351 px). **Så tar du bort det igen:** `git revert
+  --no-edit 12415c1`. Före- och efterbilder:
+  `.playwright-mcp/jamforelse-ipad-fotnot.html` (lokalt).
 
 - **Ett eget misstag, rättat:** den tillfälliga telefoninställningen
   (`allowedDevOrigins` i `next.config.ts`) följde med en dokumentcommit
