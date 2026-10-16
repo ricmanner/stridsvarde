@@ -8,6 +8,7 @@ import { AlertTriangle, Download, FileText } from 'lucide-react';
 import CategoryTrendGrid from '@/components/charts/CategoryTrendGrid';
 import StatusBadge from '@/components/StatusBadge';
 import Kategoritabell from '@/components/leader/Kategoritabell';
+import RaknaUpp from '@/components/leader/RaknaUpp';
 import Veckosammanfattning from '@/components/leader/Veckosammanfattning';
 import { VISA_TROSKELRUTA } from '@/lib/varningar';
 import type { Veckokort } from '@/lib/veckosammanfattning';
@@ -113,7 +114,7 @@ export default function LeaderDashboard({
             varde={
               overall !== null ? (
                 <span className="flex items-center gap-2">
-                  {formatScore(overall)} <StatusBadge status={getStatus(overall)} />
+                  <RaknaUpp varde={overall} decimaler={1} visa={formatScore} /> <StatusBadge status={getStatus(overall)} />
                 </span>
               ) : (
                 '–'
@@ -123,7 +124,7 @@ export default function LeaderDashboard({
           />
           <Nyckeltal
             etikett="Svarat idag"
-            varde={procent(overview.today.pct)}
+            varde={<RaknaUpp varde={overview.today.pct} visa={procent} />}
             under={`${overview.today.responders} av ${overview.eligible}`}
           />
           {(() => {
@@ -138,7 +139,7 @@ export default function LeaderDashboard({
             return (
               <Nyckeltal
                 etikett="Personer i rött"
-                varde={<span className={f.red > 0 ? 'text-red-700' : ''}>{f.red}</span>}
+                varde={<span className={f.red > 0 ? 'text-red-700' : ''}><RaknaUpp varde={f.red} visa={String} /></span>}
                 // "På samlat snitt": tabellen nedan räknar per kategori, och
                 // utan det ser 3 här och 20 under sömn ut att säga emot varandra.
                 // Antalet utan svar står kvar: utan det ser en enhet där hälften
@@ -153,7 +154,7 @@ export default function LeaderDashboard({
               cats.ok ? (
                 <span className={`flex items-center gap-1.5 ${alerts.length > 0 ? 'text-red-700' : ''}`}>
                   {alerts.length > 0 && <AlertTriangle size={18} aria-hidden />}
-                  {alerts.length}
+                  <RaknaUpp varde={alerts.length} visa={String} />
                 </span>
               ) : (
                 '–'
