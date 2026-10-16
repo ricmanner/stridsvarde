@@ -263,7 +263,7 @@ export default function LeaderDashboard({
             )}
 
             <PrivacyFooter />
-            <ExportBar period={period} childLabel={childLabel} />
+            <ExportBar period={period} childKind={childKind} />
           </Panel>
         )}
 
@@ -326,7 +326,7 @@ export default function LeaderDashboard({
               </table>
             </div>
             <PrivacyFooter />
-            <ExportBar period={period} childLabel={childLabel} />
+            <ExportBar period={period} childKind={childKind} />
           </Panel>
         )}
 
@@ -434,7 +434,7 @@ export default function LeaderDashboard({
               </>
             )}
             <PrivacyFooter />
-            <ExportBar period={period} childLabel={childLabel} />
+            <ExportBar period={period} childKind={childKind} />
           </Panel>
         )}
       </div>
@@ -560,7 +560,7 @@ function PrivacyFooter() {
  * Export. CSV:en innehåller samma aggregat som skärmen — undanhållna värden
  * kommer ut som tomma fält, inte som siffror.
  */
-function ExportBar({ period, childLabel }: { period: Period; childLabel: string }) {
+function ExportBar({ period, childKind }: { period: Period; childKind: ChildKind }) {
   return (
     <div className="no-print mt-5 flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-3">
       <span className="mr-1 text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
@@ -576,7 +576,8 @@ function ExportBar({ period, childLabel }: { period: Period; childLabel: string 
         href={`/api/export?period=${period}&typ=enheter`}
         className="flex items-center gap-1.5 rounded border-[1.5px] border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-900 hover:text-slate-900"
       >
-        <Download size={13} aria-hidden /> Per {childLabel} (CSV)
+        {/* Singular efter "per": per grupp, inte per grupper. */}
+        <Download size={13} aria-hidden /> Per {childKind} (CSV)
       </a>
       <Link
         href={`/rapport?period=${period}`}

@@ -486,3 +486,15 @@ test('befälsvyn och rapporten lovar inte att Försvarshälsan fastställer någ
     assert.match(text, /preliminära/, `${fil} ska fortfarande säga att gränserna är preliminära`);
   }
 });
+
+/*
+ * "Per grupp (CSV)", inte "Per grupper (CSV)".
+ *
+ * Exportknappen byggdes av underenheternas pluralform, som rubrikerna
+ * använder. Efter "per" står singular: per grupp, per pluton, per kompani.
+ */
+test('exportknappen säger per grupp, inte per grupper', () => {
+  const text = synligText('src/components/leader/LeaderDashboard.tsx');
+  assert.ok(!/Per \{childLabel\}/.test(text), 'exportknappen använder pluralformen');
+  assert.match(text, /Per \{childKind\} \(CSV\)/);
+});
