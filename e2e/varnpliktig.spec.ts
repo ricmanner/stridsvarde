@@ -83,7 +83,7 @@ test('varje fråga säger vad siffran betyder, och info-knappen listar alla niv�
   await page.keyboard.press('ArrowRight');
   await expect(text('Stel, öm eller sliten.')).toBeVisible();
   for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowRight');
-  await expect(text('Kroppen känns bra. Inget som hindrar dig.')).toBeVisible();
+  await expect(text('Kroppen känns bra. Inga besvär.')).toBeVisible();
   await expect(text('Stel, öm eller sliten.')).toHaveCount(0);
   // Skärmläsaren får samma sak som den som ser texten.
   await expect(reglage).toHaveAttribute('aria-valuetext', /^8 av 10\. Kroppen känns bra/);

@@ -82,7 +82,7 @@ export default function SkalaInfo({
           </div>
 
           <p className="text-xs leading-relaxed text-slate-600">
-            Välj den siffra som stämmer bäst för dig just nu.
+            Välj den siffra som stämmer bäst just nu.
           </p>
 
           <ul className="flex flex-col divide-y divide-slate-100 rounded border border-slate-200">

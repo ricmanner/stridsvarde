@@ -51,3 +51,19 @@ test('listan bakom info-knappen täcker 1–10 utan lucka, och varje rad har en 
     }
   }
 });
+
+test('skalan beskriver, utan "du" och utan omdöme om tjänsten', async () => {
+  /*
+   * Richard, 16 oktober: om någon kan tjänstgöra avgör befälet och
+   * sjukvården, inte den värnpliktige — "du klarar tjänsten" sa annat. Och
+   * korta beskrivningar som i Readiness Advisor, inte meningar riktade till
+   * läsaren.
+   */
+  const { SKALA } = await import('../src/lib/skala.ts');
+  for (const [kategori, nivaer] of Object.entries(SKALA)) {
+    for (const [status, text] of Object.entries(nivaer)) {
+      assert.doesNotMatch(text, /\b[Dd]u\b|\bdig\b|\bdin\b/, `${kategori}/${status}: "${text}"`);
+      assert.doesNotMatch(text, /tjänst/i, `${kategori}/${status}: "${text}"`);
+    }
+  }
+});

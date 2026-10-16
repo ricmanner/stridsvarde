@@ -14,39 +14,41 @@ import { type Category, GREEN_MIN, getStatus, type Status, YELLOW_MIN } from './
  * Gränserna kommer därför ur GREEN_MIN och YELLOW_MIN.
  *
  * Texterna beskriver hur det känns, inte vad man ska göra; råden kommer
- * efter incheckningen (lib/advice.ts). Utkast av Claude, godkända av Richard
- * den 15 oktober — fysioterapeuterna bör läsa dem innan skarp drift.
+ * efter incheckningen (lib/advice.ts). Korta beskrivningar som i Readiness
+ * Advisor, utan "du" och utan omdöme om tjänsten: om någon kan tjänstgöra
+ * avgör befälet och sjukvården, inte den värnpliktige (Richard, 16 oktober).
+ * Fysioterapeuterna bör läsa dem innan skarp drift.
  */
 export const SKALA: Record<Category, Record<Status, string>> = {
   fysisk: {
-    red: 'Ont eller skadad. Smärta som begränsar det du ska göra.',
-    yellow: 'Stel, öm eller sliten. Du klarar tjänsten men känner av kroppen.',
-    green: 'Kroppen känns bra. Inget som hindrar dig.',
+    red: 'Smärta eller skada som begränsar rörelse.',
+    yellow: 'Stel, öm eller sliten. Känns i kroppen.',
+    green: 'Kroppen känns bra. Inga besvär.',
   },
   psykisk: {
-    red: 'Det känns tungt. Oro, nedstämdhet eller stress tar mycket kraft.',
-    yellow: 'Mer pressad än vanligt. Det går, men tankarna tar energi.',
-    green: 'Du mår bra. Stressen är hanterbar.',
+    red: 'Tungt. Oro, nedstämdhet eller stress som tar mycket kraft.',
+    yellow: 'Mer pressad än vanligt. Tankarna tar energi.',
+    green: 'Mår bra. Stressen är hanterbar.',
   },
   social: {
-    red: 'Du känner dig utanför, eller har det svårt med någon i gruppen.',
-    yellow: 'Det fungerar, men du känner dig inte riktigt som en del av gruppen.',
-    green: 'Du trivs och känner att du hör till.',
+    red: 'Utanför, eller svårt med någon i gruppen.',
+    yellow: 'Fungerar, men inte riktigt en del av gruppen.',
+    green: 'Trivs och hör till.',
   },
   somn: {
-    red: 'Lite eller ingen sömn, eller så störd att du inte vilat alls.',
-    yellow: 'Du sov, men för kort eller oroligt.',
-    green: 'Du sov tillräckligt och vaknade utvilad.',
+    red: 'Lite eller ingen sömn, eller så avbruten att vilan uteblev.',
+    yellow: 'Sov, men för kort eller oroligt.',
+    green: 'Tillräckligt med sömn. Utvilad.',
   },
   kost: {
-    red: 'Du har missat måltider eller ätit långt mindre än du behöver.',
-    yellow: 'Du äter, men oregelbundet eller för lite för belastningen.',
-    green: 'Du får i dig ordentliga måltider och orkar hela dagen.',
+    red: 'Missade måltider, eller betydligt mindre mat än kroppen behöver.',
+    yellow: 'Oregelbundet, eller för lite för belastningen.',
+    green: 'Ordentliga måltider. Orkar hela dagen.',
   },
   energi: {
-    red: 'Helt slut. Det är svårt att ta sig igenom dagen.',
-    yellow: 'Tröttare än vanligt, men du kommer igång.',
-    green: 'Du har gott om ork för det dagen kräver.',
+    red: 'Helt slut. Svårt att ta sig igenom dagen.',
+    yellow: 'Tröttare än vanligt, men kommer igång.',
+    green: 'Gott om ork.',
   },
 };
 
