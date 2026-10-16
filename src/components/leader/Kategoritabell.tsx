@@ -36,6 +36,13 @@ export default function Kategoritabell({
   period: number;
 }) {
   const rader = [...CATEGORIES].sort((a, b) => roundScore(snitt[a.key]) - roundScore(snitt[b.key]));
+  /*
+   * Finns det något att jämföra med? Med 21 dagar och en historik som är
+   * kortare än sex veckor är hela kolumnen tom. Förklaringen lovade ändå en
+   * ring för "21 dagarna före" (granskningen 16 oktober). Då säger den i
+   * stället varför kolumnen är tom.
+   */
+  const harForra = CATEGORIES.some((c) => lage?.[c.key]?.forra != null);
   const KOLUMNER =
     'grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 ' +
     'sm:grid-cols-[minmax(9rem,1.3fr)_7rem_minmax(9rem,2fr)_7.5rem_5.5rem]';
@@ -109,9 +116,13 @@ export default function Kategoritabell({
         <span className="inline-flex items-center gap-1.5">
           <span className="inline-block h-3 w-1 rounded-sm bg-slate-900" aria-hidden /> de senaste {period} dagarna
         </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="inline-block size-2 rounded-full border-2 border-slate-500 bg-white" aria-hidden /> {period} dagarna före
-        </span>
+        {harForra ? (
+          <span className="inline-flex items-center gap-1.5">
+            <span className="inline-block size-2 rounded-full border-2 border-slate-500 bg-white" aria-hidden /> {period} dagarna före
+          </span>
+        ) : (
+          <span>Ingen jämförelse: för få svar under de {period} dagarna före</span>
+        )}
         <span>I rött: personer vars eget snitt ligger under 4, av dem som svarat</span>
       </div>
     </div>

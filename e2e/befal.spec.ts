@@ -145,6 +145,13 @@ test.describe('plutonchefen', () => {
     });
     expect(radbrott, 'celler som bryts på två rader').toEqual([]);
   });
+
+  test('21 dagar utan en period före säger det, i stället för att lova en ring', async ({ page }) => {
+    // Demon har tre veckors historik, så de 21 dagarna före är tomma.
+    await page.goto('/pluton?period=21');
+    await expect(page.getByText(/för få svar under de 21 dagarna före/)).toBeVisible();
+    await expect(page.getByText('21 dagarna före', { exact: true })).toHaveCount(0);
+  });
 });
 
 test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {
