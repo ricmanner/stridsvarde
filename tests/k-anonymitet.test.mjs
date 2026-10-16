@@ -227,3 +227,69 @@ test('raden för direkta medlemmar visas inte när ingen tillhör enheten direkt
     'ingen tom extrarad när alla tillhör en grupp',
   );
 });
+
+/*
+ * En dold underenhet får inte gå att räkna fram ur totalen.
+ *
+ * Befälsvyn visar hur många i hela enheten som ligger i rött ("Personer i
+ * rött") och samma antal per underenhet. Var en underenhet dold, med 1–3
+ * svarande, gick dess antal att få fram genom att dra de synliga från
+ * totalen. Granskningen 16 oktober: plutonen visade 4 i rött, grupperna som
+ * syntes 2 + 0 + 1, alltså låg en av tre i den dolda 4. grupp i rött.
+ *
+ * Därför: så länge någon underenhet är dold kommer inga färgantal per
+ * underenhet ur databasen. En underenhet där ingen svarat räknas inte som
+ * dold — dess antal är noll och röjer ingenting.
+ */
+test('en dold grupp går inte att räkna fram ur totalen: syskonen får inga färgantal', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  // Grupp A syns (6 svar, gröna). Grupp B är dold (2 svar, båda röda).
+  await checkIn(client, org.soldater['Grupp A'].slice(0, 6), today, 8);
+  await checkIn(client, org.soldater['Grupp B'].slice(0, 2), today, 2);
+
+  const { getChildComparison, getUnitOverview } = await import('../src/lib/db/queries/aggregates.ts');
+  const total = await getUnitOverview(org.pluton, 7);
+  assert.equal(total.soldierStatus.ok && total.soldierStatus.data.red, 2, 'plutonens total visas');
+
+  const { children } = await getChildComparison(org.pluton, 7);
+  const a = children.find((c) => c.name === 'Grupp A');
+  assert.ok(a.overall !== null, 'Grupp A:s snitt visas fortfarande');
+  assert.equal(a.red, null, 'totalen minus Grupp A ger Grupp B:s antal i rött');
+  assert.equal(a.green, null);
+  assert.equal(a.yellow, null);
+});
+
+test('en ensam person direkt i plutonen går inte heller att räkna fram', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  const r = await client.execute({
+    sql: 'INSERT INTO users (code_hash, label, role, unit_id, active, created_at) VALUES (?,?,?,?,1,?)',
+    args: [`hash-direkt-${org.pluton}`, 'Sjukvårdare', 'soldat', org.pluton, new Date().toISOString()],
+  });
+  const ensam = Number(r.lastInsertRowid);
+  await checkIn(client, org.soldater['Grupp A'].slice(0, 6), today, 8);
+  await checkIn(client, org.soldater['Grupp B'].slice(0, 6), today, 8);
+  await checkIn(client, [ensam], today, 2);
+
+  const { getChildComparison } = await import('../src/lib/db/queries/aggregates.ts');
+  const { children } = await getChildComparison(org.pluton, 7);
+  for (const namn of ['Grupp A', 'Grupp B']) {
+    assert.equal(children.find((c) => c.name === namn).red, null, `${namn}: totalen minus grupperna ger den ensammes färg`);
+  }
+  const direkt = children.find((c) => c.isDirect);
+  assert.equal(direkt.overall, null, 'den ensamme visas inte');
+  assert.equal(direkt.red, null);
+});
+
+test('när alla underenheter syns står antalet i rött kvar', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  await checkIn(client, org.soldater['Grupp A'].slice(0, 6), today, 8);
+  await checkIn(client, org.soldater['Grupp B'].slice(0, 4), today, 2);
+
+  const { getChildComparison } = await import('../src/lib/db/queries/aggregates.ts');
+  const { children } = await getChildComparison(org.pluton, 7);
+  assert.equal(children.find((c) => c.name === 'Grupp A').green, 6);
+  assert.equal(children.find((c) => c.name === 'Grupp B').red, 4);
+});

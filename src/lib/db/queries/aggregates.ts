@@ -289,6 +289,22 @@ export const getUnitOverview = cache(
 // Jämförelse mellan direkta underenheter
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Inga färgantal per underenhet så länge någon underenhet är dold.
+ *
+ * Befälsvyn visar hur många i hela enheten som ligger i rött, och samma antal
+ * per underenhet. Är en underenhet dold — 1 till k−1 svarande — går dess
+ * antal att räkna fram som totalen minus de synliga. Granskningen 16 oktober:
+ * plutonen visade 4 i rött, grupperna som syntes 2 + 0 + 1, alltså låg en av
+ * de tre i den dolda 4. grupp i rött. Med en ensam person direkt i enheten
+ * hade det varit den personens färg.
+ *
+ * Snitten per underenhet står kvar: de går bara att räkna tillbaka ungefärligt,
+ * eftersom antalet svar per underenhet inte visas. `false` ger det gamla
+ * beteendet.
+ */
+export const SKYDDA_DOLDA_SYSKON = true;
+
 /** Id för raden med personer som tillhör enheten direkt, utan underenhet. */
 export const DIRECT_MEMBERS_ID = -1;
 export const DIRECT_MEMBERS_NAME = 'Direkt i enheten';
@@ -304,9 +320,10 @@ export interface ChildUnitSummary {
   overall: number | null;
   scores: Record<Category, number> | null;
   status: Status | null;
-  green: number;
-  yellow: number;
-  red: number;
+  /** Personer efter eget snitt. null: underenheten eller ett syskon är dold. */
+  green: number | null;
+  yellow: number | null;
+  red: number | null;
 }
 
 export interface ChildComparison {
@@ -343,6 +360,9 @@ export const getChildComparison = cache(
          WHERE u.role = 'soldat' AND u.active = 1
       )`;
 
+    // Färgantalen per underenhet kommer bara ur databasen när ingen är dold.
+    const fargerVisas = SKYDDA_DOLDA_SYSKON ? '(SELECT n FROM dolda) = 0' : '1 = 1';
+
     // Sammanfattning per underenhet över hela perioden.
     const summaryRows = (await db.all(sql`
       ${childCte},
@@ -365,6 +385,21 @@ export const getChildComparison = cache(
         SELECT child_id,
                ${sql.raw(colourCounts('avg_score'))}
           FROM per_soldier GROUP BY child_id
+      ),
+      -- Personer direkt i enheten, utan underenhet. Räknas här bara för att
+      -- avgöra om de är dolda; deras rad byggs i directMembersSummary().
+      direkt AS (
+        SELECT COUNT(DISTINCT ci.user_id) AS n
+          FROM ${sql.raw(KOMPLETTA)} ci JOIN users u ON u.id = ci.user_id
+         WHERE u.unit_id = ${unitId} AND u.role = 'soldat' AND u.active = 1
+           AND ci.service_date BETWEEN ${from} AND ${to}
+      ),
+      -- Hur många underenheter som är dolda men har svar (1 till k−1). Är
+      -- någon det går dess färgantal att räkna fram ur totalen, se
+      -- SKYDDA_DOLDA_SYSKON. Utan svar alls finns inget att räkna fram.
+      dolda AS (
+        SELECT (SELECT COUNT(*) FROM agg WHERE agg.responders BETWEEN 1 AND ${k - 1})
+             + (SELECT CASE WHEN n BETWEEN 1 AND ${k - 1} THEN 1 ELSE 0 END FROM direkt) AS n
       )
       SELECT un.id, un.name, un.kind,
              (SELECT COUNT(*) FROM member mm WHERE mm.child_id = un.id) AS eligible,
@@ -375,9 +410,10 @@ export const getChildComparison = cache(
                  (key) => `CASE WHEN COALESCE(agg.responders,0) >= ${k} THEN agg.${key} END AS ${key}`,
                ).join(',\n             '),
              )},
-             CASE WHEN COALESCE(agg.responders,0) >= ${k} THEN COALESCE(buckets.green,0)  END AS green,
-             CASE WHEN COALESCE(agg.responders,0) >= ${k} THEN COALESCE(buckets.yellow,0) END AS yellow,
-             CASE WHEN COALESCE(agg.responders,0) >= ${k} THEN COALESCE(buckets.red,0)    END AS red
+             CASE WHEN COALESCE(agg.responders,0) >= ${k} AND ${sql.raw(fargerVisas)} THEN COALESCE(buckets.green,0)  END AS green,
+             CASE WHEN COALESCE(agg.responders,0) >= ${k} AND ${sql.raw(fargerVisas)} THEN COALESCE(buckets.yellow,0) END AS yellow,
+             CASE WHEN COALESCE(agg.responders,0) >= ${k} AND ${sql.raw(fargerVisas)} THEN COALESCE(buckets.red,0)    END AS red,
+             (SELECT n FROM dolda) AS dolda
         FROM units un
         LEFT JOIN agg     ON agg.child_id = un.id
         LEFT JOIN buckets ON buckets.child_id = un.id
@@ -402,9 +438,9 @@ export const getChildComparison = cache(
                 Category,
                 number
               >),
-        green: r.green === null ? 0 : Number(r.green),
-        yellow: r.yellow === null ? 0 : Number(r.yellow),
-        red: r.red === null ? 0 : Number(r.red),
+        green: r.green === null ? null : Number(r.green),
+        yellow: r.yellow === null ? null : Number(r.yellow),
+        red: r.red === null ? null : Number(r.red),
       };
     });
 
@@ -453,7 +489,10 @@ export const getChildComparison = cache(
      * De får en egen rad i stället. Det är ingen riktig enhet och märks som
      * sådan, men siffrorna går ihop.
      */
-    const direct = await directMembersSummary(unitId, from, to, k);
+    // Samma regel för raden med personer direkt i enheten: dess färgantal
+    // går lika gärna att räkna fram som en grupps.
+    const syskonDolda = SKYDDA_DOLDA_SYSKON && Number(summaryRows[0]?.dolda ?? 0) > 0;
+    const direct = await directMembersSummary(unitId, from, to, k, !syskonDolda);
 
     if (direct) {
       children.push(direct.summary);
@@ -479,6 +518,8 @@ async function directMembersSummary(
   from: string,
   to: string,
   k: number,
+  /** Falskt när en underenhet är dold, se SKYDDA_DOLDA_SYSKON. */
+  fargerVisas: boolean,
 ): Promise<{ summary: ChildUnitSummary; byDate: Map<string, number | null> } | null> {
   const avgCols = CAT_KEYS.map((key) => `AVG(ci.${key}) AS ${key}`).join(',\n             ');
 
@@ -500,9 +541,13 @@ async function directMembersSummary(
            COUNT(DISTINCT ci.user_id) AS responders,
            ${sql.raw(avgCols)},
            AVG(${sql.raw(OVERALL_EXPR)}) AS overall,
-           (SELECT COUNT(*) FROM per_soldier WHERE ${sql.raw(roundScoreSql('avg_score'))} >= ${GREEN_MIN}) AS green,
-           (SELECT COUNT(*) FROM per_soldier WHERE ${sql.raw(roundScoreSql('avg_score'))} >= ${YELLOW_MIN} AND ${sql.raw(roundScoreSql('avg_score'))} < ${GREEN_MIN}) AS yellow,
-           (SELECT COUNT(*) FROM per_soldier WHERE ${sql.raw(roundScoreSql('avg_score'))} < ${YELLOW_MIN}) AS red
+           -- Färgantalen bara när raden själv syns och inget syskon är dolt.
+           CASE WHEN ${fargerVisas ? 1 : 0} = 1 AND COUNT(DISTINCT ci.user_id) >= ${k} THEN
+             (SELECT COUNT(*) FROM per_soldier WHERE ${sql.raw(roundScoreSql('avg_score'))} >= ${GREEN_MIN}) END AS green,
+           CASE WHEN ${fargerVisas ? 1 : 0} = 1 AND COUNT(DISTINCT ci.user_id) >= ${k} THEN
+             (SELECT COUNT(*) FROM per_soldier WHERE ${sql.raw(roundScoreSql('avg_score'))} >= ${YELLOW_MIN} AND ${sql.raw(roundScoreSql('avg_score'))} < ${GREEN_MIN}) END AS yellow,
+           CASE WHEN ${fargerVisas ? 1 : 0} = 1 AND COUNT(DISTINCT ci.user_id) >= ${k} THEN
+             (SELECT COUNT(*) FROM per_soldier WHERE ${sql.raw(roundScoreSql('avg_score'))} < ${YELLOW_MIN}) END AS red
       FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
      WHERE ci.service_date BETWEEN ${from} AND ${to}
   `)) as Row[];
@@ -525,9 +570,9 @@ async function directMembersSummary(
       ? (Object.fromEntries(CAT_KEYS.map((c) => [c, Number(agg[c])])) as Record<Category, number>)
       : null,
     status: visible && agg.overall !== null ? getStatus(Number(agg.overall)) : null,
-    green: visible ? Number(agg.green ?? 0) : 0,
-    yellow: visible ? Number(agg.yellow ?? 0) : 0,
-    red: visible ? Number(agg.red ?? 0) : 0,
+    green: agg.green == null ? null : Number(agg.green),
+    yellow: agg.yellow == null ? null : Number(agg.yellow),
+    red: agg.red == null ? null : Number(agg.red),
   };
 
   // Daglig kurva, samma k-anonymitetströskel som allt annat.

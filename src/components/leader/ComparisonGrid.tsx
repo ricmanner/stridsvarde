@@ -25,6 +25,8 @@ export default function ComparisonGrid({
   childLabel: string;
 }) {
   const ental = childLabel.replace(/er$/, '');
+  // Någon synlig rad utan antal i rött: databasen har hållit inne dem.
+  const dolda = items.some((c) => c.overall !== null && c.red === null);
 
   return (
     <div>
@@ -87,8 +89,16 @@ export default function ComparisonGrid({
                   <>
                     <Cell value={child.overall} strong />
                     <td className="whitespace-nowrap border-t border-slate-100 px-2 py-2 text-center text-xs tabular-nums text-slate-500">
-                      <span className={child.red > 0 ? 'font-semibold text-red-700' : 'text-slate-700'}>{child.red}</span>
-                      {' '}av {child.responders}
+                      {child.red === null ? (
+                        // Undanhållet av databasen när en underenhet är dold,
+                        // se SKYDDA_DOLDA_SYSKON i queries/aggregates.ts.
+                        <span title="Visas inte när underlag saknas för någon av dem">–</span>
+                      ) : (
+                        <>
+                          <span className={child.red > 0 ? 'font-semibold text-red-700' : 'text-slate-700'}>{child.red}</span>
+                          {' '}av {child.responders}
+                        </>
+                      )}
                     </td>
                     {CATEGORIES.map((c) => (
                       <Cell key={c.key} value={child.scores![c.key]} label={c.label} />
@@ -102,6 +112,12 @@ export default function ComparisonGrid({
       </div>
       <div className="mt-2 px-1">
         <StatusBandLegend />
+        {dolda && (
+          <p className="mt-1.5 text-etikett leading-relaxed text-slate-500">
+            I rött visas inte per {ental} när underlag saknas för någon av dem. Annars går antalet
+            där att räkna fram ur totalen.
+          </p>
+        )}
       </div>
     </div>
   );

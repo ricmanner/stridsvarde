@@ -152,6 +152,21 @@ test.describe('plutonchefen', () => {
     await expect(page.getByText(/för få svar under de 21 dagarna före/)).toBeVisible();
     await expect(page.getByText('21 dagarna före', { exact: true })).toHaveCount(0);
   });
+
+  test('en dold grupp går inte att räkna fram: inga antal i rött per grupp', async ({ page }) => {
+    /*
+     * 4. grupp har tre personer och visar "Underlag saknas". Stod antalet i
+     * rött kvar för de andra grupperna gick dess antal att räkna fram ur
+     * plutonens total ("Personer i rött") — granskningen 16 oktober.
+     */
+    await page.getByRole('tab', { name: 'Jämförelse' }).click();
+    await expect(page.getByText(/I rött visas inte per grupp/)).toBeVisible();
+    const tabell = page.getByRole('region', { name: /Jämförelse mellan/ });
+    await expect(tabell.getByText(/\d+ av \d+/)).toHaveCount(0);
+
+    await page.goto('/rapport');
+    await expect(page.getByText(/I rött visas inte per grupp/)).toBeVisible();
+  });
 });
 
 test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {
