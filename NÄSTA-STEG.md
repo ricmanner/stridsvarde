@@ -7,12 +7,12 @@ Senast uppdaterad: 16 oktober 2026, kväll.
 
 ## Läget
 
-**Allt är committat, pushat och driftsatt.** Demon på
-<https://fm-psvi-v2.vercel.app> kör hela veckans arbete. 249 enhetstester och
-47 webbläsartester är gröna, liksom GitHubs kontroller till och med
-`dc747ad`. Kontrollera de senaste pusharna med kommandot under
-"Driftsättning" i CLAUDE.md. Rundturen gick igenom, utom P1G1-01, som redan
-checkat in efter ett eget test; nattkörningen öppnar det igen.
+**Committat men inte pushat:** sex rättningar ur granskningen av befälsvyn
+(16 oktober, kväll; se "Granskningen av befälsvyn" nedan). 256 enhetstester
+och 51 webbläsartester är gröna, och rundturen gick igenom mot ett lokalt
+bygge. Före och efter: `.playwright-mcp/granskning-befalsvy/index.html`
+(lokalt). **Pusha först när Richard sagt till.** Demon på
+<https://fm-psvi-v2.vercel.app> kör allt till och med `263ac1a`.
 
 **Inget arbete pågår.** Inget ligger ocommittat.
 
@@ -50,6 +50,45 @@ Detaljer och vägar tillbaka i "Gjort den 15–16 oktober" längre ned.
   bataljonen, förkylning i 3. kompani 2. pluton, och 4. grupp med "Underlag
   saknas".
 - **Databasen** ligger i Irland (Turso `aws-eu-west-1`), alltså inom EU.
+
+### Granskningen av befälsvyn (16 oktober, kväll)
+
+Hela befälsvyn genomgången som pluton-, kompani- och bataljonschef, i 390,
+820 och 1280 px, plus rapport och export. **Alla tal stämmer exakt** mot en
+egen uträkning i databasen, på alla tre nivåerna. Sidan rullar aldrig i
+sidled. Sex rättningar, committade var för sig, inte pushade:
+
+| Commit | Vad | Ångra |
+|---|---|---|
+| `81950c6` | "ska fastställas tillsammans med Försvarshälsan" borta ur befälsvyn och rapporten; "är preliminära" står kvar (Richards beslut) | `git revert --no-edit 81950c6` |
+| `f6ad50c` | "Per grupp (CSV)", inte "Per grupper" | `git revert --no-edit f6ad50c` |
+| `5854431` | Jämförelsen i telefon: namn och "2 av 8" bryts inte | `git revert --no-edit 5854431` |
+| `ced54d9` | 21 dagar utan period före: "Ingen jämförelse: för få svar under de 21 dagarna före" i stället för en ring som inte finns | `git revert --no-edit ced54d9` |
+| `2885c62` | **Dold underenhet går inte att räkna fram.** Plutonen visade 4 i rött, de synliga grupperna 2 + 0 + 1, alltså låg en av tre i den dolda 4. grupp i rött. Nu kommer inga färgantal per underenhet ur databasen så länge någon underenhet är dold (1–3 svarande). Skärm och rapport visar "–" och en förklaring, CSV:n tomma fält | `SKYDDA_DOLDA_SYSKON = false` i `queries/aggregates.ts`, eller `git revert --no-edit 2885c62` |
+| `d067e14` | Rapporten säger samma sak som skärmen: fyra nyckeltal, sämst först, "Mot perioden före", "I rött" per underenhet | `git revert --no-edit d067e14` |
+
+**Märks i demon:** 4. grupp är dold med flit, så plutonchefens jämförelse
+visar "–" i "I rött" för alla grupper. Kompani- och bataljonsnivån
+påverkas inte.
+
+**Alla sex ångrade på en gång:** `git revert --no-edit d067e14 2885c62
+ced54d9 5854431 f6ad50c 81950c6`. Prövat på en egen gren: `src`, testerna
+och e2e identiska med `263ac1a`, de 249 tester som fanns då gröna. Ingen
+återställning av demon behövs.
+
+**Beslut, föreslå inte om — att räkna fram en enskilds svar ur två
+hämtningar.** Granskningen visade att två hämtningar av "Dag för dag", före
+och efter att en enda person checkat in, ger personens svar inom ±1,7 steg
+(hälsa 2,6 mot verkligt 2, sömn 1,6 mot 2). Richard, 16 oktober: **byggs
+inte.** Befäl vet inte när en enskild checkar in, och värnpliktiga gör det
+ungefär samtidigt, på kvällen eller morgonen. Det som återstår är medveten
+missbruk ("checka in nu") eller någon som checkar in ensam vid en udda tid.
+Skulle det behövas: låt befälsvyn räkna bara på avslutade dagar, till och
+med igår (cirka 2 h).
+
+**Fråga till fysioterapeuterna:** befälsrådet säger "genomför enskilda
+samtal inom 48 timmar" när flera kategorier är röda, men befälet vet inte
+vem som ligger i rött. Menas samtal med alla? (`src/lib/advice.ts`)
 
 ### Nästa uppgift
 
