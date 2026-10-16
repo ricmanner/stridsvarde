@@ -470,3 +470,19 @@ test('den som aldrig loggat in får inte höra att sessionen gått ut', async ()
   assert.equal(till.pathname, '/');
   assert.equal(till.searchParams.get('utgangen'), null, 'utan kaka finns ingen session som gått ut');
 });
+
+/*
+ * Ingen myndighet utpekas som den som ska fastställa gränserna.
+ *
+ * Befälsvyn och rapporten sa att gränserna och råden "ska fastställas
+ * tillsammans med Försvarshälsan". Det är inte bestämt vem som fastställer
+ * dem, och en utskrift vandrar vidare utan sammanhang (Richard, 16 oktober).
+ * Att gränserna är preliminära står kvar.
+ */
+test('befälsvyn och rapporten lovar inte att Försvarshälsan fastställer något', () => {
+  for (const fil of ['src/components/leader/LeaderDashboard.tsx', 'src/app/rapport/page.tsx']) {
+    const text = synligText(fil).replace(/\s+/g, ' ');
+    assert.ok(!/Försvarshälsan/.test(text), `${fil} nämner Försvarshälsan i texten`);
+    assert.match(text, /preliminära/, `${fil} ska fortfarande säga att gränserna är preliminära`);
+  }
+});

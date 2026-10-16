@@ -221,8 +221,7 @@ export default async function RapportPage({
           måste det stå att indelningen i grön, gul och röd inte är fastställd.
         */}
         <p className="mt-1">
-          Gränserna för grön, gul och röd är preliminära och ska fastställas
-          tillsammans med Försvarshälsan.
+          Gränserna för grönt, gult och rött är preliminära.
         </p>
         <p className="mt-1">
           Enhetstillhörighet visas enligt nuvarande organisation. Utskriven {to}.

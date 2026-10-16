@@ -217,8 +217,7 @@ export default function LeaderDashboard({
             {!VISA_TROSKELRUTA && cats.ok && (
               <div className="-mt-2.5 mb-4">
                 <Preliminary>
-                  Gränserna för grönt, gult och rött är preliminära och ska fastställas
-                  tillsammans med Försvarshälsan.
+                  Gränserna för grönt, gult och rött är preliminära.
                 </Preliminary>
               </div>
             )}
@@ -239,7 +238,7 @@ export default function LeaderDashboard({
                     ))}
                   </div>
                   <Preliminary>
-                    Gränserna är preliminära och ska fastställas tillsammans med Försvarshälsan.
+                    Gränserna är preliminära.
                   </Preliminary>
                 </div>
               </>
@@ -258,7 +257,7 @@ export default function LeaderDashboard({
                   <p className="text-sm leading-relaxed text-slate-700">{advice}</p>
                 </div>
                 <Preliminary>
-                  Råden är preliminära och ska fastställas tillsammans med Försvarshälsan.
+                  Råden är preliminära.
                 </Preliminary>
               </>
             )}
@@ -452,7 +451,10 @@ export default function LeaderDashboard({
  * tiogradig skala) och befälsråden sattes i prototypen. På en storskärm framför
  * befäl ser "kräver åtgärd" och "samtal inom 48 timmar" ut som fakta; det ska
  * framgå att de inte är det än. Innehållet ändras inte här — det är
- * Försvarshälsans och fysioterapeuternas att fastställa.
+ * fackfolkets att fastställa, inte utvecklarens.
+ *
+ * Texten nämner inte vem som ska fastställa dem (Richard, 16 oktober): det är
+ * inte bestämt, och en text på skärmen ska inte lova något åt en myndighet.
  */
 function Preliminary({ children }: { children: React.ReactNode }) {
   return <p className="mt-1.5 text-etikett leading-relaxed text-slate-500">{children}</p>;
