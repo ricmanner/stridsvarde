@@ -25,8 +25,6 @@ export default function ComparisonGrid({
   childLabel: string;
 }) {
   const ental = childLabel.replace(/er$/, '');
-  // Någon synlig rad utan antal i rött: databasen har hållit inne dem.
-  const dolda = items.some((c) => c.overall !== null && c.red === null);
 
   return (
     <div>
@@ -112,12 +110,6 @@ export default function ComparisonGrid({
       </div>
       <div className="mt-2 px-1">
         <StatusBandLegend />
-        {dolda && (
-          <p className="mt-1.5 text-etikett leading-relaxed text-slate-500">
-            I rött visas inte per {ental} när underlag saknas för någon av dem. Annars går antalet
-            där att räkna fram ur totalen.
-          </p>
-        )}
       </div>
     </div>
   );

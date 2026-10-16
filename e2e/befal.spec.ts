@@ -160,9 +160,12 @@ test.describe('plutonchefen', () => {
      * plutonens total ("Personer i rött") — granskningen 16 oktober.
      */
     await page.getByRole('tab', { name: 'Jämförelse' }).click();
-    await expect(page.getByText(/I rött visas inte per grupp/)).toBeVisible();
     const tabell = page.getByRole('region', { name: /Jämförelse mellan/ });
+    await expect(tabell).toBeVisible();
     await expect(tabell.getByText(/\d+ av \d+/)).toHaveCount(0);
+    // Ingen förklarande rad under tabellen på skärmen (Richard, 16 oktober):
+    // den stod mellan tabellen och jämförelsen med hela enheten.
+    await expect(page.getByText(/I rött visas inte per grupp/)).toHaveCount(0);
 
     await page.goto('/rapport');
     await expect(page.getByText(/I rött visas inte per grupp/)).toBeVisible();
