@@ -21,6 +21,14 @@ import { formatScore, forandring, procent, uppräkningSamt } from '@/lib/format'
 export const dynamic = 'force-dynamic';
 
 /**
+ * Rutan "Senaste veckan" överst i rapporten. Gömd den 17 oktober: den var
+ * alltid sju dagar medan resten av rapporten följde den valda perioden, och
+ * med 7 dagar upprepade den kategoritabellen. Samma beslut som på skärmen
+ * (VISA_VECKAN i LeaderDashboard.tsx). Rapporten med 7 dagar är veckorapporten.
+ */
+const VISA_VECKAN = false;
+
+/**
  * Utskriftsvänlig sammanställning.
  *
  * Medvetet utan diagram: recharts ResponsiveContainer mäter sin bredd till
@@ -39,9 +47,19 @@ export default async function RapportPage({
     getUnitOverview(session.unitId, period),
     getUnitCategorySeries(session.unitId, period),
     getChildComparison(session.unitId, period),
-    getVeckounderlag(session.unitId),
+    VISA_VECKAN ? getVeckounderlag(session.unitId) : null,
     getKategorilage(session.unitId, period),
   ]);
+
+  /*
+   * Hur många som svarat i snitt per dag under perioden, i hela procent. Ett
+   * antal, inte hälsodata. Ersätter "Svarat idag" i rapporten: på ett papper
+   * som läses på veckomötet säger ögonblicket då det skrevs ut inget, men
+   * snittet säger om talen går att lita på.
+   */
+  const svarIPerioden = series.reduce((summa, p) => summa + p.responders, 0);
+  const svarsprocent =
+    overview.eligible > 0 ? Math.round((svarIPerioden / (overview.eligible * period)) * 100) : 0;
 
   const cats = overview.categories;
   const overall = cats.ok
@@ -96,11 +114,12 @@ export default async function RapportPage({
         </p>
       </header>
 
-      {/* Veckan i ord — det som läses upp på kompaniets veckomöte. Står
-          först, före tabellerna den bygger på. Håller ihop på en sida. */}
-      <div style={{ breakInside: 'avoid' }}>
-        <Veckosammanfattning kort={veckokort(veckounderlag)} />
-      </div>
+      {/* Veckan i fyra fält. Gömd, se VISA_VECKAN. */}
+      {veckounderlag && (
+        <div style={{ breakInside: 'avoid' }}>
+          <Veckosammanfattning kort={veckokort(veckounderlag)} />
+        </div>
+      )}
 
       {/* ── Sammanfattning ── */}
       <section className="mb-7">
@@ -117,7 +136,7 @@ export default async function RapportPage({
               value={formatScore(overall)}
               sub={`${statusLabel(getStatus(overall))} · snitt ${period} dagar`}
             />
-            <Box label="Svarat idag" value={procent(overview.today.pct)} sub={`${overview.today.responders} av ${overview.eligible}`} />
+            <Box label="Svarade i snitt" value={procent(svarsprocent)} sub={`av ${overview.eligible} varje dag`} />
             {(() => {
               if (!overview.soldierStatus.ok) return <Box label="Personer i rött" value="—" sub="underlag saknas" />;
               const f = personfordelning(overview.soldierStatus.data, overview.eligible);

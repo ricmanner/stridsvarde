@@ -28,12 +28,13 @@ test.describe('plutonchefen', () => {
     }
   });
 
-  test('översikten: nyckeltal och kategorierna med sämst först; veckan bara i rapporten', async ({ page }) => {
+  test('översikten: nyckeltal och kategorierna med sämst först; ingen vecka', async ({ page }) => {
     /*
      * Richard, 16 oktober: befälen vill ha siffror rakt på sak. Fyra
      * nyckeltal överst och kategorierna som en tabell i stället för staplar
-     * som räknade svar. "Senaste veckan" är sedan paket 1 (17 oktober) bara
-     * i rapporten: på skärmen stod två perioder på samma flik.
+     * som räknade svar. "Senaste veckan" är borta sedan 17 oktober, först
+     * från skärmen och sedan ur rapporten: rutan var alltid sju dagar och
+     * följde inte periodväljaren.
      */
     const dl = page.locator('dl').first();
     for (const etikett of ['Samlat mående', 'Svarat idag', 'Personer i rött', 'Kategorier i rött']) {
@@ -51,14 +52,6 @@ test.describe('plutonchefen', () => {
     await expect(page.getByText(/av dem som svarat/)).toBeVisible();
     await ingaEnskildaPersoner(page);
 
-    // Veckan i fyra fält står kvar i rapporten, till veckomötet.
-    await page.goto('/rapport');
-    const vecka = page.getByRole('region', { name: 'Senaste veckan' });
-    await expect(vecka).toContainText('7 dagar jämfört med de 7 före');
-    const falt = await vecka.locator('dt').allInnerTexts();
-    expect(falt.map((t) => t.toLowerCase())).toEqual(['svarade i snitt', 'störst försämring', 'störst förbättring', 'lägst']);
-    // 4. grupp har för få personer, och nämns därför aldrig som lägst.
-    await expect(vecka).not.toContainText('4. grupp');
   });
 
   test('jämförelsen: ingen rangordning, och ingen kolumn med bara streck', async ({ page }) => {
@@ -198,6 +191,23 @@ test.describe('plutonchefen', () => {
     }
     expect(text).not.toContain('gröna värnpliktiga');
     expect(text).not.toContain('grön/gul/röd');
+  });
+
+  test('rapporten har en period: ingen vecka, och svaren i snitt för perioden', async ({ page }) => {
+    /*
+     * 17 oktober: rutan "Senaste veckan" var alltid sju dagar medan resten
+     * av rapporten följde den valda perioden. Den är borta, och "Svarat
+     * idag" — ett ögonblick, när rapporten skrevs ut — är ersatt av hur
+     * många som svarat i snitt under perioden.
+     */
+    for (const period of [7, 21]) {
+      await page.goto(`/rapport?period=${period}`);
+      await expect(page.getByRole('region', { name: 'Senaste veckan' })).toHaveCount(0);
+      const text = await synligText(page);
+      expect(text).toContain('svarade i snitt');
+      expect(text).toContain(`${period} dagar`);
+      expect(text).not.toContain('svarat idag');
+    }
   });
 
   test('sidan har en synlig titel med enhetens namn', async ({ page }) => {
