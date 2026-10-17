@@ -210,6 +210,18 @@ test.describe('plutonchefen', () => {
     await expect(nyckeltal).toBeVisible();
     expect(await nyckeltal.innerText()).toBe(fore);
   });
+
+  test('rubrikerna är rubriker, inte versala etiketter', async ({ page }) => {
+    // Paket 1, rubrikstil A (17 oktober).
+    for (const flik of ['Översikt', 'Trender', 'Jämförelse']) {
+      await page.getByRole('tab', { name: flik }).click();
+      await expect(page.getByRole('tabpanel')).toBeVisible();
+      const versala = await page.getByRole('tabpanel').locator('h2').evaluateAll((hs) =>
+        hs.filter((h) => getComputedStyle(h).textTransform === 'uppercase').map((h) => h.textContent),
+      );
+      expect(versala, `versala rubriker på ${flik}`).toEqual([]);
+    }
+  });
 });
 
 test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {

@@ -473,12 +473,16 @@ function Nyckeltal({ etikett, varde, under }: { etikett: string; varde: React.Re
   );
 }
 
+/**
+ * Rubrik för ett avsnitt i en flik.
+ *
+ * Mörk, halvfet, vanlig skrift — rubrikstil A, Richards val 17 oktober. Den
+ * var en grå versal etikett, precis som kolumnrubrikerna och nyckeltalens
+ * namn, och försvann bland dem: elva sådana på Översikt, och ögat hittade
+ * ingen startpunkt. Versalerna är nu kvar för etiketter, inte för rubriker.
+ */
 function SL({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-balance text-slate-500">
-      {children}
-    </h2>
-  );
+  return <h2 className="mb-2.5 text-sm font-semibold text-balance text-slate-900">{children}</h2>;
 }
 
 /**
