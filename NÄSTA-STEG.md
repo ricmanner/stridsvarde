@@ -162,10 +162,13 @@ personer × dagar). Före och efter: `.playwright-mcp/rapport-en-period/`
 veckosammanfattningen ingenstans; koden och dess tester står kvar.
 
 **Underenheterna per kategori i rapporten (17 oktober, `cb8f5e6`, inte
-pushat):** samma tabell som Jämförelse. Röda värden som fet röd text med ▲
-(`RODA_RUTOR = 'text'`) eller tonade rutor som på skärmen (`'tonade'`);
-Richard väljer. Före och efter: `.playwright-mcp/rapport-underenheter/`.
-**Ångra:** `git revert --no-edit cb8f5e6`.
+pushat):** samma tabell som Jämförelse, med tonade rutor som på skärmen
+(tvingade med i utskriften) och varningstriangeln på röda värden, så att
+rött syns också i svartvitt. Richard valde variant 2; ▲ förkastades, det
+såg ut som att värdet gått upp. Före och efter:
+`.playwright-mcp/rapport-underenheter/`. **Ångra:** `git revert --no-edit`
+på de senaste rapportcommitarna, nyast först (se `git log --
+src/app/rapport/page.tsx`), till och med `cb8f5e6`.
 
 **Beslut, föreslå inte om — inget befälsråd i rapporten** (Richard, 17
 oktober): "en AI eller text bör inte berätta för ett befäl vad han eller
