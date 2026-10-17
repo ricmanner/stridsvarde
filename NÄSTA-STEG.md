@@ -7,14 +7,14 @@ Senast uppdaterad: 17 oktober 2026.
 
 ## Läget
 
-**Committat men inte pushat:** sex rättningar ur granskningen av befälsvyn
-(16 oktober, kväll), två borttagningar och paket 1 (17 oktober); se
-"Granskningen av befälsvyn" och "Paket 1" nedan. 256 enhetstester och 55
-webbläsartester är gröna. Före och efter, lokalt:
-`.playwright-mcp/granskning-befalsvy/index.html` och
-`.playwright-mcp/skiss-paket1/byggt.html`. **Pusha först när Richard sagt
-till.** Demon på <https://fm-psvi-v2.vercel.app> kör allt till och med
-`263ac1a`.
+**Pushat den 17 oktober** (Richard sa "pusha"): sex rättningar ur
+granskningen av befälsvyn (16 oktober, kväll), borttagningarna och paket 1
+(17 oktober); se "Granskningen av befälsvyn" och "Paket 1" nedan. 257
+enhetstester och 55 webbläsartester gröna lokalt före pushen. Kontrollera
+driftsättningen och GitHubs körning med kommandona i CLAUDE.md. Före och
+efter, lokalt: `.playwright-mcp/granskning-befalsvy/index.html` och
+`.playwright-mcp/skiss-paket1/byggt.html`. Ingen "Återställ demon" behövs;
+ingen databasändring.
 
 **Inget arbete pågår.** Inget ligger ocommittat.
 
@@ -91,10 +91,11 @@ med igår (cirka 2 h).
 **Borttaget den 17 oktober (Richard):** meningen "Med flera kategorier i
 rött: genomför enskilda samtal inom 48 timmar" i befälsrådet (`82026df`),
 och raden under jämförelsetabellen som förklarade strecken i "I rött"
-(`ce6cf7f`). Kvar och oavgjort: rådet för psykiskt mående säger
-"genomför enskilda samtal och påminn om vilket stöd som finns", med samma
-problem — befälet vet inte vem. Rapporten har kvar sin förklaringsrad om
-den dolda gruppen och raden om preliminära gränser.
+(`ce6cf7f`). Därefter samma dag: "genomför enskilda samtal" ur rådet för
+psykiskt mående, som nu bara säger "påminn om vilket stöd som finns"
+(`e1fa81e`), och i rapporten raden om preliminära gränser och
+förklaringen om den dolda gruppen (`fd71a6d`). Ångra med `git revert
+--no-edit` på respektive commit.
 
 ### Paket 1: städningen av befälsvyn (17 oktober)
 
