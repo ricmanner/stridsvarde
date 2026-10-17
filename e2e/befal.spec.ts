@@ -28,23 +28,18 @@ test.describe('plutonchefen', () => {
     }
   });
 
-  test('översikten: nyckeltal, veckan i fyra fält, och kategorierna med sämst först', async ({ page }) => {
+  test('översikten: nyckeltal och kategorierna med sämst först; veckan bara i rapporten', async ({ page }) => {
     /*
      * Richard, 16 oktober: befälen vill ha siffror rakt på sak. Fyra
-     * nyckeltal överst, veckan som fyra fält med jämförelsen synlig, och
-     * kategorierna som en tabell i stället för staplar som räknade svar.
+     * nyckeltal överst och kategorierna som en tabell i stället för staplar
+     * som räknade svar. "Senaste veckan" är sedan paket 1 (17 oktober) bara
+     * i rapporten: på skärmen stod två perioder på samma flik.
      */
     const dl = page.locator('dl').first();
     for (const etikett of ['Samlat mående', 'Svarat idag', 'Personer i rött', 'Kategorier i rött']) {
       await expect(dl.getByText(etikett, { exact: true })).toBeVisible();
     }
-
-    const vecka = page.getByRole('region', { name: 'Senaste veckan' });
-    await expect(vecka).toContainText('7 dagar jämfört med de 7 före');
-    const falt = await vecka.locator('dt').allInnerTexts();
-    expect(falt.map((t) => t.toLowerCase())).toEqual(['svarade i snitt', 'störst försämring', 'störst förbättring', 'lägst']);
-    // 4. grupp har för få personer, och nämns därför aldrig som lägst.
-    await expect(vecka).not.toContainText('4. grupp');
+    await expect(page.getByRole('region', { name: 'Senaste veckan' })).toHaveCount(0);
     // Ingen fotnot om hur texten tagits fram (16 oktober).
     await expect(page.getByText(/ingen AI/i)).toHaveCount(0);
 
@@ -56,10 +51,14 @@ test.describe('plutonchefen', () => {
     await expect(page.getByText(/av dem som svarat/)).toBeVisible();
     await ingaEnskildaPersoner(page);
 
-    // Samma fyra fält i rapporten.
+    // Veckan i fyra fält står kvar i rapporten, till veckomötet.
     await page.goto('/rapport');
-    const iRapporten = await page.getByRole('region', { name: 'Senaste veckan' }).locator('dt').allInnerTexts();
-    expect(iRapporten.map((t) => t.toLowerCase())).toEqual(falt.map((t) => t.toLowerCase()));
+    const vecka = page.getByRole('region', { name: 'Senaste veckan' });
+    await expect(vecka).toContainText('7 dagar jämfört med de 7 före');
+    const falt = await vecka.locator('dt').allInnerTexts();
+    expect(falt.map((t) => t.toLowerCase())).toEqual(['svarade i snitt', 'störst försämring', 'störst förbättring', 'lägst']);
+    // 4. grupp har för få personer, och nämns därför aldrig som lägst.
+    await expect(vecka).not.toContainText('4. grupp');
   });
 
   test('jämförelsen: ingen rangordning, och "I rött" står i tabellen', async ({ page }) => {

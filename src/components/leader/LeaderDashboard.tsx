@@ -30,6 +30,15 @@ import { formatScore, procent, uppräkningSamt } from '@/lib/format';
 /** Rangordningen under Jämförelse. Gömd den 16 oktober, se där. */
 const VISA_RANGORDNING = false;
 
+/**
+ * "Senaste veckan" överst i Översikt. Gömd den 17 oktober (paket 1): rutan
+ * var alltid sju dagar medan resten av fliken följde periodväljaren. Med
+ * 7 dagar upprepade den tabellen ("Hälsa ↓ 0,7" två gånger), med 21 stod två
+ * perioder bredvid varandra. Den står kvar i utskriftsrapporten, som är det
+ * som tas med till veckomötet.
+ */
+const VISA_VECKAN = false;
+
 const FLIKAR = [
   { id: 'overview', etikett: 'Översikt' },
   { id: 'trends', etikett: 'Trender' },
@@ -191,9 +200,9 @@ export default function LeaderDashboard({
         {/* ── ÖVERSIKT ── */}
         {tab === 'overview' && (
           <Panel id="overview">
-            {/* Överst: det plutonchefen tar med till kompaniets veckomöte. Alltid
-                sju dagar, oavsett vald period — det står i rutan. */}
-            <Veckosammanfattning kort={vecka} />
+            {/* Det plutonchefen tar med till kompaniets veckomöte. Alltid sju
+                dagar, oavsett vald period. Gömd på skärmen, se VISA_VECKAN. */}
+            {VISA_VECKAN && <Veckosammanfattning kort={vecka} />}
 
             {/* Perioden står kvar i rubriken, så att en skärmdump säger vad den visar. */}
             <SL>Kategorier — de senaste {period} dagarna, sämst först</SL>
