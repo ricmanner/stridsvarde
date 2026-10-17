@@ -8,8 +8,7 @@ Senast uppdaterad: 17 oktober 2026.
 ## Läget
 
 **Pushat den 17 oktober** (Richard sa "pusha"), GitHubs körning grön för
-`9d787d4`. **Därefter committat men inte pushat:** väg B, se "Paket 1".
-Pushat: sex rättningar ur
+`9d787d4`. Väg B pushad samma dag (se "Paket 1"). Pushat: sex rättningar ur
 granskningen av befälsvyn (16 oktober, kväll), borttagningarna och paket 1
 (17 oktober); se "Granskningen av befälsvyn" och "Paket 1" nedan. 257
 enhetstester och 55 webbläsartester gröna lokalt före pushen. Kontrollera
