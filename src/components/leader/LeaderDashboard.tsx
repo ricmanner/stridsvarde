@@ -77,6 +77,9 @@ export default function LeaderDashboard({
 }: LeaderDashboardProps) {
   const pathname = usePathname();
   const [tab, setTab] = useState<'overview' | 'trends' | 'compare'>('overview');
+  // Nyckeltalen räknas upp bara första gången Översikt visas, inte när man
+  // kommer tillbaka från en annan flik (Richards val A, 16 oktober).
+  const [raknaUpp, setRaknaUpp] = useState(true);
   // Lokala konstanter så att TypeScript kan smalna av unionen korrekt —
   // narrowing på en egenskap (overview.distribution.ok) håller inte genom JSX.
   const cats = overview.categories;
@@ -106,7 +109,7 @@ export default function LeaderDashboard({
           som en versal etikett. I telefonen hamnar perioden på egen rad.
         */}
         <div
-          className={`mx-auto flex max-w-5xl flex-wrap items-end justify-between gap-x-3 gap-y-3 ${tab === 'overview' ? 'mb-3' : ''}`}
+          className="mx-auto flex max-w-5xl flex-wrap items-end justify-between gap-x-3 gap-y-3"
         >
           <div className="basis-full sm:basis-auto">
             <h1 className="text-xl font-bold leading-tight text-slate-900">{unitName}</h1>
@@ -123,82 +126,6 @@ export default function LeaderDashboard({
             <PeriodPicker current={period} pathname={pathname} />
           </div>
         </div>
-        {/*
-          Fyra nyckeltal. Ersätter en rad med snittet, en liten stapel över
-          personerna och rubriken "27 VÄRNPLIKTIGA · EGET SNITT", som ingen
-          förstod (16 oktober). Siffror rakt på sak; färg bara där talet är
-          rött.
-
-          Bara på Översikt (paket 1, 17 oktober): i telefonen tog de halva
-          skärmen på varje flik. De GÖMS på de andra flikarna, tas inte bort —
-          monteras de om räknas talen upp från noll varje gång man går
-          tillbaka, och uppräkningen ska bara ske vid inloggning (RaknaUpp).
-        */}
-        <dl
-          className={`mx-auto grid max-w-5xl grid-cols-2 overflow-hidden rounded-md border border-slate-200 lg:grid-cols-4 ${
-            tab === 'overview' ? '' : 'hidden'
-          }`}
-        >
-          <Nyckeltal
-            etikett="Samlat mående"
-            varde={
-              overall !== null ? (
-                <span className="flex items-center gap-2">
-                  <RaknaUpp varde={overall} decimaler={1} visa={formatScore} /> <StatusBadge status={getStatus(overall)} />
-                </span>
-              ) : (
-                '–'
-              )
-            }
-            under={overall !== null ? `snitt ${period} dagar` : cats.ok ? '' : 'underlag saknas'}
-          />
-          <Nyckeltal
-            etikett="Svarat idag"
-            varde={<RaknaUpp varde={overview.today.pct} visa={procent} />}
-            under={`${overview.today.responders} av ${overview.eligible}`}
-          />
-          {(() => {
-            /*
-              Undanhållen fördelning ger inget antal, inte heller hur många som
-              saknar svar — se personfordelning().
-            */
-            if (!overview.soldierStatus.ok) {
-              return <Nyckeltal etikett="Personer i rött" varde="–" under="underlag saknas" />;
-            }
-            const f = personfordelning(overview.soldierStatus.data, overview.eligible);
-            return (
-              <Nyckeltal
-                etikett="Personer i rött"
-                varde={<span className={f.red > 0 ? 'text-red-700' : ''}><RaknaUpp varde={f.red} visa={String} /></span>}
-                // "På samlat snitt": tabellen nedan räknar per kategori, och
-                // utan det ser 3 här och 20 under sömn ut att säga emot varandra.
-                // Antalet utan svar står kvar: utan det ser en enhet där hälften
-                // tystnat lika frisk ut som en där alla svarat.
-                under={`av ${f.total}, på samlat snitt${f.utanSvar > 0 ? ` · ${f.utanSvar} utan svar` : ''}`}
-              />
-            );
-          })()}
-          <Nyckeltal
-            etikett="Kategorier i rött"
-            varde={
-              cats.ok ? (
-                <span className={`flex items-center gap-1.5 ${alerts.length > 0 ? 'text-red-700' : ''}`}>
-                  {alerts.length > 0 && <AlertTriangle size={18} aria-hidden />}
-                  <RaknaUpp varde={alerts.length} visa={String} />
-                </span>
-              ) : (
-                '–'
-              )
-            }
-            under={
-              !cats.ok
-                ? 'underlag saknas'
-                : alerts.length === 0
-                  ? `av ${CATEGORIES.length}`
-                  : uppräkningSamt(alerts.map((c) => c.label.toLowerCase()))
-            }
-          />
-        </dl>
       </div>
 
       {/* ── Flikar ── */}
@@ -206,7 +133,10 @@ export default function LeaderDashboard({
         <Tabs
           flikar={FLIKAR}
           vald={tab}
-          onValj={setTab}
+          onValj={(t) => {
+            setTab(t);
+            setRaknaUpp(false);
+          }}
           etikett="Vyer för enheten"
           className="mx-auto flex w-full max-w-5xl"
           knappklass={(aktiv) =>
@@ -224,6 +154,80 @@ export default function LeaderDashboard({
             {/* Det plutonchefen tar med till kompaniets veckomöte. Alltid sju
                 dagar, oavsett vald period. Gömd på skärmen, se VISA_VECKAN. */}
             {VISA_VECKAN && <Veckosammanfattning kort={vecka} />}
+
+            {/*
+              Fyra nyckeltal. Ersätter en rad med snittet, en liten stapel över
+              personerna och rubriken "27 VÄRNPLIKTIGA · EGET SNITT", som ingen
+              förstod (16 oktober). Siffror rakt på sak; färg bara där talet är
+              rött.
+
+              Först i Översikt, under flikarna (väg B, 17 oktober). De stod
+              ovanför flikarna och gömdes på de andra flikarna, och då hoppade
+              flikraden 100–200 px vid varje byte. Nu ändras ingenting ovanför
+              flikarna. Uppräkningen körs bara första gången (raknaUpp), inte när
+              man kommer tillbaka till Översikt.
+            */}
+            <dl className="mb-6 grid grid-cols-2 overflow-hidden rounded-md border border-slate-200 bg-white lg:grid-cols-4">
+              <Nyckeltal
+                etikett="Samlat mående"
+                varde={
+                  overall !== null ? (
+                    <span className="flex items-center gap-2">
+                      <RaknaUpp varde={overall} decimaler={1} visa={formatScore} animera={raknaUpp} /> <StatusBadge status={getStatus(overall)} />
+                    </span>
+                  ) : (
+                    '–'
+                  )
+                }
+                under={overall !== null ? `snitt ${period} dagar` : cats.ok ? '' : 'underlag saknas'}
+              />
+              <Nyckeltal
+                etikett="Svarat idag"
+                varde={<RaknaUpp varde={overview.today.pct} visa={procent} animera={raknaUpp} />}
+                under={`${overview.today.responders} av ${overview.eligible}`}
+              />
+              {(() => {
+                /*
+                  Undanhållen fördelning ger inget antal, inte heller hur många som
+                  saknar svar — se personfordelning().
+                */
+                if (!overview.soldierStatus.ok) {
+                  return <Nyckeltal etikett="Personer i rött" varde="–" under="underlag saknas" />;
+                }
+                const f = personfordelning(overview.soldierStatus.data, overview.eligible);
+                return (
+                  <Nyckeltal
+                    etikett="Personer i rött"
+                    varde={<span className={f.red > 0 ? 'text-red-700' : ''}><RaknaUpp varde={f.red} visa={String} animera={raknaUpp} /></span>}
+                    // "På samlat snitt": tabellen nedan räknar per kategori, och
+                    // utan det ser 3 här och 20 under sömn ut att säga emot varandra.
+                    // Antalet utan svar står kvar: utan det ser en enhet där hälften
+                    // tystnat lika frisk ut som en där alla svarat.
+                    under={`av ${f.total}, på samlat snitt${f.utanSvar > 0 ? ` · ${f.utanSvar} utan svar` : ''}`}
+                  />
+                );
+              })()}
+              <Nyckeltal
+                etikett="Kategorier i rött"
+                varde={
+                  cats.ok ? (
+                    <span className={`flex items-center gap-1.5 ${alerts.length > 0 ? 'text-red-700' : ''}`}>
+                      {alerts.length > 0 && <AlertTriangle size={18} aria-hidden />}
+                      <RaknaUpp varde={alerts.length} visa={String} animera={raknaUpp} />
+                    </span>
+                  ) : (
+                    '–'
+                  )
+                }
+                under={
+                  !cats.ok
+                    ? 'underlag saknas'
+                    : alerts.length === 0
+                      ? `av ${CATEGORIES.length}`
+                      : uppräkningSamt(alerts.map((c) => c.label.toLowerCase()))
+                }
+              />
+            </dl>
 
             {/* Perioden står kvar i rubriken, så att en skärmdump säger vad den visar. */}
             <SL>Kategorier — de senaste {period} dagarna, sämst först</SL>

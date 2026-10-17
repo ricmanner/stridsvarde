@@ -25,15 +25,23 @@ export default function RaknaUpp({
   varde,
   decimaler = 0,
   visa,
+  animera = true,
 }: {
   varde: number;
   decimaler?: number;
   /** Hur talet skrivs, t.ex. formatScore eller procent. */
   visa: (v: number) => string;
+  /**
+   * Falskt när talet monteras igen efter ett flikbyte: då ska slutvärdet stå
+   * direkt. Nyckeltalen ligger i Översikt och monteras om när man kommer
+   * tillbaka dit (17 oktober).
+   */
+  animera?: boolean;
 }) {
   const iWebblasaren = useSyncExternalStore(ingenPrenumeration, () => true, () => false);
   const [animerar] = useState(
     () =>
+      animera &&
       iWebblasaren &&
       typeof window !== 'undefined' &&
       !window.matchMedia('(prefers-reduced-motion: reduce)').matches,

@@ -227,6 +227,23 @@ test.describe('plutonchefen', () => {
     expect(await nyckeltal.innerText()).toBe(fore);
   });
 
+  test('flikraden står still när man byter flik', async ({ page }) => {
+    // 17 oktober: när nyckeltalen gömdes utanför Översikt hoppade flikraden
+    // ungefär 100 px på dator och 200 px i telefon vid varje byte. Väg B:
+    // flikarna direkt under titeln, nyckeltalen först i Översikt.
+    for (const bredd of [1280, 390]) {
+      await page.setViewportSize({ width: bredd, height: 900 });
+      const flikrad = page.getByRole('tablist', { name: 'Vyer för enheten' });
+      const lagen: number[] = [];
+      for (const flik of ['Översikt', 'Trender', 'Jämförelse', 'Översikt']) {
+        await page.getByRole('tab', { name: flik }).click();
+        await expect(page.getByRole('tabpanel')).toBeVisible();
+        lagen.push(Math.round((await flikrad.boundingBox())!.y));
+      }
+      expect(new Set(lagen).size, `flikradens läge i ${bredd} px: ${lagen.join(', ')}`).toBe(1);
+    }
+  });
+
   test('rubrikerna är rubriker, inte versala etiketter', async ({ page }) => {
     // Paket 1, rubrikstil A (17 oktober).
     for (const flik of ['Översikt', 'Trender', 'Jämförelse']) {
