@@ -189,6 +189,27 @@ test.describe('plutonchefen', () => {
     await expect(page.getByRole('heading', { level: 1, name: '1. pluton' })).toBeVisible();
     await expect(page.getByText(/Plutonsnivå · \d+ värnpliktiga/)).toBeVisible();
   });
+
+  test('nyckeltalen står bara på Översikt, och räknas inte upp igen', async ({ page }) => {
+    // Paket 1, 17 oktober: i telefonen tog de halva skärmen på varje flik.
+    const nyckeltal = page.locator('dl').first();
+    await expect(nyckeltal).toBeVisible();
+    // Låt uppräkningen efter inloggningen (0,7 s) bli klar innan talen läses.
+    await page.waitForTimeout(1000);
+    const fore = await nyckeltal.innerText();
+    for (const flik of ['Trender', 'Jämförelse']) {
+      await page.getByRole('tab', { name: flik }).click();
+      await expect(page.getByRole('tabpanel')).toBeVisible();
+      await expect(nyckeltal, `nyckeltal på ${flik}`).toBeHidden();
+    }
+    // Göms, tas inte bort: annars räknas talen upp från noll varje gång man
+    // går tillbaka till Översikt, och uppräkningen ska bara ske vid
+    // inloggning (Richards val A, 16 oktober). Direkt efter bytet står
+    // slutvärdet, inte en nolla på väg upp.
+    await page.getByRole('tab', { name: 'Översikt' }).click();
+    await expect(nyckeltal).toBeVisible();
+    expect(await nyckeltal.innerText()).toBe(fore);
+  });
 });
 
 test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {

@@ -105,7 +105,9 @@ export default function LeaderDashboard({
           17 oktober). Förut stod enheten bara litet i sidhuvudet och nivån
           som en versal etikett. I telefonen hamnar perioden på egen rad.
         */}
-        <div className="mx-auto mb-3 flex max-w-5xl flex-wrap items-end justify-between gap-x-3 gap-y-3">
+        <div
+          className={`mx-auto flex max-w-5xl flex-wrap items-end justify-between gap-x-3 gap-y-3 ${tab === 'overview' ? 'mb-3' : ''}`}
+        >
           <div className="basis-full sm:basis-auto">
             <h1 className="text-xl font-bold leading-tight text-slate-900">{unitName}</h1>
             <p className="mt-0.5 text-sm text-slate-500">
@@ -122,12 +124,21 @@ export default function LeaderDashboard({
           </div>
         </div>
         {/*
-          Fyra nyckeltal, samma i alla flikar. Ersätter en rad med snittet, en
-          liten stapel över personerna och rubriken "27 VÄRNPLIKTIGA · EGET
-          SNITT", som ingen förstod (16 oktober). Siffror rakt på sak; färg
-          bara där talet är rött.
+          Fyra nyckeltal. Ersätter en rad med snittet, en liten stapel över
+          personerna och rubriken "27 VÄRNPLIKTIGA · EGET SNITT", som ingen
+          förstod (16 oktober). Siffror rakt på sak; färg bara där talet är
+          rött.
+
+          Bara på Översikt (paket 1, 17 oktober): i telefonen tog de halva
+          skärmen på varje flik. De GÖMS på de andra flikarna, tas inte bort —
+          monteras de om räknas talen upp från noll varje gång man går
+          tillbaka, och uppräkningen ska bara ske vid inloggning (RaknaUpp).
         */}
-        <dl className="mx-auto grid max-w-5xl grid-cols-2 overflow-hidden rounded-md border border-slate-200 lg:grid-cols-4">
+        <dl
+          className={`mx-auto grid max-w-5xl grid-cols-2 overflow-hidden rounded-md border border-slate-200 lg:grid-cols-4 ${
+            tab === 'overview' ? '' : 'hidden'
+          }`}
+        >
           <Nyckeltal
             etikett="Samlat mående"
             varde={
