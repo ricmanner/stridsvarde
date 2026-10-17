@@ -240,7 +240,7 @@ Inställningar: `PROV_TILL_DAG=n` stannar efter dag n utan befälens kontroll,
 **Inte gjort ur planen:** den korta bekräftelsen på den driftsatta demon
 med ett eget litet kompani. Den kräver "Återställ demon" efteråt.
 
-### Fynd från tre externa granskare (17 oktober, inte pushat)
+### Fynd från tre externa granskare (17 oktober, pushat)
 
 ChatGPT, Gemini och Claude utan förhistorik granskade bilder av alla vyer
 (`.playwright-mcp/granskning-extern/`, svaren i `svar/`). Richard valde
