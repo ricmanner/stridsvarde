@@ -119,3 +119,16 @@ test('råden hänvisar till befälet, inte till krisstöd eller sjukvårdaren di
   assert.match(rad, /Säg till ditt befäl direkt om det känns akut/);
   assert.match(rad, /Säg till ditt befäl, som ordnar kontakt med sjukvården/);
 });
+
+test('stödrutans inledning räknar rätt och nämner bara det som är lågt', async () => {
+  // Externa granskare, 17 oktober: "Några av dina värden är låga. Brist på
+  // sömn, mat och återhämtning…" stod också när bara sömnen var röd.
+  const { supportPlan } = await import('../src/lib/support.ts');
+  const en = supportPlan(['somn']).intro;
+  assert.match(en, /^Ett av dina värden är lågt\./);
+  assert.doesNotMatch(en, /mat/);
+  const tva = supportPlan(['somn', 'kost']).intro;
+  assert.match(tva, /^Några av dina värden är låga\./);
+  assert.match(tva, /sömn/);
+  assert.match(tva, /mat/);
+});

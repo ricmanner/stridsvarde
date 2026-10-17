@@ -1,4 +1,5 @@
 import type { Category } from './data';
+import { uppräkning } from './format';
 
 /**
  * Stödkontakter som visas för en soldat med röda värden.
@@ -148,11 +149,19 @@ export function supportPlan(
   const halsa = [...UNIT_CONTACTS, HEALTH_SERVICE_CONTACT];
   const sinne = red.some((c) => MIND.includes(c));
 
+  /*
+   * Inledningen räknar rätt och nämner bara det som faktiskt är lågt. Den sa
+   * "Några av dina värden är låga. Brist på sömn, mat och återhämtning…" också
+   * när bara sömnen var röd (externa granskare, 17 oktober).
+   */
+  const antal = red.length === 1 ? 'Ett av dina värden är lågt.' : 'Några av dina värden är låga.';
+  const BRIST: Partial<Record<Category, string>> = { somn: 'sömn', kost: 'mat', energi: 'återhämtning' };
+  const brist = red.map((c) => BRIST[c]).filter((b): b is string => Boolean(b));
   const intro = sinne
-    ? 'Några av dina värden är låga. Det är vanligare än du tror, och det ' +
-      'finns folk vars uppgift det är att hjälpa till.'
-    : 'Några av dina värden är låga. Brist på sömn, mat och återhämtning ökar ' +
-      'risken för belastningsskador — ta hjälp innan det blir en skada.';
+    ? `${antal} Det är vanligare än du tror, och det finns folk vars uppgift det är att hjälpa till.`
+    : brist.length > 0
+      ? `${antal} Brist på ${uppräkning(brist)} ökar risken för belastningsskador — ta hjälp innan det blir en skada.`
+      : `${antal} Ta hjälp i tid, innan det blir en skada.`;
 
   if (!nummer) return { intro, primary: [], secondaryLabel: null, secondary: [] };
 

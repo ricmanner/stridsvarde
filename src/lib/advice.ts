@@ -176,9 +176,9 @@ export function getSoldierTips(scores: Record<Category, number>): SoldierTip[] {
 /**
  * Sammanfattar helhetsbilden.
  *
- * Nämner medvetet ingen enskild kategori — den detaljen bärs av tipskorten
- * strax under, och att säga samma sak två gånger i rad får det andra kortet
- * att kännas överflödigt. Här står bara hur det ser ut totalt sett.
+ * Nämner i regel ingen enskild kategori — den detaljen bärs av tipskorten
+ * strax under. Undantaget är ett enda rött värde, som nämns vid namn: annars
+ * blev texten för vag och sa emot stödrutan ovanför.
  */
 export function generateSoldierAdvice(scores: Record<Category, number>): string {
   const values = Object.values(scores);
@@ -209,7 +209,13 @@ export function generateSoldierAdvice(scores: Record<Category, number>): string 
 
   if (status === 'red') {
     if (shown === 1) {
-      return 'Det mesta ser rimligt ut, men ett värde ligger på en nivå som behöver åtgärdas nu. Det står nedan.';
+      /*
+       * Värdet nämns, med siffran. Här stod "Det mesta ser rimligt ut, men
+       * ett värde…" medan stödrutan ovanför sa att värdena var låga — två
+       * budskap om samma läge (externa granskare, 17 oktober).
+       */
+      const [kat, poang] = relevantCategories(scores)[0];
+      return `Ett värde är lågt idag: ${catLabel[kat].toLowerCase()} (${poang}). Råden står längre ned.`;
     }
     if (shown === 2) {
       return 'Två av dina värden ligger på en nivå som behöver åtgärdas nu. Båda står nedan.';

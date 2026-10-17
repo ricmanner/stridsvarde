@@ -208,3 +208,15 @@ test('ett enskilt rött värde skiljs från en bred nedgång', async () => {
   );
   assert.ok(alltRött.includes('flera håll'), 'en bred nedgång ska bemötas som just det');
 });
+
+/*
+ * Översikten får inte säga emot sig själv (externa granskare, 17 oktober).
+ * Med bara sömnen röd stod det "Det mesta ser rimligt ut, men ett värde…"
+ * medan stödrutan ovanför sa "Några av dina värden är låga" och nämnde mat.
+ */
+test('ett rött värde nämns vid namn, utan "det mesta ser rimligt ut"', async () => {
+  const { generateSoldierAdvice } = await import('../src/lib/advice.ts');
+  const t = generateSoldierAdvice({ fysisk: 6, halsa: 7, psykisk: 5, social: 6, somn: 3, kost: 5, energi: 4 });
+  assert.doesNotMatch(t, /Det mesta ser rimligt ut/);
+  assert.match(t, /sömn/i);
+});
