@@ -307,6 +307,22 @@ test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {
   await page.getByRole('tab', { name: 'Jämförelse' }).click();
   await expect(page.getByRole('columnheader', { name: 'I rött' })).toBeVisible();
 
+  // Variant A (Richard, 17 oktober): "I rött" bredvid "Svarade", så att
+  // personantalen står ihop och snittet direkt före kategorierna. Snittet
+  // större än kategorierna. Samma ordning i rapporten.
+  const ordning = async (tabell: import('@playwright/test').Locator) =>
+    (await tabell.getByRole('columnheader').allInnerTexts()).slice(0, 5).map((t) => t.replace(/\s+/g, ' ').trim().toLowerCase());
+  const jamforelse = page.getByRole('region', { name: /Jämförelse mellan/ }).locator('table');
+  expect(await ordning(jamforelse)).toEqual(['enhet', 'svarade', 'i rött', 'snitt', 'fysisk form']);
+  const storlek = (sel: import('@playwright/test').Locator) =>
+    sel.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+  const forsta = jamforelse.locator('tbody tr').first().locator('td');
+  expect(await storlek(forsta.nth(3).locator('div'))).toBeGreaterThan(await storlek(forsta.nth(4).locator('div')));
+
+  await page.goto('/rapport');
+  const rapport = page.getByRole('table', { name: 'Underenheter per kategori' });
+  expect(await ordning(rapport)).toEqual(['enhet', 'svarande', 'i rött', 'snitt', 'fysisk form']);
+
   await page.goto('/bataljon');
   await expect(page).toHaveURL(/ingen-behorighet/);
 

@@ -248,8 +248,10 @@ export default async function RapportPage({
               <tr className="border-b border-slate-300 text-etikett uppercase tracking-wide text-slate-500">
                 <th className="py-1.5 pr-2 align-bottom font-bold">Enhet</th>
                 <th className="px-1 py-1.5 text-right align-bottom font-bold">Svarande</th>
-                <th className="px-1 py-1.5 text-right align-bottom font-bold">Snitt</th>
+                {/* Samma ordning som på skärmen: personantalen ihop, snittet
+                    direkt före kategorierna (variant A, 17 oktober). */}
                 {visaIRott && <th className="px-1 py-1.5 text-right align-bottom font-bold">I rött</th>}
+                <th className="border-r-2 border-slate-200 px-1 py-1.5 text-right align-bottom font-bold">Snitt</th>
                 {/* Lika breda, som i jämförelsen på skärmen: annars blev SÖMN
                     smal och varningstriangeln bröts ovanför talet. */}
                 {CATEGORIES.map((k) => (
@@ -272,12 +274,12 @@ export default async function RapportPage({
                     </td>
                   ) : (
                     <>
-                      <Varde v={c.overall} fet />
                       {visaIRott && (
                         <td className="whitespace-nowrap px-1 py-1.5 text-right tabular-nums text-slate-600">
                           {c.red === null ? '—' : `${c.red} av ${c.responders}`}
                         </td>
                       )}
+                      <Varde v={c.overall} fet />
                       {CATEGORIES.map((k) => (
                         <Varde key={k.key} v={c.scores![k.key]} />
                       ))}
@@ -360,9 +362,11 @@ function Box({ label, value, sub }: { label: string; value: string; sub?: string
 function Varde({ v, fet = false }: { v: number; fet?: boolean }) {
   const status = getStatus(v);
   return (
-    <td className="px-0.5 py-1">
+    <td className={`px-0.5 py-1 ${fet ? 'border-r-2 border-slate-200 pr-1.5' : ''}`}>
       <span
-        className={`block whitespace-nowrap rounded px-1 py-1 text-right tabular-nums text-slate-900 ${fet ? 'font-bold' : ''}`}
+        className={`block whitespace-nowrap rounded px-1 py-1 text-right tabular-nums text-slate-900 ${
+          fet ? 'text-sm font-extrabold' : ''
+        }`}
         style={{ background: CELL_TINT[status], printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}
       >
         {status === 'red' && <Varning />}

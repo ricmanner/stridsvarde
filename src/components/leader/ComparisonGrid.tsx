@@ -54,11 +54,13 @@ export default function ComparisonGrid({
             <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
               <th className="whitespace-nowrap px-4 py-2.5 align-bottom font-bold">Enhet</th>
               <th className="whitespace-nowrap px-2 py-2.5 text-center align-bottom font-bold">Svarade</th>
-              <th className="px-1.5 py-2.5 text-center align-bottom font-bold">Snitt</th>
-              {/* Flyttad hit från rangordningen, som är gömd (16 oktober). */}
+              {/* "I rött" bredvid "Svarade": två personantal ihop, och snittet
+                  direkt före kategorierna det sammanfattar (variant A, 17
+                  oktober). Stod förut mellan snittet och kategorierna. */}
               {visaIRott && (
                 <th className="whitespace-nowrap px-2 py-2.5 text-center align-bottom font-bold">I rött</th>
               )}
+              <th className="border-r-2 border-slate-200 px-1.5 py-2.5 text-center align-bottom font-bold">Snitt</th>
               {CATEGORIES.map((c) => (
                 // Hela namnet, även om det tar två rader — se testet i sprak.test.mjs.
                 // Lika breda, annars blev SÖMN smal och PSYKISKT MÅENDE bred.
@@ -94,7 +96,6 @@ export default function ComparisonGrid({
                   </td>
                 ) : (
                   <>
-                    <Cell value={child.overall} strong />
                     {visaIRott && (
                       <td className="whitespace-nowrap border-t border-slate-100 px-2 py-2 text-center text-xs tabular-nums text-slate-500">
                         {child.red === null ? (
@@ -107,6 +108,7 @@ export default function ComparisonGrid({
                         )}
                       </td>
                     )}
+                    <Cell value={child.overall} strong />
                     {CATEGORIES.map((c) => (
                       <Cell key={c.key} value={child.scores![c.key]} label={c.label} />
                     ))}
@@ -124,13 +126,20 @@ export default function ComparisonGrid({
   );
 }
 
+/**
+ * En ruta i jämförelsen. `strong` är enhetens snitt: en storlek större och
+ * med en linje mot kategorierna, så att raden läses som helheten och sedan
+ * vad den består av (17 oktober).
+ */
 function Cell({ value, strong = false, label }: { value: number; strong?: boolean; label?: string }) {
   const status = getStatus(value);
   return (
-    <td className="border-t border-slate-100 px-1 py-1.5">
+    <td className={`border-t border-slate-100 px-1 py-1.5 ${strong ? 'border-r-2 border-r-slate-200 pr-2' : ''}`}>
       <div
         title={`${label ? `${label}: ` : ''}${formatScore(value)} · ${statusLabel(status)}`}
-        className={`flex h-9 items-center justify-center gap-1 rounded text-xs tabular-nums text-slate-900 ${strong ? 'font-bold' : 'font-semibold'}`}
+        className={`flex h-9 items-center justify-center gap-1 rounded tabular-nums text-slate-900 ${
+          strong ? 'text-sm font-extrabold' : 'text-xs font-semibold'
+        }`}
         style={{ background: CELL_TINT[status] }}
       >
         {status === 'red' && <AlertTriangle size={11} className="shrink-0 text-red-700" aria-label="Röd" />}
