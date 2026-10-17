@@ -138,12 +138,24 @@ fråga per flik. En halv till en hel dag; skissas först.
 0c91006 879e323 5fe765b 89182c5 ce6cf7f 82026df`. Prövat på en egen gren:
 `src`, testerna och e2e identiska med `e0bd972`, 256 tester gröna.
 
+**Platta plutoner i demon (17 oktober, `ef7beae`, inte pushat):** fyra av
+nio plutoner hade samma snitt i alla kategorier. Nu en gemensam
+tjänsteprofil (sömn −0,7, energi −0,4, kost −0,2, psykiskt +0,1, fysisk
++0,2, hälsa +0,4, social +0,5) på kategorier utan egen historia, och små
+egna drag för plutonerna 3, 4, 5, 7 och 9 (`demo-forlopp.ts`). Historierna
+är orörda; kompanierna 5,6 / 6,6 / 7,2 som förut. 1. plutonens samlade snitt
+blir 4,8 i stället för 4,7 (social via profilen). Några kategorier blir
+gula, till exempel sömnen i 3. kompani. Före och efter:
+`.playwright-mcp/platta-plutoner/index.html` (lokalt). **Når demon först
+efter "Återställ demon"**, som loggar ut alla — fråga Richard först.
+**Ångra:** `git revert --no-edit ef7beae`, pusha och tryck "Återställ demon"
+igen. Prövat på en egen gren: identiskt med `3efb87f`, 257 tester gröna.
+
 **Kvar ur UX-genomgången, inte byggt:** Trender är 2 700 px lång i
 telefonen (åtta grafer under varandra; paket 2, skissas först); skalan
 1–4–7–10 under varje kategori i telefonen; första kolumnen i jämförelsen
 följer inte med när man rullar åt höger; integritetsraden och exporten
-upprepas i varje flik; och i demon har 3. pluton i 1. kompani 7,4 i alla
-åtta kategorier (`demo-forlopp.ts`, kräver "Återställ demon").
+upprepas i varje flik; (de platta plutonerna i demon är lösta, se ovan).
 
 ### Nästa uppgift
 
