@@ -394,7 +394,7 @@ async function kontrolleraEgenVy(page, person, dag) {
     return synlig(el);
   };
   const samlat = await kort('Samlat mående idag');
-  const frekvens = await kort('Svarsfrekvens');
+  const frekvens = await kort('Svarat (');
   const ok1 = kontroll(`dag ${dag}: egen vy`, `${person} samlat mående idag`, true, samlat.includes(f.samlat));
   const ok2 = kontroll(`dag ${dag}: egen vy`, `${person} svarsfrekvens`, true, frekvens.includes(f.frekvens) && frekvens.includes(f.frekvensUnder));
   if (!ok1 || !ok2) {

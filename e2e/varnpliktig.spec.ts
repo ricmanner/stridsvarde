@@ -65,7 +65,21 @@ test('rapporterar sitt mående och får återkoppling', async ({ page }) => {
   await skickaIncheckning(page);
   const text = await synligText(page);
   expect(text).toContain('samlat mående idag');
-  expect(text).toContain('svarsfrekvens');
+  // Ett ord för hur ofta man svarat, inget omdöme om det (17 oktober):
+  // "närvaro" är ett tjänsteord och "Bra närvaro — fortsätt så" ett betyg.
+  expect(text).toMatch(/svarat \(\d+ dagar?\)/);
+  await page.getByRole('tab', { name: 'Historik' }).click();
+  const historik = await synligText(page);
+  expect(historik).toContain('dina svar');
+  expect(historik).not.toContain('närvaro');
+});
+
+test('startsidan lovar ingen tid', async ({ page }) => {
+  // "Tar ungefär två minuter" gjorde uppgiften större än den är (17 oktober).
+  await loggaIn(page, 'P1G1-07');
+  await page.goto('/soldat?redigera=1');
+  await page.waitForLoadState('networkidle');
+  expect(await synligText(page)).not.toMatch(/minut/);
 });
 
 test('varje fråga säger vad siffran betyder, och info-knappen listar alla nivåer', async ({ page }) => {
@@ -219,7 +233,7 @@ test('den som redan rapporterat skickas till sin återkoppling', async ({ page }
   await page.getByRole('tab', { name: 'Historik' }).click();
   await expect(page.getByRole('tabpanel')).toBeVisible();
   const text = await synligText(page);
-  expect(text).toContain('din närvaro');
+  expect(text).toContain('dina svar'); // hette "Din närvaro" till 17 oktober
   expect(text).not.toContain('application error');
 });
 

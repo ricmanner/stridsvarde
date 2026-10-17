@@ -258,7 +258,9 @@ export default function SoldatCheckin({ initial, editing = false, dateLabel }: P
             <p className="text-sm leading-relaxed text-slate-500">
               {editing
                 ? 'Dina tidigare svar är förifyllda. Ändra det som blivit fel — den gamla rapporten skrivs över.'
-                : `Besvara ${CATEGORIES.length === 7 ? 'sju' : 'sex'} frågor om ditt mående. Tar ungefär två minuter. Ditt befäl ser bara sammanställd data för hela gruppen.`}
+                : // Ingen tidsuppgift: "Tar ungefär två minuter" gjorde uppgiften
+                  // större än den är (externa granskare, 17 oktober).
+                  `Besvara ${CATEGORIES.length === 7 ? 'sju' : 'sex'} frågor om ditt mående. Ditt befäl ser bara sammanställd data för hela gruppen.`}
             </p>
           </div>
 

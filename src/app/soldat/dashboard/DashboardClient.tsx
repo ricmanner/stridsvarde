@@ -100,7 +100,10 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
               />
               <MetricCard
                 // Räknat från den dag personen fanns — se getOwnResponseFrequency().
-                label={`Svarsfrekvens (${antal(freq.total, 'dag', 'dagar')})`}
+                // "Svarat", ett och samma ord överallt: hette också "närvaro" och
+                // "registrerade incheckningar" (17 oktober). Närvaro är ett
+                // tjänsteord och lät som kontroll.
+                label={`Svarat (${antal(freq.total, 'dag', 'dagar')})`}
                 value={procent(freq.pct)}
                 sub={<span className="text-xs text-slate-500">{freq.checkedIn} av {antal(freq.total, 'dag', 'dagar')}</span>}
               />
@@ -252,37 +255,36 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
         {tab === 'history' && (
           <Panel id="history">
             <SectionHeader
-              label={freq.total < chartData.length ? 'Din närvaro — sedan du började' : 'Din närvaro — de senaste 14 dagarna'}
+              label={freq.total < chartData.length ? 'Dina svar — sedan du började' : 'Dina svar — de senaste 14 dagarna'}
             />
             <div className="mb-4 rounded-md border border-slate-200 bg-white p-5">
               <div className="mb-1 flex items-center justify-between">
-                <span className="text-xs text-slate-500">Registrerade incheckningar</span>
+                <span className="text-xs text-slate-500">Dagar du svarat</span>
                 <span className="text-xl font-extrabold tabular-nums text-slate-900">
                   {freq.checkedIn}<span className="text-xs font-normal text-slate-500"> / {freq.total}</span>
                 </span>
               </div>
               <div className="mt-2.5 h-1.5 rounded-[3px] bg-slate-100">
-                {/* Bredden och färgen kommer ur närvaron, därför inline. */}
+                {/*
+                  Bredden kommer ur andelen, därför inline. Neutral färg:
+                  grönt, gult och rött betyder mående i appen, inte ett betyg
+                  på hur ofta man svarar (17 oktober).
+                */}
                 <div
-                  className="h-full rounded-[3px] transition-[width] duration-300"
-                  style={{
-                    width: `${freq.pct}%`,
-                    background: freq.pct >= 70 ? '#059669' : freq.pct >= 40 ? '#D97706' : '#DC2626',
-                  }}
+                  className="h-full rounded-[3px] bg-slate-700 transition-[width] duration-300"
+                  style={{ width: `${freq.pct}%` }}
                 />
               </div>
-              <p className="mt-2 text-xs text-slate-500">
-                {/*
-                  Inget om vad befälet ser: det avgörs av hur många i gruppen
-                  som svarat, inte av den enskildes närvaro. Texten sa förut
-                  "Lägre närvaro — befälet ser ingen data", vilket var fel.
-                */}
-                {freq.pct >= 70
-                  ? 'Bra närvaro — fortsätt så.'
-                  : freq.pct >= 40
-                    ? 'Försök checka in dagligen.'
-                    : 'Checka in varje dag — ju fler i gruppen som svarar, desto bättre bild får befälet.'}
-              </p>
+              {/*
+                Inget omdöme om hur ofta man svarar (17 oktober): "Bra närvaro —
+                fortsätt så" var ett betyg. Och inget om vad befälet ser: det
+                avgörs av hur många i gruppen som svarat, inte av den enskilde.
+              */}
+              {freq.pct < 70 && (
+                <p className="mt-2 text-xs text-slate-500">
+                  Ju fler i gruppen som svarar, desto bättre bild får befälet av hur gruppen mår.
+                </p>
+              )}
             </div>
 
             {/*
