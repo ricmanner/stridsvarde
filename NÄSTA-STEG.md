@@ -219,14 +219,11 @@ Provet är känsligt nog: i en körning där fyra incheckningar saknades hittade
 det skillnader på en tiondel. Resultatsidan:
 `.playwright-mcp/verklighetsprov/index.html` (lokalt).
 
-**Ett fynd att hålla ögonen på:** i den första hela körningen föll fyra
-incheckningar dag 6 — appens felsida efter "Bekräfta och skicka", och
-svaren sparades inte. Det var de fyra första samtidiga incheckningarna,
-under en sekund efter att administratören flyttat en person. Ingenting i
-serverns fellogg. Gick inte att framkalla igen: två omkörningar till dag 6
-med 4 samtidiga, och tre dagar med 16 samtidiga, gav 0 fel. Kan vara
-provets miljö (servern nystartad) eller ett sällsynt fel i appen. Kör provet
-igen före skarp drift; dyker det upp, felsök med `PROV_TILL_DAG=6`.
+**Förklarat, inte ett fel i appen:** i den första hela körningen föll fyra
+incheckningar dag 6. Datorn somnade då (14:37:49–14:39:24 enligt `pmset -g
+log`, 9 % batteri) medan de fyra var på väg. Körningen efteråt, med datorn
+vaken, gav 0 fel. **Kör provet med datorn på laddning och vaken**, till
+exempel med `caffeinate -i npm run verklighetsprov`.
 
 **Det enda som inte är som på riktigt** är datumet: servern startas om varje
 dag med en framflyttad klocka (`klocka.mjs`, laddas med `node --import`, appen
