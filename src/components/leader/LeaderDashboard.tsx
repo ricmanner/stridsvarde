@@ -212,15 +212,10 @@ export default function LeaderDashboard({
               </div>
             )}
 
-            {/* Färgerna i listan ovan bygger på gränser som ingen fastställt än.
-                Stod förut i rutan Tröskelvärden, som är gömd (lib/varningar.ts). */}
-            {!VISA_TROSKELRUTA && cats.ok && (
-              <div className="-mt-2.5 mb-4">
-                <Preliminary>
-                  Gränserna för grönt, gult och rött är preliminära.
-                </Preliminary>
-              </div>
-            )}
+            {/* Här stod "Gränserna för grönt, gult och rött är preliminära", och
+                under befälsrådet "Råden är preliminära". Borttagna 17 oktober
+                (Richard). Utskriftsrapporten säger det fortfarande, eftersom
+                ett papper vandrar vidare utan sammanhang. */}
 
             {VISA_TROSKELRUTA && alerts.length > 0 && cats.ok && (
               <>
@@ -237,9 +232,6 @@ export default function LeaderDashboard({
                       </div>
                     ))}
                   </div>
-                  <Preliminary>
-                    Gränserna är preliminära.
-                  </Preliminary>
                 </div>
               </>
             )}
@@ -256,9 +248,6 @@ export default function LeaderDashboard({
                   </div>
                   <p className="text-sm leading-relaxed text-slate-700">{advice}</p>
                 </div>
-                <Preliminary>
-                  Råden är preliminära.
-                </Preliminary>
               </>
             )}
 
@@ -442,23 +431,6 @@ export default function LeaderDashboard({
   );
 }
 
-
-/**
- * Säger rakt ut att gränser och råd inte är fastställda.
- *
- * Problemanalysen från Skövde konstaterar att det saknas vetenskapligt
- * fastställda gränser för röd, gul och grön. Appens gränser (7 och 4 på en
- * tiogradig skala) och befälsråden sattes i prototypen. På en storskärm framför
- * befäl ser "kräver åtgärd" och ett råd om samtal ut som fakta; det ska
- * framgå att de inte är det än. Innehållet ändras inte här — det är
- * fackfolkets att fastställa, inte utvecklarens.
- *
- * Texten nämner inte vem som ska fastställa dem (Richard, 16 oktober): det är
- * inte bestämt, och en text på skärmen ska inte lova något åt en myndighet.
- */
-function Preliminary({ children }: { children: React.ReactNode }) {
-  return <p className="mt-1.5 text-etikett leading-relaxed text-slate-500">{children}</p>;
-}
 
 /** Ett nyckeltal i rubrikraden. Ramas in av rutnätet, som veckans fält. */
 function Nyckeltal({ etikett, varde, under }: { etikett: string; varde: React.ReactNode; under: string }) {

@@ -69,11 +69,13 @@ test.describe('plutonchefen', () => {
     await expect(page.getByRole('columnheader', { name: 'I rött' })).toBeVisible();
   });
 
-  test('varningen står inte fem gånger: ingen tröskelruta, och gränserna sägs vara preliminära', async ({ page }) => {
+  test('varningen står inte fem gånger: ingen tröskelruta, och inga rader om preliminära gränser', async ({ page }) => {
     // Väg B, 16 oktober (lib/varningar.ts). Demons 1. pluton har sömn och
     // kost i rött — förut stod det också i en egen ruta under listan.
     await expect(page.getByRole('heading', { name: /Tröskelvärden/ })).toHaveCount(0);
-    await expect(page.getByText(/Gränserna för grönt, gult och rött är preliminära/)).toBeVisible();
+    // "Gränserna … är preliminära" och "Råden är preliminära" borta från
+    // skärmen (Richard, 17 oktober).
+    await expect(page.getByText(/är preliminära/)).toHaveCount(0);
     // Det röda syns fortfarande: nyckeltalet överst och märkena i tabellen.
     await expect(page.locator('dl').first().getByText('Kategorier i rött', { exact: true })).toBeVisible();
     await expect(page.getByText(/sömn samt kost och näring/i).first()).toBeVisible();
