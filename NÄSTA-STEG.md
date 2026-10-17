@@ -161,6 +161,17 @@ personer × dagar). Före och efter: `.playwright-mcp/rapport-en-period/`
 (lokalt). **Ångra:** `git revert --no-edit 3e7e4a4`. Därmed visas
 veckosammanfattningen ingenstans; koden och dess tester står kvar.
 
+**Underenheterna per kategori i rapporten (17 oktober, `cb8f5e6`, inte
+pushat):** samma tabell som Jämförelse. Röda värden som fet röd text med ▲
+(`RODA_RUTOR = 'text'`) eller tonade rutor som på skärmen (`'tonade'`);
+Richard väljer. Före och efter: `.playwright-mcp/rapport-underenheter/`.
+**Ångra:** `git revert --no-edit cb8f5e6`.
+
+**Beslut, föreslå inte om — inget befälsråd i rapporten** (Richard, 17
+oktober): "en AI eller text bör inte berätta för ett befäl vad han eller
+hon ska göra". Tills vidare. Befälsrådet på skärmens Översikt står kvar;
+Richard har fått frågan om det också ska bort.
+
 **Beslut, föreslå inte om:** den grå linjen i Jämförelse heter "Hela
 enheten", inte "Hela kompaniet/plutonen", och jämför mot hela enheten,
 inte mot "de andra" (Richard, 17 oktober). Den är enhetens dagliga snitt
