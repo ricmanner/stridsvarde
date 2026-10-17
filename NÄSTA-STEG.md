@@ -8,7 +8,9 @@ Senast uppdaterad: 17 oktober 2026.
 ## Läget
 
 **Pushat den 17 oktober** (Richard sa "pusha"), GitHubs körning grön för
-`9d787d4`. Väg B pushad samma dag (se "Paket 1"). Pushat: sex rättningar ur
+`9d787d4`. Väg B, plutonprofilerna och därefter rapporten (en period,
+underenheterna per kategori) och det gömda befälsrådet pushade samma dag.
+Pushat: sex rättningar ur
 granskningen av befälsvyn (16 oktober, kväll), borttagningarna och paket 1
 (17 oktober); se "Granskningen av befälsvyn" och "Paket 1" nedan. 257
 enhetstester och 55 webbläsartester gröna lokalt före pushen. Kontrollera
@@ -153,7 +155,7 @@ efter "Återställ demon"**, som loggar ut alla — fråga Richard först.
 **Ångra:** `git revert --no-edit ef7beae`, pusha och tryck "Återställ demon"
 igen. Prövat på en egen gren: identiskt med `3efb87f`, 257 tester gröna.
 
-**Rapporten med en period (17 oktober, `3e7e4a4`, inte pushat):** rutan
+**Rapporten med en period (17 oktober, `3e7e4a4`, pushat):** rutan
 "Senaste veckan" är gömd också i rapporten (`VISA_VECKAN` i
 `rapport/page.tsx`); den var alltid sju dagar medan resten följde perioden.
 "Svarat idag" är ersatt av "Svarade i snitt" för perioden (svar delat med
@@ -161,7 +163,7 @@ personer × dagar). Före och efter: `.playwright-mcp/rapport-en-period/`
 (lokalt). **Ångra:** `git revert --no-edit 3e7e4a4`. Därmed visas
 veckosammanfattningen ingenstans; koden och dess tester står kvar.
 
-**Underenheterna per kategori i rapporten (17 oktober, `cb8f5e6`, inte
+**Underenheterna per kategori i rapporten (17 oktober, `cb8f5e6`,
 pushat):** samma tabell som Jämförelse, med tonade rutor som på skärmen
 (tvingade med i utskriften) och varningstriangeln på röda värden, så att
 rött syns också i svartvitt. Richard valde variant 2; ▲ förkastades, det
@@ -172,8 +174,8 @@ src/app/rapport/page.tsx`), till och med `cb8f5e6`.
 
 **Beslut, föreslå inte om — inget befälsråd i rapporten** (Richard, 17
 oktober): "en AI eller text bör inte berätta för ett befäl vad han eller
-hon ska göra". Tills vidare. Befälsrådet på skärmens Översikt står kvar;
-Richard har fått frågan om det också ska bort.
+hon ska göra". Tills vidare. **Också gömt på skärmen** samma dag
+(`VISA_BEFALSRAD = false` i `src/lib/advice.ts`); `true` tar fram det igen.
 
 **Beslut, föreslå inte om:** den grå linjen i Jämförelse heter "Hela
 enheten", inte "Hela kompaniet/plutonen", och jämför mot hela enheten,
