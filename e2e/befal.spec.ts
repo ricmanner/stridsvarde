@@ -222,6 +222,11 @@ test.describe('plutonchefen', () => {
       expect(versala, `versala rubriker på ${flik}`).toEqual([]);
     }
   });
+
+  test('befälsrådet är rubrik och text, utan etikett', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Befälsråd' })).toBeVisible();
+    await expect(page.getByText('Baserat på enhetens egna värden')).toHaveCount(0);
+  });
 });
 
 test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {

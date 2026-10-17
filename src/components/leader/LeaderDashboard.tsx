@@ -269,13 +269,10 @@ export default function LeaderDashboard({
             {advice && (
               <>
                 <SL>Befälsråd</SL>
+                {/* Bara rubrik och text (paket 1, 17 oktober). Här stod en gul
+                    prick och "BASERAT PÅ ENHETENS EGNA VÄRDEN" ovanför tre
+                    meningar — inramning som inte sa något rubriken inte sa. */}
                 <div className="rounded-md border border-slate-200 bg-white p-5">
-                  <div className="mb-2.5 flex items-center gap-2">
-                    <span className="size-1.5 rounded-full bg-amber-500" />
-                    <span className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
-                      Baserat på enhetens egna värden
-                    </span>
-                  </div>
                   <p className="text-sm leading-relaxed text-slate-700">{advice}</p>
                 </div>
               </>
