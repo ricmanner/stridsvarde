@@ -501,3 +501,19 @@ test('exportknappen säger per grupp, inte per grupper', () => {
   assert.ok(!/Per \{childLabel\}/.test(text), 'exportknappen använder pluralformen');
   assert.match(text, /Per \{childKind\} \(CSV\)/);
 });
+
+/*
+ * "Friskhet", inte "Hälsa" (Richard, 17 oktober).
+ *
+ * "Hälsa" var för brett: en bruten fot och psykisk ohälsa är också hälsa, så
+ * namnet överlappade fysisk form och psykiskt mående. Frågan gäller sjukdom
+ * ("Hur frisk känner du dig idag?"). "Sjukdom" valdes bort: skalan går mot
+ * frisk, så "Sjukdom 9,2" i grönt hade lästs som mycket sjuk.
+ */
+test('frågan om sjukdom heter Friskhet, och skalan går mot frisk', async () => {
+  const { CATEGORIES } = await import('../src/lib/data.ts');
+  const fraga = CATEGORIES.find((c) => c.key === 'halsa');
+  assert.equal(fraga.label, 'Friskhet');
+  assert.equal(fraga.question, 'Hur frisk känner du dig idag?');
+  assert.ok(!CATEGORIES.some((c) => c.label === 'Hälsa'));
+});

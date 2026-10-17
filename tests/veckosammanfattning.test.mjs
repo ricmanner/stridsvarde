@@ -35,7 +35,7 @@ test('störst försämring och störst förbättring, i de tal som visas', async
     forra: { ...lika(6), halsa: 6.04, energi: 4.2 },
     denna: { ...lika(6), halsa: 5.33, energi: 4.84 },
   });
-  assert.deepEqual(k.forsamring, { kategori: 'Hälsa', fran: 6.0, till: 5.3 });
+  assert.deepEqual(k.forsamring, { kategori: 'Friskhet', fran: 6.0, till: 5.3 });
   assert.deepEqual(k.forbattring, { kategori: 'Energinivå', fran: 4.2, till: 4.8 });
 });
 

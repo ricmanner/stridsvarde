@@ -200,7 +200,7 @@ test.describe('plutonchefen', () => {
      */
     await page.goto('/rapport');
     const tabell = page.getByRole('table', { name: 'Underenheter per kategori' });
-    for (const k of ['Fysisk form', 'Hälsa', 'Psykiskt mående', 'Social trivsel', 'Sömn', 'Kost och näring', 'Energinivå']) {
+    for (const k of ['Fysisk form', 'Friskhet', 'Psykiskt mående', 'Social trivsel', 'Sömn', 'Kost och näring', 'Energinivå']) {
       await expect(tabell.getByRole('columnheader', { name: k })).toBeVisible();
     }
     const celler = await tabell.getByRole('row', { name: /^1\. grupp/ }).getByRole('cell').allInnerTexts();

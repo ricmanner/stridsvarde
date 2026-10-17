@@ -24,7 +24,9 @@ const ALLA_KATEGORIER: Array<{
 }> = [
   { key: 'fysisk',  label: 'Fysisk form',      icon: 'Activity',    question: 'Hur mår din kropp idag?' },
   // Direkt efter fysisk form, så att frågorna om kroppen står ihop.
-  { key: 'halsa',   label: 'Hälsa',             icon: 'Thermometer', question: 'Hur frisk känner du dig idag?' },
+  // "Friskhet", inte "Hälsa" (17 oktober): hälsa överlappade fysisk form och
+  // psykiskt mående. Nyckeln och kolumnen heter fortfarande halsa.
+  { key: 'halsa',   label: 'Friskhet',          icon: 'Thermometer', question: 'Hur frisk känner du dig idag?' },
   { key: 'psykisk', label: 'Psykiskt mående',   icon: 'Brain',       question: 'Hur mår du mentalt?' },
   { key: 'social',  label: 'Social trivsel',    icon: 'Users',       question: 'Hur trivs du i gruppen?' },
   { key: 'somn',    label: 'Sömn',              icon: 'Moon',        question: 'Hur sov du i natt?' },

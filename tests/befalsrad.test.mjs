@@ -23,10 +23,10 @@ test('röda kategorier nämns vid namn, med en åtgärd var', async () => {
   assert.doesNotMatch(t, /48 timmar/);
 });
 
-test('hälsa i rött handlar om smitta och sjukvård', async () => {
+test('friskhet i rött handlar om smitta och sjukvård', async () => {
   const { generateLeaderAdvice } = await import('../src/lib/advice.ts');
   const t = generateLeaderAdvice({ ...lika(6), halsa: 3.5 });
-  assert.match(t, /^Hälsa ligger på röd nivå\./);
+  assert.match(t, /^Friskhet ligger på röd nivå\./);
   assert.match(t, /smitta/);
   assert.match(t, /sjukvård/);
 });

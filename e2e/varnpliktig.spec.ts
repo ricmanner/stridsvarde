@@ -102,9 +102,9 @@ test('varje fråga säger vad siffran betyder, och info-knappen listar alla niv�
   await page.getByRole('button', { name: 'Nästa' }).click();
   await reglage.focus();
   await page.keyboard.press('ArrowRight');
-  // Fråga 2 är hälsa sedan den 16 oktober.
+  // Fråga 2 är friskhet sedan den 16 oktober (hette Hälsa till den 17).
   await expect(text('Krasslig. Förkylning eller lättare symtom.')).toBeVisible();
-  await page.getByRole('button', { name: 'Vad betyder siffrorna för hälsa?' }).click();
+  await page.getByRole('button', { name: 'Vad betyder siffrorna för friskhet?' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Stäng' }).click();
   await expect(page.getByRole('dialog')).toBeHidden();
 });
