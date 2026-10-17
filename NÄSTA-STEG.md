@@ -153,6 +153,19 @@ efter "Återställ demon"**, som loggar ut alla — fråga Richard först.
 **Ångra:** `git revert --no-edit ef7beae`, pusha och tryck "Återställ demon"
 igen. Prövat på en egen gren: identiskt med `3efb87f`, 257 tester gröna.
 
+**Rapporten med en period (17 oktober, `3e7e4a4`, inte pushat):** rutan
+"Senaste veckan" är gömd också i rapporten (`VISA_VECKAN` i
+`rapport/page.tsx`); den var alltid sju dagar medan resten följde perioden.
+"Svarat idag" är ersatt av "Svarade i snitt" för perioden (svar delat med
+personer × dagar). Före och efter: `.playwright-mcp/rapport-en-period/`
+(lokalt). **Ångra:** `git revert --no-edit 3e7e4a4`. Därmed visas
+veckosammanfattningen ingenstans; koden och dess tester står kvar.
+
+**Beslut, föreslå inte om:** den grå linjen i Jämförelse heter "Hela
+enheten", inte "Hela kompaniet/plutonen", och jämför mot hela enheten,
+inte mot "de andra" (Richard, 17 oktober). Den är enhetens dagliga snitt
+för samlat mående, med den valda underenheten inräknad.
+
 **Kvar ur UX-genomgången, inte byggt:** Trender är 2 700 px lång i
 telefonen (åtta grafer under varandra; paket 2, skissas först); skalan
 1–4–7–10 under varje kategori i telefonen; första kolumnen i jämförelsen
