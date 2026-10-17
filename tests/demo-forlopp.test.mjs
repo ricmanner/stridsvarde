@@ -128,3 +128,37 @@ test('hälsa: en förkylning sprids i 3. kompani, 2. pluton den senaste veckan',
   // Övriga plutoner i 3. kompani är friska.
   for (const p of [7, 9]) assert.ok(forlopp(p, 'halsa', 0) >= 7, `pluton ${p}`);
 });
+
+test('ingen pluton är platt: kategorierna skiljer sig åt hos alla nio', async () => {
+  /*
+   * Granskningen 17 oktober: fyra av nio plutoner hade samma snitt i alla
+   * sju kategorier (1. komp 3. pluton 7,4 överallt), och kompanichefens
+   * jämförelse såg påhittad ut. Riktiga svar har en profil — sömn och ork
+   * brukar ligga lägre än gemenskapen under värnplikten.
+   */
+  const { forlopp } = await import('../src/lib/demo-forlopp.ts');
+  const alla = [...KATEGORIER, 'halsa'];
+  for (let p = 1; p <= 9; p++) {
+    const vecka = alla.map((k) => snitt(dagar(6, 0).map((d) => forlopp(p, k, d))));
+    const spann = Math.max(...vecka) - Math.min(...vecka);
+    assert.ok(spann >= 1, `pluton ${p}: kategorierna skiljer bara ${spann.toFixed(2)}`);
+  }
+});
+
+test('plutonerna utan egen historia ser inte ut som kopior av varandra', async () => {
+  const { forlopp } = await import('../src/lib/demo-forlopp.ts');
+  const alla = [...KATEGORIER, 'halsa'];
+  const profil = (p) => alla.map((k) => snitt(dagar(6, 0).map((d) => forlopp(p, k, d))));
+  const lugna = [3, 5, 9];
+  for (const a of lugna) {
+    for (const b of lugna) {
+      if (a >= b) continue;
+      const pa = profil(a);
+      const pb = profil(b);
+      const medel = (xs) => snitt(xs);
+      // Formen, inte nivån: dra bort varje plutons eget snitt först.
+      const skillnad = Math.max(...pa.map((v, i) => Math.abs(v - medel(pa) - (pb[i] - medel(pb)))));
+      assert.ok(skillnad >= 0.4, `pluton ${a} och ${b} har samma form (${skillnad.toFixed(2)})`);
+    }
+  }
+});

@@ -112,6 +112,40 @@ const PLUTONER: Record<number, Forlopp> = {
 };
 
 /*
+ * Hur svaren brukar fördela sig under värnplikten: sömn och ork lite lägre,
+ * gemenskap och hälsa lite högre. Läggs på de kategorier en pluton inte har
+ * en egen historia för (`ovriga`), så att fältövningen, marschen och
+ * förkylningen står kvar exakt.
+ *
+ * Granskningen 17 oktober: fyra av nio plutoner hade samma snitt i alla sju
+ * kategorier — 1. kompani, 3. pluton visade 7,4 överallt — och
+ * kompanichefens jämförelse såg påhittad ut. Summan är nära noll, så att
+ * plutonernas och kompaniernas nivåer står kvar. Det gör visningen bättre,
+ * inte appen.
+ */
+const TJANSTEPROFIL: Record<Category, number> = {
+  fysisk: 0.2,
+  halsa: 0.4,
+  psykisk: 0.1,
+  social: 0.5,
+  somn: -0.7,
+  kost: -0.2,
+  energi: -0.4,
+};
+
+/*
+ * Egna drag för plutonerna utan en egen historia, så att de inte blir kopior
+ * av varandra. Små, och bara på kategorier som går via `ovriga`.
+ */
+const EGENART: Record<number, Partial<Record<Category, number>>> = {
+  3: { kost: 0.5, fysisk: 0.3, social: -0.3 },
+  4: { psykisk: -0.4, energi: 0.3 },
+  5: { fysisk: -0.5, kost: 0.4, social: 0.2 },
+  7: { psykisk: 0.3, somn: 0.3 },
+  9: { halsa: -0.4, social: 0.4, energi: 0.3 },
+};
+
+/*
  * Hela bataljonen: skjutvecka för två veckor sedan — tidiga morgnar och långa
  * dagar på skjutfältet. Lagt ovanpå plutonernas historier.
  *
@@ -129,5 +163,9 @@ const SKJUTVECKA: Partial<Record<Category, number>> = { somn: 1.5, energi: 1.1, 
 export function forlopp(plutonNr: number, kategori: Category, dagarSedan: number): number {
   const p = PLUTONER[plutonNr]?.(dagarSedan) ?? { ovriga: 6.5 };
   const gemensamt = dipp(dagarSedan, 14, 1.8, SKJUTVECKA[kategori] ?? 0);
-  return mellan((p[kategori] ?? p.ovriga) - gemensamt, 1, 10);
+  // Profil och egna drag bara där plutonen saknar en egen historia.
+  const egen = p[kategori];
+  const varde =
+    egen ?? p.ovriga + TJANSTEPROFIL[kategori] + (EGENART[plutonNr]?.[kategori] ?? 0);
+  return mellan(varde - gemensamt, 1, 10);
 }
