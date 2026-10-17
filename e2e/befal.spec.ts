@@ -193,6 +193,25 @@ test.describe('plutonchefen', () => {
     expect(text).not.toContain('grön/gul/röd');
   });
 
+  test('rapporten visar underenheterna per kategori', async ({ page }) => {
+    /*
+     * 17 oktober: befälen ska ha gott om användbar information på sina möten.
+     * "3. grupp, sömn" stod bara i jämförelsen på skärmen; rapporten hade
+     * snittet per grupp. Nu samma tabell som jämförelsen.
+     */
+    await page.goto('/rapport');
+    const tabell = page.getByRole('table', { name: 'Underenheter per kategori' });
+    for (const k of ['Fysisk form', 'Hälsa', 'Psykiskt mående', 'Social trivsel', 'Sömn', 'Kost och näring', 'Energinivå']) {
+      await expect(tabell.getByRole('columnheader', { name: k })).toBeVisible();
+    }
+    const celler = await tabell.getByRole('row', { name: /^1\. grupp/ }).getByRole('cell').allInnerTexts();
+    const tal = celler.filter((t) => /\d,\d/.test(t));
+    expect(tal.length, `1. grupp: ${celler.join(' | ')}`).toBe(8); // snitt + sju kategorier
+    // 4. grupp är dold: "I rött" hålls inne och visas inte, som på skärmen.
+    await expect(tabell.getByRole('columnheader', { name: 'I rött' })).toHaveCount(0);
+    await expect(tabell.getByRole('row', { name: /^4\. grupp/ })).toContainText('Underlag saknas');
+  });
+
   test('rapporten har en period: ingen vecka, och svaren i snitt för perioden', async ({ page }) => {
     /*
      * 17 oktober: rutan "Senaste veckan" var alltid sju dagar medan resten

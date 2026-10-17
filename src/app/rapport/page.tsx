@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import PrintButton from '@/app/rapport/PrintButton';
 import Veckosammanfattning from '@/components/leader/Veckosammanfattning';
 import { requireRole } from '@/lib/auth/guard';
+import { CELL_TINT } from '@/components/charts/chart-theme';
 import { CATEGORIES, getStatus, personfordelning, roundScore, statusLabel } from '@/lib/data';
 import { serviceDate, serviceDateDaysAgo } from '@/lib/date';
 import {
@@ -27,6 +28,13 @@ export const dynamic = 'force-dynamic';
  * (VISA_VECKAN i LeaderDashboard.tsx). Rapporten med 7 dagar är veckorapporten.
  */
 const VISA_VECKAN = false;
+
+/**
+ * Hur ett rött värde syns i underenhetstabellen. 'text': fet röd text med ▲,
+ * syns också i en svartvit utskrift. 'tonade': tonade rutor som på skärmen,
+ * tvingade att skrivas ut i färg. TILLFÄLLIG — Richard väljer (17 oktober).
+ */
+const RODA_RUTOR: 'text' | 'tonade' = 'text';
 
 /**
  * Utskriftsvänlig sammanställning.
@@ -72,6 +80,7 @@ export default async function RapportPage({
     : [];
   const roda = cats.ok ? CATEGORIES.filter((c) => getStatus(cats.data[c.key]) === 'red') : [];
   const harForra = lage.ok && CATEGORIES.some((c) => lage.data[c.key].forra !== null);
+  const visaIRott = comparison.children.some((c) => c.overall !== null && c.red !== null);
 
   const from = serviceDateDaysAgo(period - 1);
   const to = serviceDate();
@@ -225,45 +234,68 @@ export default async function RapportPage({
       )}
 
       {/* ── Underenheter ── */}
+      {/*
+        Samma tabell som Jämförelse på skärmen: underenheterna som rader,
+        kategorierna som kolumner (17 oktober). "3. grupp, sömn" stod förut
+        bara på skärmen; rapporten hade snittet per grupp. Befälen ska ha gott
+        om användbar information på sina möten.
+
+        "I rött" bara när den har något att visa, som på skärmen: så länge en
+        underenhet är dold håller databasen inne antalen för alla
+        (SKYDDA_DOLDA_SYSKON i queries/aggregates.ts).
+      */}
       {comparison.children.length > 0 && (
         <section className="mb-7" style={{ breakInside: 'avoid' }}>
           <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-slate-500">
-            Underenheter
+            Underenheter — de senaste {period} dagarna
           </h2>
-          <table className="w-full border-collapse text-left text-sm">
+          <table aria-label="Underenheter per kategori" className="w-full border-collapse text-left text-xs">
             <thead>
               <tr className="border-b border-slate-300 text-etikett uppercase tracking-wide text-slate-500">
-                <th className="py-1.5 font-bold">Enhet</th>
-                <th className="py-1.5 text-right font-bold">Svarande</th>
-                <th className="py-1.5 text-right font-bold">Snitt</th>
-                <th className="py-1.5 text-right font-bold">I rött</th>
+                <th className="py-1.5 pr-2 align-bottom font-bold">Enhet</th>
+                <th className="px-1 py-1.5 text-right align-bottom font-bold">Svarande</th>
+                <th className="px-1 py-1.5 text-right align-bottom font-bold">Snitt</th>
+                {visaIRott && <th className="px-1 py-1.5 text-right align-bottom font-bold">I rött</th>}
+                {CATEGORIES.map((k) => (
+                  <th key={k.key} className="px-1 py-1.5 text-right align-bottom font-bold">
+                    {k.label}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {comparison.children.map((c) => (
                 <tr key={c.id} className="border-b border-slate-100">
-                  <td className="py-1.5 text-slate-700">{c.name}</td>
-                  <td className="py-1.5 text-right tabular-nums text-slate-600">
+                  <td className="whitespace-nowrap py-1.5 pr-2 text-sm text-slate-700">{c.name}</td>
+                  <td className="px-1 py-1.5 text-right tabular-nums text-slate-600">
                     {c.responders}/{c.eligible}
                   </td>
-                  <td className="py-1.5 text-right font-bold tabular-nums text-slate-900">
-                    {c.overall !== null ? formatScore(c.overall) : '—'}
-                  </td>
-                  <td className="py-1.5 text-right tabular-nums text-slate-600">
-                    {c.overall === null
-                      ? 'underlag saknas'
-                      : c.red === null
-                        ? '—'
-                        : `${c.red} av ${c.responders}`}
-                  </td>
+                  {c.overall === null || c.scores === null ? (
+                    <td colSpan={CATEGORIES.length + (visaIRott ? 2 : 1)} className="px-1 py-1.5 text-right text-slate-500">
+                      {c.eligible === 0 ? 'Inga värnpliktiga placerade här ännu' : 'Underlag saknas'}
+                    </td>
+                  ) : (
+                    <>
+                      <Varde v={c.overall} fet />
+                      {visaIRott && (
+                        <td className="whitespace-nowrap px-1 py-1.5 text-right tabular-nums text-slate-600">
+                          {c.red === null ? '—' : `${c.red} av ${c.responders}`}
+                        </td>
+                      )}
+                      {CATEGORIES.map((k) => (
+                        <Varde key={k.key} v={c.scores![k.key]} />
+                      ))}
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>
           </table>
-          {/* "—" i I rött: hålls inne av databasen när en underenhet är dold
-              (SKYDDA_DOLDA_SYSKON i queries/aggregates.ts). Fotnoten nedan
-              säger vad strecken betyder; den egna förklaringen här togs bort
-              17 oktober (Richard). */}
+          <p className="mt-1.5 text-xs text-slate-500">
+            {RODA_RUTOR === 'text'
+              ? '▲ och fet röd text: under 4. Snitten är räknade på alla svar under perioden.'
+              : 'Röd ruta: under 4. Gul: 4–6,9. Grön: från 7.'}
+          </p>
         </section>
       )}
 
@@ -319,5 +351,37 @@ function Box({ label, value, sub }: { label: string; value: string; sub?: string
       <p className="text-xl font-bold tabular-nums text-slate-900">{value}</p>
       {sub && <p className="text-etikett text-slate-500">{sub}</p>}
     </div>
+  );
+}
+
+/** Ett snitt i underenhetstabellen, med status som tecken eller ton. */
+function Varde({ v, fet = false }: { v: number; fet?: boolean }) {
+  const status = getStatus(v);
+  if (RODA_RUTOR === 'tonade') {
+    return (
+      <td className="px-0.5 py-1">
+        <span
+          className={`block rounded px-1 py-1 text-right tabular-nums text-slate-900 ${fet ? 'font-bold' : ''}`}
+          style={{ background: CELL_TINT[status], printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}
+        >
+          {formatScore(v)}
+        </span>
+      </td>
+    );
+  }
+  return (
+    <td
+      className={`whitespace-nowrap px-1 py-1.5 text-right tabular-nums ${
+        status === 'red' ? 'font-bold text-red-700' : fet ? 'font-bold text-slate-900' : 'text-slate-700'
+      }`}
+    >
+      {status === 'red' && (
+        <>
+          <span aria-hidden>▲ </span>
+          <span className="sr-only">röd: </span>
+        </>
+      )}
+      {formatScore(v)}
+    </td>
   );
 }
