@@ -29,16 +29,6 @@ export const dynamic = 'force-dynamic';
  */
 const VISA_VECKAN = false;
 
-/**
- * Hur ett rött värde syns i underenhetstabellen. Båda har varningstriangeln
- * från skärmen, som syns också i en svartvit utskrift. 'text': fet röd text,
- * ingen bakgrund. 'tonade': tonade rutor som på skärmen, tvingade att skrivas
- * ut i färg. TILLFÄLLIG — Richard väljer (17 oktober).
- *
- * Först stod ▲ framför de röda talen. Richard: det ser ut som att värdet gått
- * upp, inte som en varning.
- */
-const RODA_RUTOR: 'text' | 'tonade' = 'text';
 
 /**
  * Utskriftsvänlig sammanställning.
@@ -298,9 +288,7 @@ export default async function RapportPage({
             </tbody>
           </table>
           <p className="mt-1.5 text-xs text-slate-500">
-            {RODA_RUTOR === 'text'
-              ? 'Varningstriangel och fet röd text: under 4.'
-              : 'Varningstriangel och röd ruta: under 4. Gul: 4–6,9. Grön: från 7.'}
+            Varningstriangel och röd ruta: under 4. Gul: 4–6,9. Grön: från 7.
           </p>
         </section>
       )}
@@ -360,30 +348,26 @@ function Box({ label, value, sub }: { label: string; value: string; sub?: string
   );
 }
 
-/** Ett snitt i underenhetstabellen, med status som tecken eller ton. */
+/**
+ * Ett snitt i underenhetstabellen: tonad ruta som på skärmen, och
+ * varningstriangeln framför ett rött värde (Richards val, 17 oktober).
+ *
+ * Färgen tvingas med i utskriften (print-color-adjust), annars skriver
+ * webbläsaren inte ut bakgrunder. Triangeln gör att rött syns också på en
+ * svartvit skrivare. Först stod ▲ framför de röda talen; det såg ut som att
+ * värdet gått upp, inte som en varning.
+ */
 function Varde({ v, fet = false }: { v: number; fet?: boolean }) {
   const status = getStatus(v);
-  if (RODA_RUTOR === 'tonade') {
-    return (
-      <td className="px-0.5 py-1">
-        <span
-          className={`block whitespace-nowrap rounded px-1 py-1 text-right tabular-nums text-slate-900 ${fet ? 'font-bold' : ''}`}
-          style={{ background: CELL_TINT[status], printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}
-        >
-          {status === 'red' && <Varning />}
-          {formatScore(v)}
-        </span>
-      </td>
-    );
-  }
   return (
-    <td
-      className={`whitespace-nowrap px-1 py-1.5 text-right tabular-nums ${
-        status === 'red' ? 'font-bold text-red-700' : fet ? 'font-bold text-slate-900' : 'text-slate-700'
-      }`}
-    >
-      {status === 'red' && <Varning />}
-      {formatScore(v)}
+    <td className="px-0.5 py-1">
+      <span
+        className={`block whitespace-nowrap rounded px-1 py-1 text-right tabular-nums text-slate-900 ${fet ? 'font-bold' : ''}`}
+        style={{ background: CELL_TINT[status], printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}
+      >
+        {status === 'red' && <Varning />}
+        {formatScore(v)}
+      </span>
     </td>
   );
 }

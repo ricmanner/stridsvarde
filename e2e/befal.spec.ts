@@ -207,6 +207,11 @@ test.describe('plutonchefen', () => {
     const celler = await tabell.getByRole('row', { name: /^1\. grupp/ }).getByRole('cell').allInnerTexts();
     const tal = celler.filter((t) => /\d,\d/.test(t));
     expect(tal.length, `1. grupp: ${celler.join(' | ')}`).toBe(8); // snitt + sju kategorier
+    // Variant 2 (Richard, 17 oktober): tonade rutor som på skärmen, och
+    // varningstriangeln på de röda — 1. plutonens grupper har sömn i rött.
+    const rad1 = tabell.getByRole('row', { name: /^1\. grupp/ });
+    await expect(rad1.locator('span[style*="background"]')).toHaveCount(8);
+    await expect(rad1.locator('svg.lucide-triangle-alert, svg.lucide-alert-triangle').first()).toBeVisible();
     // 4. grupp är dold: "I rött" hålls inne och visas inte, som på skärmen.
     await expect(tabell.getByRole('columnheader', { name: 'I rött' })).toHaveCount(0);
     await expect(tabell.getByRole('row', { name: /^4\. grupp/ })).toContainText('Underlag saknas');
