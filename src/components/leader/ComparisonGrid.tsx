@@ -25,6 +25,13 @@ export default function ComparisonGrid({
   childLabel: string;
 }) {
   const ental = childLabel.replace(/er$/, '');
+  /*
+   * Kolumnen "I rött" bara när den har något att visa. Så länge en
+   * underenhet är dold håller databasen inne antalen för alla (se
+   * SKYDDA_DOLDA_SYSKON i queries/aggregates.ts), och kolumnen blev en rad
+   * streck. Gömd då (paket 1, 17 oktober).
+   */
+  const visaIRott = items.some((c) => c.overall !== null && c.red !== null);
 
   return (
     <div>
@@ -49,7 +56,9 @@ export default function ComparisonGrid({
               <th className="whitespace-nowrap px-2 py-2.5 text-center align-bottom font-bold">Svarade</th>
               <th className="px-1.5 py-2.5 text-center align-bottom font-bold">Snitt</th>
               {/* Flyttad hit från rangordningen, som är gömd (16 oktober). */}
-              <th className="whitespace-nowrap px-2 py-2.5 text-center align-bottom font-bold">I rött</th>
+              {visaIRott && (
+                <th className="whitespace-nowrap px-2 py-2.5 text-center align-bottom font-bold">I rött</th>
+              )}
               {CATEGORIES.map((c) => (
                 // Hela namnet, även om det tar två rader — se testet i sprak.test.mjs.
                 // Lika breda, annars blev SÖMN smal och PSYKISKT MÅENDE bred.
@@ -77,7 +86,7 @@ export default function ComparisonGrid({
                   {child.responders}/{child.eligible}
                 </td>
                 {child.scores === null || child.overall === null ? (
-                  <td colSpan={CATEGORIES.length + 2} className="border-t border-slate-100 px-4 py-2 text-center text-xs text-slate-500">
+                  <td colSpan={CATEGORIES.length + (visaIRott ? 2 : 1)} className="border-t border-slate-100 px-4 py-2 text-center text-xs text-slate-500">
                     {/* En nyskapad enhet saknar inte underlag — den saknar folk. */}
                     {child.eligible === 0
                       ? 'Inga värnpliktiga placerade här ännu'
@@ -86,18 +95,18 @@ export default function ComparisonGrid({
                 ) : (
                   <>
                     <Cell value={child.overall} strong />
-                    <td className="whitespace-nowrap border-t border-slate-100 px-2 py-2 text-center text-xs tabular-nums text-slate-500">
-                      {child.red === null ? (
-                        // Undanhållet av databasen när en underenhet är dold,
-                        // se SKYDDA_DOLDA_SYSKON i queries/aggregates.ts.
-                        <span title="Visas inte när underlag saknas för någon av dem">–</span>
-                      ) : (
-                        <>
-                          <span className={child.red > 0 ? 'font-semibold text-red-700' : 'text-slate-700'}>{child.red}</span>
-                          {' '}av {child.responders}
-                        </>
-                      )}
-                    </td>
+                    {visaIRott && (
+                      <td className="whitespace-nowrap border-t border-slate-100 px-2 py-2 text-center text-xs tabular-nums text-slate-500">
+                        {child.red === null ? (
+                          '–'
+                        ) : (
+                          <>
+                            <span className={child.red > 0 ? 'font-semibold text-red-700' : 'text-slate-700'}>{child.red}</span>
+                            {' '}av {child.responders}
+                          </>
+                        )}
+                      </td>
+                    )}
                     {CATEGORIES.map((c) => (
                       <Cell key={c.key} value={child.scores![c.key]} label={c.label} />
                     ))}

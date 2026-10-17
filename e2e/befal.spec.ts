@@ -61,11 +61,15 @@ test.describe('plutonchefen', () => {
     await expect(vecka).not.toContainText('4. grupp');
   });
 
-  test('jämförelsen: ingen rangordning, och "I rött" står i tabellen', async ({ page }) => {
+  test('jämförelsen: ingen rangordning, och ingen kolumn med bara streck', async ({ page }) => {
     await page.getByRole('tab', { name: 'Jämförelse' }).click();
     await expect(page.getByRole('tabpanel')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Rangordning' })).toHaveCount(0);
-    await expect(page.getByRole('columnheader', { name: 'I rött' })).toBeVisible();
+    // 4. grupp är dold, så antalen i rött hålls inne för alla grupper. En
+    // kolumn med bara streck göms (paket 1, 17 oktober). Hos kompanichefen,
+    // där alla plutoner syns, står den kvar — se testet längre ned.
+    await expect(page.getByRole('columnheader', { name: 'Snitt' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'I rött' })).toHaveCount(0);
   });
 
   test('varningen står inte fem gånger: ingen tröskelruta, och inga rader om preliminära gränser', async ({ page }) => {
@@ -140,8 +144,18 @@ test.describe('plutonchefen', () => {
         }
         return toppar.size;
       };
-      const huvud = [...el.querySelectorAll('th')].slice(0, 4);
-      const celler = [...el.querySelectorAll('tbody tr')].flatMap((tr) => [...tr.querySelectorAll('td')].slice(0, 4));
+      // Kolumnerna efter namn, inte plats: "I rött" göms när den bara har
+      // streck, och kategorirubrikerna bryts på två rader med flit.
+      const alla = [...el.querySelectorAll('thead th')];
+      const index = alla
+        .map((th, i) => (['Enhet', 'Svarade', 'Snitt', 'I rött'].includes(th.textContent?.trim() ?? '') ? i : -1))
+        .filter((i) => i >= 0);
+      const huvud = index.map((i) => alla[i]);
+      const celler = [...el.querySelectorAll('tbody tr')].flatMap((tr) => {
+        const tds = [...tr.querySelectorAll('td')];
+        // En rad med "Underlag saknas" spänner över resten; bara namn och svar.
+        return tds.length < alla.length ? tds.slice(0, 2) : index.map((i) => tds[i]);
+      });
       return [...huvud, ...celler].filter((c) => c.textContent?.trim() && rader(c) > 1).map((c) => c.textContent);
     });
     expect(radbrott, 'celler som bryts på två rader').toEqual([]);
@@ -234,6 +248,9 @@ test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {
   await expect(page).toHaveURL(/\/kompani/);
   expect(await synligText(page)).toContain('kompaninivå');
   await ingaEnskildaPersoner(page);
+  // Alla plutoner syns, så antalet i rött per pluton står kvar.
+  await page.getByRole('tab', { name: 'Jämförelse' }).click();
+  await expect(page.getByRole('columnheader', { name: 'I rött' })).toBeVisible();
 
   await page.goto('/bataljon');
   await expect(page).toHaveURL(/ingen-behorighet/);
