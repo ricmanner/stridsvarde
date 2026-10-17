@@ -141,18 +141,18 @@ export default async function RapportPage({
             />
             <Box label="Svarade i snitt" value={procent(svarsprocent)} sub={`av ${overview.eligible} varje dag`} />
             {(() => {
-              if (!overview.soldierStatus.ok) return <Box label="Personer i rött" value="—" sub="underlag saknas" />;
+              if (!overview.soldierStatus.ok) return <Box label="Personer under 4" value="—" sub="underlag saknas" />;
               const f = personfordelning(overview.soldierStatus.data, overview.eligible);
               return (
                 <Box
-                  label="Personer i rött"
+                  label="Personer under 4"
                   value={String(f.red)}
                   sub={`av ${f.total}, på samlat snitt${f.utanSvar > 0 ? ` · ${f.utanSvar} utan svar` : ''}`}
                 />
               );
             })()}
             <Box
-              label="Kategorier i rött"
+              label="Kategorisnitt under 4"
               value={String(roda.length)}
               sub={roda.length === 0 ? `av ${CATEGORIES.length}` : uppräkningSamt(roda.map((c) => c.label.toLowerCase()))}
             />
@@ -177,7 +177,7 @@ export default async function RapportPage({
                 <th className="py-1.5 text-right font-bold">Snitt</th>
                 <th className="py-1.5 text-right font-bold">Status</th>
                 <th className="py-1.5 text-right font-bold">Mot perioden före</th>
-                <th className="py-1.5 text-right font-bold">I rött</th>
+                <th className="py-1.5 text-right font-bold">Personer under 4</th>
               </tr>
             </thead>
             <tbody>
@@ -222,7 +222,7 @@ export default async function RapportPage({
             {harForra
               ? `Mot perioden före: de ${period} dagarna innan. `
               : `Ingen jämförelse: för få svar under de ${period} dagarna före. `}
-            I rött: personer vars eget snitt ligger under 4, av dem som svarat.
+            Personer under 4: vars eget snitt i kategorin ligger under 4, av dem som svarat.
           </p>
         </section>
       )}
@@ -250,7 +250,7 @@ export default async function RapportPage({
                 <th className="px-1 py-1.5 text-right align-bottom font-bold">Svarande</th>
                 {/* Samma ordning som på skärmen: personantalen ihop, snittet
                     direkt före kategorierna (variant A, 17 oktober). */}
-                {visaIRott && <th className="px-1 py-1.5 text-right align-bottom font-bold">I rött</th>}
+                {visaIRott && <th className="px-1 py-1.5 text-right align-bottom font-bold">Personer under 4</th>}
                 <th className="border-r-2 border-slate-200 px-1 py-1.5 text-right align-bottom font-bold">Snitt</th>
                 {/* Lika breda, som i jämförelsen på skärmen: annars blev SÖMN
                     smal och varningstriangeln bröts ovanför talet. */}

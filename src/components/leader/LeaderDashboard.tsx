@@ -192,12 +192,16 @@ export default function LeaderDashboard({
                   saknar svar — se personfordelning().
                 */
                 if (!overview.soldierStatus.ok) {
-                  return <Nyckeltal etikett="Personer i rött" varde="–" under="underlag saknas" />;
+                  return <Nyckeltal etikett="Personer under 4" varde="–" under="underlag saknas" />;
                 }
                 const f = personfordelning(overview.soldierStatus.data, overview.eligible);
                 return (
                   <Nyckeltal
-                    etikett="Personer i rött"
+                    // "Personer under 4" och "Kategorisnitt under 4", inte "… i rött"
+                    // (17 oktober): två av tre externa granskare läste "Personer i
+                    // rött: 2" bredvid "Sömn: 20 av 27 i rött" som en motsägelse,
+                    // och "Kategorier i rött: 0" som att ingen mådde dåligt.
+                    etikett="Personer under 4"
                     varde={<span className={f.red > 0 ? 'text-red-700' : ''}><RaknaUpp varde={f.red} visa={String} animera={raknaUpp} /></span>}
                     // "På samlat snitt": tabellen nedan räknar per kategori, och
                     // utan det ser 3 här och 20 under sömn ut att säga emot varandra.
@@ -208,7 +212,7 @@ export default function LeaderDashboard({
                 );
               })()}
               <Nyckeltal
-                etikett="Kategorier i rött"
+                etikett="Kategorisnitt under 4"
                 varde={
                   cats.ok ? (
                     <span className={`flex items-center gap-1.5 ${alerts.length > 0 ? 'text-red-700' : ''}`}>

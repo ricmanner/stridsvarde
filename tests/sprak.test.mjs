@@ -398,7 +398,7 @@ test('fördelningen under varje kategori säger att den räknar svar', async () 
    * inte blanda in svar igen.
    */
   const tabell = synligText('src/components/leader/Kategoritabell.tsx');
-  assert.match(tabell, /personer vars eget snitt ligger under 4, av dem som svarat/, 'tabellen säger inte vad "I rött" räknar');
+  assert.match(tabell, /Personer under 4: vars eget snitt i kategorin ligger under 4, av dem som svarat/, 'tabellen säger inte vad kolumnen räknar');
   assert.ok(!/gröna svar|statusSvar/.test(synligText('src/components/leader/LeaderDashboard.tsx')), 'svar och personer blandas igen');
 });
 

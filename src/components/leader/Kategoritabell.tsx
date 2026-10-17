@@ -67,7 +67,7 @@ export default function Kategoritabell({
           </span>
         </span>
         <span className="text-right">Mot perioden före</span>
-        <span className="text-right">I rött</span>
+        <span className="text-right">Personer under 4</span>
       </div>
 
       <ul>
@@ -96,12 +96,12 @@ export default function Kategoritabell({
               <Forandring nu={v} forra={l?.forra ?? null} period={period} />
 
               <span className="text-right text-sm tabular-nums text-slate-700">
-                <span className="sr-only">I rött: </span>
+                <span className="sr-only">Personer under 4: </span>
                 {l ? (
                   <>
                     <span className={l.iRott > 0 ? 'font-semibold text-red-700' : ''}>{l.iRott}</span>
                     <span className="text-slate-500"> av {svarande}</span>
-                    <span className="sm:hidden"> i rött</span>
+                    <span className="sm:hidden"> under 4</span>
                   </>
                 ) : (
                   '–'
@@ -123,7 +123,7 @@ export default function Kategoritabell({
         ) : (
           <span>Ingen jämförelse: för få svar under de {period} dagarna före</span>
         )}
-        <span>I rött: personer vars eget snitt ligger under 4, av dem som svarat</span>
+        <span>Personer under 4: vars eget snitt i kategorin ligger under 4, av dem som svarat</span>
       </div>
     </div>
   );

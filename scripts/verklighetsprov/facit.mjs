@@ -125,10 +125,10 @@ export function befalsvy(plan, under, period, dag = DAGAR) {
       ? { varde: `${formatScore(period_.samlat)} ${status(period_.samlat)}`, under: `snitt ${period} dagar` }
       : { varde: '–', under: 'underlag saknas' },
     'Svarat idag': { varde: procent(antal ? Math.round((idag / antal) * 100) : 0), under: `${idag} av ${antal}` },
-    'Personer i rött': ok
+    'Personer under 4': ok
       ? { varde: String(personer.RÖD), under: `av ${total}, på samlat snitt${utan > 0 ? ` · ${utan} utan svar` : ''}` }
       : { varde: '–', under: 'underlag saknas' },
-    'Kategorier i rött': ok
+    'Kategorisnitt under 4': ok
       ? { varde: String(roda.length), under: roda.length ? uppräkningSamt(roda.map((k) => k.label.toLowerCase())) : `av ${KATEGORIER.length}` }
       : { varde: '–', under: 'underlag saknas' },
   };
@@ -212,10 +212,10 @@ export function befalsvy(plan, under, period, dag = DAGAR) {
         varde: procent(antal > 0 ? Math.round((svarIPerioden / (antal * period)) * 100) : 0),
         under: `av ${antal} varje dag`,
       },
-      'Personer i rött': ok
+      'Personer under 4': ok
         ? { varde: String(personer.RÖD), under: `av ${total}, på samlat snitt${utan > 0 ? ` · ${utan} utan svar` : ''}` }
         : { varde: '—', under: 'underlag saknas' },
-      'Kategorier i rött': {
+      'Kategorisnitt under 4': {
         varde: String(roda.length),
         under: roda.length ? uppräkningSamt(roda.map((k) => k.label.toLowerCase())) : `av ${KATEGORIER.length}`,
       },

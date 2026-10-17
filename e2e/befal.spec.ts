@@ -37,7 +37,7 @@ test.describe('plutonchefen', () => {
      * följde inte periodväljaren.
      */
     const dl = page.locator('dl').first();
-    for (const etikett of ['Samlat mående', 'Svarat idag', 'Personer i rött', 'Kategorier i rött']) {
+    for (const etikett of ['Samlat mående', 'Svarat idag', 'Personer under 4', 'Kategorisnitt under 4']) {
       await expect(dl.getByText(etikett, { exact: true })).toBeVisible();
     }
     await expect(page.getByRole('region', { name: 'Senaste veckan' })).toHaveCount(0);
@@ -62,7 +62,7 @@ test.describe('plutonchefen', () => {
     // kolumn med bara streck göms (paket 1, 17 oktober). Hos kompanichefen,
     // där alla plutoner syns, står den kvar — se testet längre ned.
     await expect(page.getByRole('columnheader', { name: 'Snitt' })).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: 'I rött' })).toHaveCount(0);
+    await expect(page.getByRole('columnheader', { name: 'Personer under 4' })).toHaveCount(0);
   });
 
   test('varningen står inte fem gånger: ingen tröskelruta, och inga rader om preliminära gränser', async ({ page }) => {
@@ -73,7 +73,7 @@ test.describe('plutonchefen', () => {
     // skärmen (Richard, 17 oktober).
     await expect(page.getByText(/är preliminära/)).toHaveCount(0);
     // Det röda syns fortfarande: nyckeltalet överst och märkena i tabellen.
-    await expect(page.locator('dl').first().getByText('Kategorier i rött', { exact: true })).toBeVisible();
+    await expect(page.locator('dl').first().getByText('Kategorisnitt under 4', { exact: true })).toBeVisible();
     await expect(page.getByText(/sömn samt kost och näring/i).first()).toBeVisible();
     // Befälsrådet är gömt sedan 17 oktober, se testet längre ned.
     // Den dagliga notisen är gömd. Sök i notisrutan: Befälsrådet säger själv
@@ -140,9 +140,10 @@ test.describe('plutonchefen', () => {
       // streck, och kategorirubrikerna bryts på två rader med flit.
       const alla = [...el.querySelectorAll('thead th')];
       const index = alla
-        .map((th, i) => (['Enhet', 'Svarade', 'Snitt', 'I rött'].includes(th.textContent?.trim() ?? '') ? i : -1))
+        .map((th, i) => (['Enhet', 'Svarade', 'Snitt', 'Personer under 4'].includes(th.textContent?.trim() ?? '') ? i : -1))
         .filter((i) => i >= 0);
-      const huvud = index.map((i) => alla[i]);
+      // Rubriken "Personer under 4" får brytas, som kategorirubrikerna; cellerna inte.
+      const huvud = index.map((i) => alla[i]).filter((th) => th.textContent?.trim() !== 'Personer under 4');
       const celler = [...el.querySelectorAll('tbody tr')].flatMap((tr) => {
         const tds = [...tr.querySelectorAll('td')];
         // En rad med "Underlag saknas" spänner över resten; bara namn och svar.
@@ -185,7 +186,7 @@ test.describe('plutonchefen', () => {
     // grön/gul/röd per grupp när befälsvyn gjordes om (granskningen 16 oktober).
     await page.goto('/rapport');
     const text = await synligText(page);
-    for (const ord of ['personer i rött', 'kategorier i rött', 'mot perioden före', 'sämst först']) {
+    for (const ord of ['personer under 4', 'kategorisnitt under 4', 'mot perioden före', 'sämst först']) {
       expect(text, `rapporten saknar "${ord}"`).toContain(ord);
     }
     expect(text).not.toContain('gröna värnpliktiga');
@@ -212,7 +213,7 @@ test.describe('plutonchefen', () => {
     await expect(rad1.locator('span[style*="background"]')).toHaveCount(8);
     await expect(rad1.locator('svg.lucide-triangle-alert, svg.lucide-alert-triangle').first()).toBeVisible();
     // 4. grupp är dold: "I rött" hålls inne och visas inte, som på skärmen.
-    await expect(tabell.getByRole('columnheader', { name: 'I rött' })).toHaveCount(0);
+    await expect(tabell.getByRole('columnheader', { name: 'Personer under 4' })).toHaveCount(0);
     await expect(tabell.getByRole('row', { name: /^4\. grupp/ })).toContainText('Underlag saknas');
   });
 
@@ -305,7 +306,7 @@ test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {
   await ingaEnskildaPersoner(page);
   // Alla plutoner syns, så antalet i rött per pluton står kvar.
   await page.getByRole('tab', { name: 'Jämförelse' }).click();
-  await expect(page.getByRole('columnheader', { name: 'I rött' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Personer under 4' })).toBeVisible();
 
   // Variant A (Richard, 17 oktober): "I rött" bredvid "Svarade", så att
   // personantalen står ihop och snittet direkt före kategorierna. Snittet
@@ -313,7 +314,7 @@ test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {
   const ordning = async (tabell: import('@playwright/test').Locator) =>
     (await tabell.getByRole('columnheader').allInnerTexts()).slice(0, 5).map((t) => t.replace(/\s+/g, ' ').trim().toLowerCase());
   const jamforelse = page.getByRole('region', { name: /Jämförelse mellan/ }).locator('table');
-  expect(await ordning(jamforelse)).toEqual(['enhet', 'svarade', 'i rött', 'snitt', 'fysisk form']);
+  expect(await ordning(jamforelse)).toEqual(['enhet', 'svarade', 'personer under 4', 'snitt', 'fysisk form']);
   const storlek = (sel: import('@playwright/test').Locator) =>
     sel.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
   const forsta = jamforelse.locator('tbody tr').first().locator('td');
@@ -321,7 +322,7 @@ test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {
 
   await page.goto('/rapport');
   const rapport = page.getByRole('table', { name: 'Underenheter per kategori' });
-  expect(await ordning(rapport)).toEqual(['enhet', 'svarande', 'i rött', 'snitt', 'fysisk form']);
+  expect(await ordning(rapport)).toEqual(['enhet', 'svarande', 'personer under 4', 'snitt', 'fysisk form']);
 
   await page.goto('/bataljon');
   await expect(page).toHaveURL(/ingen-behorighet/);

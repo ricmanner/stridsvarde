@@ -58,7 +58,8 @@ export default function ComparisonGrid({
                   direkt före kategorierna det sammanfattar (variant A, 17
                   oktober). Stod förut mellan snittet och kategorierna. */}
               {visaIRott && (
-                <th className="whitespace-nowrap px-2 py-2.5 text-center align-bottom font-bold">I rött</th>
+                // Får brytas på två rader, som kategorirubrikerna.
+                <th className="w-20 px-2 py-2.5 text-center align-bottom font-bold">Personer under 4</th>
               )}
               <th className="border-r-2 border-slate-200 px-1.5 py-2.5 text-center align-bottom font-bold">Snitt</th>
               {CATEGORIES.map((c) => (
