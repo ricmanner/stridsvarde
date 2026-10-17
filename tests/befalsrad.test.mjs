@@ -41,3 +41,12 @@ test('allt grönt ger ett kort besked', async () => {
   const { generateLeaderAdvice } = await import('../src/lib/advice.ts');
   assert.match(generateLeaderAdvice(lika(7.6)), /^Alla kategorier ligger på grön nivå\./);
 });
+
+test('inget råd säger "enskilda samtal": befälet vet inte vem som ligger i rött', async () => {
+  // Richard, 17 oktober: också rådet för psykiskt mående.
+  const { generateLeaderAdvice } = await import('../src/lib/advice.ts');
+  for (const kategori of Object.keys(lika(5))) {
+    const t = generateLeaderAdvice({ ...lika(5.5), [kategori]: 3 });
+    assert.doesNotMatch(t, /enskilda samtal/, kategori);
+  }
+});

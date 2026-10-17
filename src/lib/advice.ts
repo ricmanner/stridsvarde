@@ -254,7 +254,9 @@ export function generateSoldierAdvice(scores: Record<Category, number>): string 
 const BEFALSATGARD: Record<Category, string> = {
   fysisk: 'se över träningsbelastningen och ge tid för återhämtning',
   halsa: 'håll koll på smitta i gruppen och låt den som är sjuk få en bedömning av sjukvården',
-  psykisk: 'genomför enskilda samtal och påminn om vilket stöd som finns',
+  // Förut "genomför enskilda samtal och …". Borttaget 17 oktober (Richard):
+  // befälet vet inte vem som ligger i rött.
+  psykisk: 'påminn om vilket stöd som finns',
   social: 'se över sammanhållningen i grupperna och hur nya tas emot',
   somn: 'se över dygnsrytmen och möjligheten till ostörd sömn',
   kost: 'säkerställ tid och tillgång till måltider, också under övning',
