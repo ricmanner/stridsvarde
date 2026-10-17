@@ -75,8 +75,7 @@ test.describe('plutonchefen', () => {
     // Det röda syns fortfarande: nyckeltalet överst och märkena i tabellen.
     await expect(page.locator('dl').first().getByText('Kategorier i rött', { exact: true })).toBeVisible();
     await expect(page.getByText(/sömn samt kost och näring/i).first()).toBeVisible();
-    // Befälsrådet står kvar — det enda som säger vad befälet kan göra.
-    await expect(page.getByRole('heading', { name: 'Befälsråd' })).toBeVisible();
+    // Befälsrådet är gömt sedan 17 oktober, se testet längre ned.
     // Den dagliga notisen är gömd. Sök i notisrutan: Befälsrådet säger själv
     // "ligger på kritisk nivå", och det ska stå kvar.
     await expect(page.locator('[data-notiser]', { hasText: 'kritisk nivå' })).toHaveCount(0);
@@ -290,9 +289,12 @@ test.describe('plutonchefen', () => {
     }
   });
 
-  test('befälsrådet är rubrik och text, utan etikett', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Befälsråd' })).toBeVisible();
+  test('befälsrådet är gömt', async ({ page }) => {
+    // Richard, 17 oktober: en AI eller en text ska inte berätta för ett befäl
+    // vad han eller hon ska göra. Gömt tills vidare (VISA_BEFALSRAD).
+    await expect(page.getByRole('heading', { name: 'Befälsråd' })).toHaveCount(0);
     await expect(page.getByText('Baserat på enhetens egna värden')).toHaveCount(0);
+    await expect(page.getByText(/ligger på röd nivå\./)).toHaveCount(0);
   });
 });
 

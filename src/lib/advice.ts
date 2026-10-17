@@ -264,6 +264,13 @@ const BEFALSATGARD: Record<Category, string> = {
 };
 
 /**
+ * Befälsrådet under kategorierna i befälsvyn. Gömt den 17 oktober (Richard):
+ * en AI eller en text ska inte berätta för ett befäl vad han eller hon ska
+ * göra. Tills vidare; `true` tar fram det igen. Rapporten har aldrig haft det.
+ */
+export const VISA_BEFALSRAD = false;
+
+/**
  * Nämner de röda kategorierna vid namn, med en åtgärd för var och en. Det
  * hade tre fasta texter och sa "kritisk nivå i 2 kategorier" utan att säga
  * vilka (genomgången 16 oktober). Utan rött nämns den lägsta kategorin.

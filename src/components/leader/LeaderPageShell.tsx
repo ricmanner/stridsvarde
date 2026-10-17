@@ -1,7 +1,7 @@
 import AppHeader from '@/components/AppHeader';
 import NotificationBanner from '@/components/NotificationBanner';
 import LeaderDashboard from '@/components/leader/LeaderDashboard';
-import { generateLeaderAdvice } from '@/lib/advice';
+import { generateLeaderAdvice, VISA_BEFALSRAD } from '@/lib/advice';
 import { requireRole } from '@/lib/auth/guard';
 import {
   getChildComparison,
@@ -52,8 +52,9 @@ export default async function LeaderPageShell({
     getVeckounderlag(session.unitId),
   ]);
 
-  // Rådet bygger på aggregatet — finns inget underlag ges inget råd.
-  const advice = overview.categories.ok
+  // Rådet bygger på aggregatet — finns inget underlag ges inget råd. Gömt
+  // tills vidare, se VISA_BEFALSRAD; utan råd ritar vyn ingen ruta.
+  const advice = VISA_BEFALSRAD && overview.categories.ok
     ? generateLeaderAdvice(overview.categories.data)
     : null;
 
