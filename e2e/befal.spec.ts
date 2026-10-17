@@ -182,8 +182,10 @@ test.describe('plutonchefen', () => {
     // den stod mellan tabellen och jämförelsen med hela enheten.
     await expect(page.getByText(/I rött visas inte per grupp/)).toHaveCount(0);
 
+    // Inte heller i rapporten (Richard, 17 oktober). Strecken står kvar.
     await page.goto('/rapport');
-    await expect(page.getByText(/I rött visas inte per grupp/)).toBeVisible();
+    await expect(page.getByText(/I rött visas inte per grupp/)).toHaveCount(0);
+    await expect(page.getByText(/är preliminära/)).toHaveCount(0);
   });
 
   test('rapporten säger samma sak som skärmen', async ({ page }) => {

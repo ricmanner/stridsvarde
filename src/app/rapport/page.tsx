@@ -55,9 +55,6 @@ export default async function RapportPage({
   const roda = cats.ok ? CATEGORIES.filter((c) => getStatus(cats.data[c.key]) === 'red') : [];
   const harForra = lage.ok && CATEGORIES.some((c) => lage.data[c.key].forra !== null);
 
-  // Underenheternas sort, "grupp" för en pluton — ur datan, inte ur rollen.
-  const childKind = comparison.children.find((c) => !c.isDirect)?.kind ?? 'underenhet';
-
   const from = serviceDateDaysAgo(period - 1);
   const to = serviceDate();
 
@@ -244,14 +241,10 @@ export default async function RapportPage({
               ))}
             </tbody>
           </table>
-          {/* Hålls inne av databasen när en underenhet är dold, se
-              SKYDDA_DOLDA_SYSKON i queries/aggregates.ts. */}
-          {comparison.children.some((c) => c.overall !== null && c.red === null) && (
-            <p className="mt-1.5 text-xs text-slate-500">
-              I rött visas inte per {childKind} när underlag saknas för någon av dem. Annars går
-              antalet där att räkna fram ur totalen.
-            </p>
-          )}
+          {/* "—" i I rött: hålls inne av databasen när en underenhet är dold
+              (SKYDDA_DOLDA_SYSKON i queries/aggregates.ts). Fotnoten nedan
+              säger vad strecken betyder; den egna förklaringen här togs bort
+              17 oktober (Richard). */}
         </section>
       )}
 
@@ -290,13 +283,8 @@ export default async function RapportPage({
           redovisas aldrig. Värden markerade &quot;—&quot; har undanhållits för att
           underlaget varit för litet för att kunna redovisas utan att röja enskilda.
         </p>
-        {/*
-          En utskrift lämnar appen och vandrar vidare, utan sammanhang. Just här
-          måste det stå att indelningen i grön, gul och röd inte är fastställd.
-        */}
-        <p className="mt-1">
-          Gränserna för grönt, gult och rött är preliminära.
-        </p>
+        {/* Här stod "Gränserna för grönt, gult och rött är preliminära."
+            Borttagen 17 oktober (Richard), som på skärmen. */}
         <p className="mt-1">
           Enhetstillhörighet visas enligt nuvarande organisation. Utskriven {to}.
         </p>

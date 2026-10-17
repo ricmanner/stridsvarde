@@ -477,15 +477,17 @@ test('den som aldrig loggat in får inte höra att sessionen gått ut', async ()
  * Befälsvyn och rapporten sa att gränserna och råden "ska fastställas
  * tillsammans med Försvarshälsan". Det är inte bestämt vem som fastställer
  * dem, och en utskrift vandrar vidare utan sammanhang (Richard, 16 oktober).
- * I rapporten står kvar att gränserna är preliminära. På skärmen togs de
- * raderna bort helt den 17 oktober (Richard).
+ * Raderna om att gränserna är preliminära togs sedan bort helt, på skärmen
+ * och i rapporten, den 17 oktober (Richard).
  */
 test('befälsvyn och rapporten lovar inte att Försvarshälsan fastställer något', () => {
   for (const fil of ['src/components/leader/LeaderDashboard.tsx', 'src/app/rapport/page.tsx']) {
     const text = synligText(fil).replace(/\s+/g, ' ');
     assert.ok(!/Försvarshälsan/.test(text), `${fil} nämner Försvarshälsan i texten`);
   }
-  assert.match(synligText('src/app/rapport/page.tsx'), /preliminära/, 'rapporten ska säga att gränserna är preliminära');
+  for (const fil of ['src/components/leader/LeaderDashboard.tsx', 'src/app/rapport/page.tsx']) {
+    assert.ok(!/är preliminära/.test(synligText(fil)), `${fil} säger att något är preliminärt`);
+  }
 });
 
 /*
