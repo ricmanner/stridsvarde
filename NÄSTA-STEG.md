@@ -240,6 +240,31 @@ Inställningar: `PROV_TILL_DAG=n` stannar efter dag n utan befälens kontroll,
 **Inte gjort ur planen:** den korta bekräftelsen på den driftsatta demon
 med ett eget litet kompani. Den kräver "Återställ demon" efteråt.
 
+### Fynd från tre externa granskare (17 oktober, inte pushat)
+
+ChatGPT, Gemini och Claude utan förhistorik granskade bilder av alla vyer
+(`.playwright-mcp/granskning-extern/`, svaren i `svar/`). Richard valde
+paket A utom punkt 3 (demomärkning i utskriften) och paket B utom punkt 9
+(snittet som döljer det röda — ska diskuteras). Byggt, en commit per steg:
+
+| Commit | Vad | Ångra |
+|---|---|---|
+| `a5b9ccb` | "Personer under 4" och "Kategorisnitt under 4" i stället för "… i rött", överallt | `git revert --no-edit a5b9ccb` |
+| `3f001a7` | Svarsandel i procent per underenhet i stället för "Svarade 8/8" | `git revert --no-edit 3f001a7` |
+| `4d6f72a` | Samlat mående visar förändringen: "snitt 7 dagar · ↑ 0,4 mot de 7 före" | `git revert --no-edit 4d6f72a` |
+| `75e7b65` | Värnpliktiga: ingen tidsuppgift, "Svarat"/"Dina svar" i stället för närvaro, inget omdöme, neutral stapel | `git revert --no-edit 75e7b65` |
+| `5eaf86e` | Jämförelsen i telefon: namnkolumnen står kvar, tonad kant visar att det finns mer | `git revert --no-edit 5eaf86e` |
+| `c80a098` | Översikten säger samma sak som siffrorna: "Ett av dina värden är lågt", "sömn (3)" | `git revert --no-edit c80a098` |
+| `d5d5f7b` | Kvitto efter inskickningen: marinblå bock som ritas fram, "Rapporten är mottagen" med klockslag | `git revert --no-edit d5d5f7b`; bara rörelsen: ta bort blocket "Kvittot" i `globals.css` |
+
+Före och efter: `.playwright-mcp/granskning-fore-efter.html` (lokalt).
+
+**Kvar ur granskningen, att diskutera:** punkt 9 (snittet döljer det röda),
+paket C (den dolda gruppens snitt går att uppskatta inom 0,1–0,6 —
+prövat), frågor till fysioterapeuterna (rådens ton, "1 — Kritiskt",
+Fysisk form/Friskhet, färg under svar), och tidigare beslut som alla tre
+ifrågasätter (reglagets grå knapp, sifferknappar, stjärndiagrammet).
+
 ### Nästa uppgift
 
 1. **Efter mötet den 19 oktober:** skriv ner vad cheferna sa, med vem som
