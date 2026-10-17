@@ -154,6 +154,21 @@ test.describe('plutonchefen', () => {
     expect(radbrott, 'celler som bryts på två rader').toEqual([]);
   });
 
+  test('jämförelsen i telefonen: namnet står kvar när man rullar, och kanten visar att det finns mer', async ({ page }) => {
+    // Alla tre externa granskare (17 oktober): i telefon syntes inte att
+    // tabellen gick att rulla, och gruppnamnet försvann åt vänster.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole('tab', { name: 'Jämförelse' }).click();
+    const region = page.getByRole('region', { name: /Jämförelse mellan/ });
+    const namn = region.getByRole('cell', { name: '1. grupp', exact: true });
+    const fore = (await namn.boundingBox())!.x;
+    await expect(page.locator('[data-mer-at-hoger]')).toBeVisible();
+    await region.evaluate((el) => el.scrollTo({ left: el.scrollWidth }));
+    await page.waitForTimeout(200);
+    expect(Math.round((await namn.boundingBox())!.x), 'namnkolumnen följde inte med').toBe(Math.round(fore));
+    await expect(page.locator('[data-mer-at-hoger]'), 'kanten står kvar fast man rullat till slutet').toHaveCount(0);
+  });
+
   test('21 dagar utan en period före säger det, i stället för att lova en ring', async ({ page }) => {
     // Demon har tre veckors historik, så de 21 dagarna före är tomma.
     await page.goto('/pluton?period=21');

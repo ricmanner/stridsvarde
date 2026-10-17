@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 import { CELL_TINT } from '@/components/charts/chart-theme';
@@ -33,6 +36,23 @@ export default function ComparisonGrid({
    */
   const visaIRott = items.some((c) => c.overall !== null && c.red !== null);
 
+  /*
+   * Finns det mer till höger? I telefonen syntes inte att tabellen gick att
+   * rulla (alla tre externa granskare, 17 oktober). En tonad kant till höger
+   * säger det, och försvinner när man rullat till slutet.
+   */
+  const yta = useRef<HTMLDivElement>(null);
+  const [merAtHoger, setMerAtHoger] = useState(false);
+  const mat = () => {
+    const el = yta.current;
+    if (el) setMerAtHoger(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  };
+  useEffect(() => {
+    mat();
+    window.addEventListener('resize', mat);
+    return () => window.removeEventListener('resize', mat);
+  }, []);
+
   return (
     <div>
       {/*
@@ -40,7 +60,10 @@ export default function ComparisonGrid({
         telefonskärm och rullar vågrätt; utan tabIndex går det bara att rulla
         med finger eller mus (WCAG 2.1.1, uppmätt av axe i 390 px).
       */}
+      <div className="relative">
       <div
+        ref={yta}
+        onScroll={mat}
         tabIndex={0}
         role="region"
         aria-label={`Jämförelse mellan ${childLabel}`}
@@ -52,7 +75,8 @@ export default function ComparisonGrid({
               rad dubbelt så hög. Tabellen rullar redan i sidled. */}
           <thead>
             <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
-              <th className="whitespace-nowrap px-4 py-2.5 align-bottom font-bold">Enhet</th>
+              {/* Namnkolumnen står kvar när man rullar i sidled (sticky). */}
+              <th className="sticky left-0 z-10 whitespace-nowrap bg-white px-4 py-2.5 align-bottom font-bold shadow-[1px_0_0_#f1f5f9]">Enhet</th>
               {/* Svarsandel, inte "8/8": det räknade personer som svarat minst en
                   gång och lästes som full svarsfrekvens (17 oktober). */}
               <th className="whitespace-nowrap px-2 py-2.5 text-center align-bottom font-bold">Svarsandel</th>
@@ -76,7 +100,7 @@ export default function ComparisonGrid({
           <tbody>
             {items.map((child) => (
               <tr key={child.id}>
-                <td className="whitespace-nowrap border-t border-slate-100 px-4 py-2">
+                <td className="sticky left-0 z-10 whitespace-nowrap border-t border-slate-100 bg-white px-4 py-2 shadow-[1px_0_0_#f1f5f9]">
                   <span className="text-sm font-medium text-slate-800">{child.name}</span>
                   {child.isDirect && (
                     <span
@@ -121,6 +145,14 @@ export default function ComparisonGrid({
             ))}
           </tbody>
         </table>
+      </div>
+      {merAtHoger && (
+        <div
+          data-mer-at-hoger
+          aria-hidden
+          className="pointer-events-none absolute inset-y-px right-px w-8 rounded-r-md bg-gradient-to-l from-white to-transparent"
+        />
+      )}
       </div>
       <div className="mt-2 px-1">
         <StatusBandLegend />
