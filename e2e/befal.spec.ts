@@ -234,6 +234,21 @@ test.describe('plutonchefen', () => {
     }
   });
 
+  test('samlat mående säger åt vilket håll det går', async ({ page }) => {
+    /*
+     * 17 oktober: ChatGPT och Claude satte det högst — "4,8" säger inte om det
+     * blir bättre eller sämre. Förändringen mot perioden före står under
+     * talet, på skärmen och i rapporten. Med 21 dagar finns ingen period före
+     * i demon, och då står bara perioden.
+     */
+    const ruta = page.locator('dl').first().locator('div', { has: page.getByText('Samlat mående', { exact: true }) }).last();
+    await expect(ruta.locator('dd').nth(1)).toHaveText(/^snitt 7 dagar · ([↑↓] |[+−±])\d,\d mot de 7 före$/);
+    await page.goto('/pluton?period=21');
+    await expect(page.locator('dl').first().locator('div', { has: page.getByText('Samlat mående', { exact: true }) }).last().locator('dd').nth(1)).toHaveText('snitt 21 dagar');
+    await page.goto('/rapport?period=7');
+    await expect(page.getByText(/· snitt 7 dagar · ([↑↓] |[+−±])\d,\d mot de 7 före/)).toBeVisible();
+  });
+
   test('sidan har en synlig titel med enhetens namn', async ({ page }) => {
     // Paket 1, 17 oktober: förut stod enheten bara litet i sidhuvudet.
     await expect(page.getByRole('heading', { level: 1, name: '1. pluton' })).toBeVisible();

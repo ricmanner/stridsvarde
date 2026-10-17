@@ -25,7 +25,7 @@ import {
 import type { ChildComparison, Kategorilage, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
 import { ALLOWED_PERIODS, type Guarded, type Period } from '@/lib/privacy';
 import { ordformer, type ChildKind } from '@/lib/unit-names';
-import { antal, formatScore, procent, uppräkningSamt } from '@/lib/format';
+import { antal, formatScore, forandring, procent, uppräkningSamt } from '@/lib/format';
 
 /** Rangordningen under Jämförelse. Gömd den 16 oktober, se där. */
 const VISA_RANGORDNING = false;
@@ -91,6 +91,19 @@ export default function LeaderDashboard({
   const alerts = cats.ok
     ? CATEGORIES.filter(c => getStatus(cats.data[c.key]) === 'red')
     : [];
+
+  /*
+   * Samlat mående perioden före: snittet av kategoriernas snitt, som för
+   * perioden nu. Bara när alla kategorier har ett värde då — databasen
+   * skickar null när för få svarade (getKategorilage). Under talet står
+   * förändringen (17 oktober): "4,8" sa inte om det blev bättre eller sämre,
+   * det ChatGPT och Claude satte högst.
+   */
+  const forraSamlat =
+    lage.ok && CATEGORIES.every((c) => lage.data[c.key].forra !== null)
+      ? CATEGORIES.reduce((s, c) => s + (lage.data[c.key].forra as number), 0) / CATEGORIES.length
+      : null;
+  const samladForandring = overall !== null && forraSamlat !== null ? forandring(overall, forraSamlat) : null;
 
   const visibleChildren = comparison.children.filter(c => c.scores !== null);
 
@@ -179,7 +192,32 @@ export default function LeaderDashboard({
                     '–'
                   )
                 }
-                under={overall !== null ? `snitt ${period} dagar` : cats.ok ? '' : 'underlag saknas'}
+                under={
+              overall === null ? (
+                cats.ok ? '' : 'underlag saknas'
+              ) : (
+                <>
+                  snitt {period} dagar
+                  {samladForandring && (
+                    <>
+                      {' · '}
+                      <span
+                        className={
+                          samladForandring.riktning === 'ned'
+                            ? 'font-semibold text-red-700'
+                            : samladForandring.riktning === 'upp'
+                              ? 'font-semibold text-emerald-700'
+                              : ''
+                        }
+                      >
+                        {samladForandring.text}
+                      </span>{' '}
+                      mot de {period} före
+                    </>
+                  )}
+                </>
+              )
+            }
               />
               <Nyckeltal
                 etikett="Svarat idag"
@@ -468,7 +506,7 @@ export default function LeaderDashboard({
 
 
 /** Ett nyckeltal i rubrikraden. Ramas in av rutnätet, som veckans fält. */
-function Nyckeltal({ etikett, varde, under }: { etikett: string; varde: React.ReactNode; under: string }) {
+function Nyckeltal({ etikett, varde, under }: { etikett: string; varde: React.ReactNode; under: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1 border-slate-100 px-4 py-3 sm:px-5 [&:nth-child(odd)]:border-r [&:nth-child(-n+2)]:border-b lg:[&:nth-child(-n+2)]:border-b-0 lg:[&:not(:last-child)]:border-r">
       <dt className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">{etikett}</dt>

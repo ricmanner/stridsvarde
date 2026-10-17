@@ -74,6 +74,11 @@ export default async function RapportPage({
     : [];
   const roda = cats.ok ? CATEGORIES.filter((c) => getStatus(cats.data[c.key]) === 'red') : [];
   const harForra = lage.ok && CATEGORIES.some((c) => lage.data[c.key].forra !== null);
+  // Samlat mående perioden före, som på skärmen (LeaderDashboard).
+  const forraSamlat =
+    lage.ok && CATEGORIES.every((c) => lage.data[c.key].forra !== null)
+      ? CATEGORIES.reduce((s, c) => s + (lage.data[c.key].forra as number), 0) / CATEGORIES.length
+      : null;
   const visaIRott = comparison.children.some((c) => c.overall !== null && c.red !== null);
 
   const from = serviceDateDaysAgo(period - 1);
@@ -137,7 +142,9 @@ export default async function RapportPage({
             <Box
               label="Samlat mående"
               value={formatScore(overall)}
-              sub={`${statusLabel(getStatus(overall))} · snitt ${period} dagar`}
+              sub={`${statusLabel(getStatus(overall))} · snitt ${period} dagar${
+                forraSamlat !== null ? ` · ${forandring(overall, forraSamlat).text} mot de ${period} före` : ''
+              }`}
             />
             <Box label="Svarade i snitt" value={procent(svarsprocent)} sub={`av ${overview.eligible} varje dag`} />
             {(() => {

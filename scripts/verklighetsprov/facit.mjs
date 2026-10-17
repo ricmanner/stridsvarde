@@ -118,11 +118,12 @@ export function befalsvy(plan, under, period, dag = DAGAR) {
 
   const forraRader = sammanstall(rapporter(plan, med, fran - period, fran - 1));
   const forraOk = forraRader.svarande >= K && antal >= K;
+  const forraText = ok && forraOk ? ` · ${forandring(period_.samlat, forraRader.samlat)} mot de ${period} före` : '';
 
   // ── Nyckeltal ──
   const nyckeltal = {
     'Samlat mående': ok
-      ? { varde: `${formatScore(period_.samlat)} ${status(period_.samlat)}`, under: `snitt ${period} dagar` }
+      ? { varde: `${formatScore(period_.samlat)} ${status(period_.samlat)}`, under: `snitt ${period} dagar${forraText}` }
       : { varde: '–', under: 'underlag saknas' },
     'Svarat idag': { varde: procent(antal ? Math.round((idag / antal) * 100) : 0), under: `${idag} av ${antal}` },
     'Personer under 4': ok
@@ -207,7 +208,7 @@ export function befalsvy(plan, under, period, dag = DAGAR) {
   const svarIPerioden = dagar.reduce((s, d) => s + d.svarande, 0);
   const rapport = {
     rutor: {
-      'Samlat mående': ok ? { varde: formatScore(period_.samlat), under: `${status(period_.samlat)} · snitt ${period} dagar` } : null,
+      'Samlat mående': ok ? { varde: formatScore(period_.samlat), under: `${status(period_.samlat)} · snitt ${period} dagar${forraText}` } : null,
       'Svarade i snitt': {
         varde: procent(antal > 0 ? Math.round((svarIPerioden / (antal * period)) * 100) : 0),
         under: `av ${antal} varje dag`,
