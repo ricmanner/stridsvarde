@@ -27,7 +27,8 @@ appen på riktigt snart. Mötesstöd med troliga frågor och ärliga svar:
 
 **Demon:** Richard sa den 15 oktober att den får ändras ("ingen använder den
 nu"). Fråga ändå före "Återställ demon", som loggar ut alla. Senast
-återställd den 16 oktober, efter att frågan om hälsa slogs på.
+återställd den 17 oktober, för de nya plutonprofilerna. Rundturen gick
+igenom efteråt.
 
 ### Klart den 15–16 oktober
 
@@ -138,7 +139,8 @@ fråga per flik. En halv till en hel dag; skissas först.
 0c91006 879e323 5fe765b 89182c5 ce6cf7f 82026df`. Prövat på en egen gren:
 `src`, testerna och e2e identiska med `e0bd972`, 256 tester gröna.
 
-**Platta plutoner i demon (17 oktober, `ef7beae`, inte pushat):** fyra av
+**Platta plutoner i demon (17 oktober, `ef7beae`, pushat, och demon
+återställd samma dag på Richards begäran):** fyra av
 nio plutoner hade samma snitt i alla kategorier. Nu en gemensam
 tjänsteprofil (sömn −0,7, energi −0,4, kost −0,2, psykiskt +0,1, fysisk
 +0,2, hälsa +0,4, social +0,5) på kategorier utan egen historia, och små
