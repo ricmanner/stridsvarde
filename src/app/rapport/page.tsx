@@ -247,7 +247,7 @@ export default async function RapportPage({
             <thead>
               <tr className="border-b border-slate-300 text-etikett uppercase tracking-wide text-slate-500">
                 <th className="py-1.5 pr-2 align-bottom font-bold">Enhet</th>
-                <th className="px-1 py-1.5 text-right align-bottom font-bold">Svarande</th>
+                <th className="px-1 py-1.5 text-right align-bottom font-bold">Svarsandel</th>
                 {/* Samma ordning som på skärmen: personantalen ihop, snittet
                     direkt före kategorierna (variant A, 17 oktober). */}
                 {visaIRott && <th className="px-1 py-1.5 text-right align-bottom font-bold">Personer under 4</th>}
@@ -266,7 +266,7 @@ export default async function RapportPage({
                 <tr key={c.id} className="border-b border-slate-100">
                   <td className="whitespace-nowrap py-1.5 pr-2 text-sm text-slate-700">{c.name}</td>
                   <td className="px-1 py-1.5 text-right tabular-nums text-slate-600">
-                    {c.responders}/{c.eligible}
+                    {c.svarsandel === null ? '—' : procent(c.svarsandel)}
                   </td>
                   {c.overall === null || c.scores === null ? (
                     <td colSpan={CATEGORIES.length + (visaIRott ? 2 : 1)} className="px-1 py-1.5 text-right text-slate-500">

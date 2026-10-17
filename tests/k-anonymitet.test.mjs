@@ -293,3 +293,24 @@ test('när alla underenheter syns står antalet i rött kvar', async () => {
   assert.equal(children.find((c) => c.name === 'Grupp A').green, 6);
   assert.equal(children.find((c) => c.name === 'Grupp B').red, 4);
 });
+
+/*
+ * Svarsandelen per underenhet: svar under perioden delat med personer gånger
+ * dagar. Ersätter "Svarade 8/8" i jämförelsen (17 oktober), som räknade
+ * personer som svarat minst en gång och lästes som full svarsfrekvens av
+ * alla tre externa granskarna.
+ */
+test('jämförelsen visar svarsandel per underenhet, räknad på svar per dag', async () => {
+  const { client } = await database();
+  const org = await buildOrg(client);
+  await checkIn(client, org.soldater['Grupp A'].slice(0, 6), today, 8);
+  const igar = new Date(Date.now() - 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Europe/Stockholm' });
+  await checkIn(client, org.soldater['Grupp A'].slice(0, 4), igar, 8);
+
+  const { getChildComparison } = await import('../src/lib/db/queries/aggregates.ts');
+  const { children } = await getChildComparison(org.pluton, 7);
+  const a = children.find((c) => c.name === 'Grupp A');
+  // 10 svar av 8 personer × 7 dagar = 17,9 % → 18 %.
+  assert.equal(a.svarsandel, 18);
+  assert.equal(children.find((c) => c.name === 'Grupp B').svarsandel, 0);
+});

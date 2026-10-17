@@ -305,6 +305,11 @@ export const getUnitOverview = cache(
  */
 export const SKYDDA_DOLDA_SYSKON = true;
 
+/** Svar delat med personer × dagar, i hela procent; null utan personer. */
+function svarsandel(svar: number, personer: number, dagar: number): number | null {
+  return personer > 0 ? Math.round((svar / (personer * dagar)) * 100) : null;
+}
+
 /** Id för raden med personer som tillhör enheten direkt, utan underenhet. */
 export const DIRECT_MEMBERS_ID = -1;
 export const DIRECT_MEMBERS_NAME = 'Direkt i enheten';
@@ -317,6 +322,12 @@ export interface ChildUnitSummary {
   isDirect?: boolean;
   eligible: number;
   responders: number;
+  /**
+   * Svar under perioden delat med personer gånger dagar, i hela procent.
+   * null när underenheten saknar personer. Ett antal, inte hälsodata — visas
+   * också för en dold underenhet.
+   */
+  svarsandel: number | null;
   overall: number | null;
   scores: Record<Category, number> | null;
   status: Status | null;
@@ -375,6 +386,7 @@ export const getChildComparison = cache(
       agg AS (
         SELECT m.child_id,
                COUNT(DISTINCT ci.user_id) AS responders,
+               COUNT(*) AS svar,
                ${sql.raw(avgCols)},
                AVG(${sql.raw(OVERALL_EXPR)}) AS overall
           FROM ${sql.raw(KOMPLETTA)} ci JOIN member m ON m.user_id = ci.user_id
@@ -404,6 +416,7 @@ export const getChildComparison = cache(
       SELECT un.id, un.name, un.kind,
              (SELECT COUNT(*) FROM member mm WHERE mm.child_id = un.id) AS eligible,
              COALESCE(agg.responders, 0) AS responders,
+             COALESCE(agg.svar, 0) AS svar,
              CASE WHEN COALESCE(agg.responders,0) >= ${k} THEN agg.overall END AS overall,
              ${sql.raw(
                CAT_KEYS.map(
@@ -429,6 +442,7 @@ export const getChildComparison = cache(
         kind: String(r.kind),
         eligible: Number(r.eligible),
         responders: Number(r.responders),
+        svarsandel: svarsandel(Number(r.svar), Number(r.eligible), days),
         overall,
         status: overall === null ? null : getStatus(overall),
         scores:
@@ -492,7 +506,7 @@ export const getChildComparison = cache(
     // Samma regel för raden med personer direkt i enheten: dess färgantal
     // går lika gärna att räkna fram som en grupps.
     const syskonDolda = SKYDDA_DOLDA_SYSKON && Number(summaryRows[0]?.dolda ?? 0) > 0;
-    const direct = await directMembersSummary(unitId, from, to, k, !syskonDolda);
+    const direct = await directMembersSummary(unitId, from, to, k, !syskonDolda, days);
 
     if (direct) {
       children.push(direct.summary);
@@ -520,6 +534,7 @@ async function directMembersSummary(
   k: number,
   /** Falskt när en underenhet är dold, se SKYDDA_DOLDA_SYSKON. */
   fargerVisas: boolean,
+  days: number,
 ): Promise<{ summary: ChildUnitSummary; byDate: Map<string, number | null> } | null> {
   const avgCols = CAT_KEYS.map((key) => `AVG(ci.${key}) AS ${key}`).join(',\n             ');
 
@@ -539,6 +554,7 @@ async function directMembersSummary(
     )
     SELECT (SELECT COUNT(*) FROM member) AS eligible,
            COUNT(DISTINCT ci.user_id) AS responders,
+           COUNT(ci.user_id) AS svar,
            ${sql.raw(avgCols)},
            AVG(${sql.raw(OVERALL_EXPR)}) AS overall,
            -- Färgantalen bara när raden själv syns och inget syskon är dolt.
@@ -565,6 +581,7 @@ async function directMembersSummary(
     isDirect: true,
     eligible,
     responders,
+    svarsandel: svarsandel(Number(agg?.svar ?? 0), eligible, days),
     overall: visible && agg.overall !== null ? Number(agg.overall) : null,
     scores: visible && agg.overall !== null
       ? (Object.fromEntries(CAT_KEYS.map((c) => [c, Number(agg[c])])) as Record<Category, number>)

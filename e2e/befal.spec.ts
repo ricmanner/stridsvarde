@@ -140,7 +140,7 @@ test.describe('plutonchefen', () => {
       // streck, och kategorirubrikerna bryts på två rader med flit.
       const alla = [...el.querySelectorAll('thead th')];
       const index = alla
-        .map((th, i) => (['Enhet', 'Svarade', 'Snitt', 'Personer under 4'].includes(th.textContent?.trim() ?? '') ? i : -1))
+        .map((th, i) => (['Enhet', 'Svarsandel', 'Snitt', 'Personer under 4'].includes(th.textContent?.trim() ?? '') ? i : -1))
         .filter((i) => i >= 0);
       // Rubriken "Personer under 4" får brytas, som kategorirubrikerna; cellerna inte.
       const huvud = index.map((i) => alla[i]).filter((th) => th.textContent?.trim() !== 'Personer under 4');
@@ -314,7 +314,7 @@ test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {
   const ordning = async (tabell: import('@playwright/test').Locator) =>
     (await tabell.getByRole('columnheader').allInnerTexts()).slice(0, 5).map((t) => t.replace(/\s+/g, ' ').trim().toLowerCase());
   const jamforelse = page.getByRole('region', { name: /Jämförelse mellan/ }).locator('table');
-  expect(await ordning(jamforelse)).toEqual(['enhet', 'svarade', 'personer under 4', 'snitt', 'fysisk form']);
+  expect(await ordning(jamforelse)).toEqual(['enhet', 'svarsandel', 'personer under 4', 'snitt', 'fysisk form']);
   const storlek = (sel: import('@playwright/test').Locator) =>
     sel.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
   const forsta = jamforelse.locator('tbody tr').first().locator('td');
@@ -322,7 +322,7 @@ test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {
 
   await page.goto('/rapport');
   const rapport = page.getByRole('table', { name: 'Underenheter per kategori' });
-  expect(await ordning(rapport)).toEqual(['enhet', 'svarande', 'personer under 4', 'snitt', 'fysisk form']);
+  expect(await ordning(rapport)).toEqual(['enhet', 'svarsandel', 'personer under 4', 'snitt', 'fysisk form']);
 
   await page.goto('/bataljon');
   await expect(page).toHaveURL(/ingen-behorighet/);

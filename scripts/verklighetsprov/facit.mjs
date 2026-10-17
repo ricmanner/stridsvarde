@@ -192,11 +192,11 @@ export function befalsvy(plan, under, period, dag = DAGAR) {
   const jamforelse = rader.map((r) => {
     const namn = r.direkt ? `${r.namn} utan ${ental}` : r.namn;
     if (!r.syns) {
-      return [namn, `${r.svarande}/${r.antal}`, r.antal === 0 ? 'Inga värnpliktiga placerade här ännu' : 'Underlag saknas — för få svar för att visa något'];
+      return [namn, r.svarsandel, r.antal === 0 ? 'Inga värnpliktiga placerade här ännu' : 'Underlag saknas — för få svar för att visa något'];
     }
     return [
       namn,
-      `${r.svarande}/${r.antal}`,
+      r.svarsandel,
       ...(visaIRott ? [`${r.roda} av ${r.svarande}`] : []),
       formatScore(r.samlat),
       ...KATEGORIER.map((k) => formatScore(r.kat[k.key])),
@@ -222,10 +222,11 @@ export function befalsvy(plan, under, period, dag = DAGAR) {
     },
     kategorier: kategorier?.map((k) => [k.kategori, k.snitt, k.status, k.forandringRapport, k.iRott]) ?? null,
     underenheter: rader.map((r) => {
-      if (!r.syns) return [r.namn, `${r.svarande}/${r.antal}`, r.antal === 0 ? 'Inga värnpliktiga placerade här ännu' : 'Underlag saknas'];
+      const andel = r.svarsandel === '–' ? '—' : r.svarsandel;
+      if (!r.syns) return [r.namn, andel, r.antal === 0 ? 'Inga värnpliktiga placerade här ännu' : 'Underlag saknas'];
       return [
         r.namn,
-        `${r.svarande}/${r.antal}`,
+        andel,
         ...(visaIRott ? [r.roda === null ? '—' : `${r.roda} av ${r.svarande}`] : []),
         formatScore(r.samlat),
         ...KATEGORIER.map((k) => formatScore(r.kat[k.key])),
@@ -256,12 +257,14 @@ export function befalsvy(plan, under, period, dag = DAGAR) {
 }
 
 function underenhet(plan, personer, fran, dag) {
-  const s = sammanstall(rapporter(plan, personer, fran, dag));
+  const rader = rapporter(plan, personer, fran, dag);
+  const s = sammanstall(rader);
   const farger = { GRÖN: 0, GUL: 0, RÖD: 0 };
   for (const p of s.perPerson) farger[status(p.samlat)] += 1;
   return {
     antal: personer.length,
     svarande: s.svarande,
+    svarsandel: personer.length ? procent(Math.round((rader.length / (personer.length * (dag - fran + 1))) * 100)) : '–',
     syns: s.svarande >= K,
     kat: s.kat,
     samlat: s.samlat,

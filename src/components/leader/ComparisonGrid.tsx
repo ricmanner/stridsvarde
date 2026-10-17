@@ -4,7 +4,7 @@ import { CELL_TINT } from '@/components/charts/chart-theme';
 import StatusBandLegend from '@/components/charts/StatusBandLegend';
 import type { ChildUnitSummary } from '@/lib/db/queries/aggregates';
 import { CATEGORIES, getStatus, statusLabel } from '@/lib/data';
-import { formatScore } from '@/lib/format';
+import { formatScore, procent } from '@/lib/format';
 
 /**
  * Underenheter som rader, kategorier som kolumner, varje ruta tonad efter status.
@@ -53,7 +53,9 @@ export default function ComparisonGrid({
           <thead>
             <tr className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
               <th className="whitespace-nowrap px-4 py-2.5 align-bottom font-bold">Enhet</th>
-              <th className="whitespace-nowrap px-2 py-2.5 text-center align-bottom font-bold">Svarade</th>
+              {/* Svarsandel, inte "8/8": det räknade personer som svarat minst en
+                  gång och lästes som full svarsfrekvens (17 oktober). */}
+              <th className="whitespace-nowrap px-2 py-2.5 text-center align-bottom font-bold">Svarsandel</th>
               {/* "I rött" bredvid "Svarade": två personantal ihop, och snittet
                   direkt före kategorierna det sammanfattar (variant A, 17
                   oktober). Stod förut mellan snittet och kategorierna. */}
@@ -86,7 +88,7 @@ export default function ComparisonGrid({
                   )}
                 </td>
                 <td className="whitespace-nowrap border-t border-slate-100 px-2 py-2 text-center text-xs tabular-nums text-slate-500">
-                  {child.responders}/{child.eligible}
+                  {child.svarsandel === null ? '–' : procent(child.svarsandel)}
                 </td>
                 {child.scores === null || child.overall === null ? (
                   <td colSpan={CATEGORIES.length + (visaIRott ? 2 : 1)} className="border-t border-slate-100 px-4 py-2 text-center text-xs text-slate-500">
