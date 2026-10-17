@@ -62,12 +62,9 @@ export default async function LeaderPageShell({
       <AppHeader unit={session.unitName} label={session.label} role={session.role} />
       <NotificationBanner userId={session.id} />
       <main id="innehall" className="flex flex-1 flex-col">
-        {/* Sidans rubrik i strukturen. På skärmen står samma sak i
-            sammanfattningsraden och i sidhuvudet. */}
-        <h1 className="sr-only">
-          {levelLabel} — {session.unitName}
-        </h1>
+        {/* Sidans rubrik (h1) är enhetens namn, överst i LeaderDashboard. */}
         <LeaderDashboard
+          unitName={session.unitName}
           levelLabel={levelLabel}
           childLabel={childLabel}
           childKind={childKind}

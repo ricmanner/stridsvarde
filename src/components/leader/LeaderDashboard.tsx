@@ -25,7 +25,7 @@ import {
 import type { ChildComparison, Kategorilage, SeriesPoint, UnitOverview } from '@/lib/db/queries/aggregates';
 import { ALLOWED_PERIODS, type Guarded, type Period } from '@/lib/privacy';
 import { ordformer, type ChildKind } from '@/lib/unit-names';
-import { formatScore, procent, uppräkningSamt } from '@/lib/format';
+import { antal, formatScore, procent, uppräkningSamt } from '@/lib/format';
 
 /** Rangordningen under Jämförelse. Gömd den 16 oktober, se där. */
 const VISA_RANGORDNING = false;
@@ -46,6 +46,8 @@ const FLIKAR = [
 ] as const;
 
 export interface LeaderDashboardProps {
+  /** Enhetens namn, ur sessionen: "1. pluton". Sidans titel. */
+  unitName: string;
   levelLabel: string;
   /** Underenheterna i plural, för rubriker: "plutoner". */
   childLabel: string;
@@ -71,7 +73,7 @@ export interface LeaderDashboardProps {
  * grupper, kompanichefen plutoner, bataljonschefen kompanier, med samma kod.
  */
 export default function LeaderDashboard({
-  levelLabel, childLabel, childKind, period, overview, series, comparison, lage, advice, vecka,
+  unitName, levelLabel, childLabel, childKind, period, overview, series, comparison, lage, advice, vecka,
 }: LeaderDashboardProps) {
   const pathname = usePathname();
   const [tab, setTab] = useState<'overview' | 'trends' | 'compare'>('overview');
@@ -98,12 +100,20 @@ export default function LeaderDashboard({
           varje flik och räknade om talen ovanför sig — se testet i
           tests/tillganglighet.test.mjs.
         */}
-        <div className="mx-auto mb-3 flex max-w-5xl items-center justify-between gap-3">
-          <p className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
-            {levelLabel}
-            {/* Väljaren skrivs inte ut, så på papper står perioden i text. */}
-            <span className="hidden print:inline"> · {period} dagar</span>
-          </p>
+        {/*
+          Sidans titel: enhetens namn, och nivån med antalet under (paket 1,
+          17 oktober). Förut stod enheten bara litet i sidhuvudet och nivån
+          som en versal etikett. I telefonen hamnar perioden på egen rad.
+        */}
+        <div className="mx-auto mb-3 flex max-w-5xl flex-wrap items-end justify-between gap-x-3 gap-y-3">
+          <div className="basis-full sm:basis-auto">
+            <h1 className="text-xl font-bold leading-tight text-slate-900">{unitName}</h1>
+            <p className="mt-0.5 text-sm text-slate-500">
+              {levelLabel} · {antal(overview.eligible, 'värnpliktig', 'värnpliktiga')}
+              {/* Väljaren skrivs inte ut, så på papper står perioden i text. */}
+              <span className="hidden print:inline"> · {period} dagar</span>
+            </p>
+          </div>
           <div className="no-print flex items-center gap-2">
             <span aria-hidden className="text-etikett font-bold uppercase tracking-[0.08em] text-slate-500">
               Period

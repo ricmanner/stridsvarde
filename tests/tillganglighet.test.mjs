@@ -29,15 +29,20 @@ function sidor(dir) {
   });
 }
 
-/** Sidan själv, plus komponenten den överlämnar hela innehållet till. */
-function kodFor(fil) {
+/**
+ * Sidan själv, plus komponenterna den överlämnar innehållet till — två nivåer
+ * ned. Befälssidorna går via LeaderPageShell till LeaderDashboard, där
+ * sidans rubrik står sedan den blev synlig (17 oktober).
+ */
+function kodFor(fil, djup = 2) {
   let kod = readFileSync(fil, 'utf8');
+  if (djup === 0) return kod;
   const skal = kod.match(/from '@\/components\/([\w/]+)'/g) ?? [];
   for (const rad of skal) {
     const namn = rad.match(/from '@\/components\/([\w/]+)'/)[1];
     const p = path.join(KOMPONENTER, `${namn}.tsx`);
     try {
-      kod += readFileSync(p, 'utf8');
+      kod += kodFor(p, djup - 1);
     } catch {
       /* komponenten finns inte som .tsx — hoppa över */
     }

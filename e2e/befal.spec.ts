@@ -183,6 +183,12 @@ test.describe('plutonchefen', () => {
     expect(text).not.toContain('gröna värnpliktiga');
     expect(text).not.toContain('grön/gul/röd');
   });
+
+  test('sidan har en synlig titel med enhetens namn', async ({ page }) => {
+    // Paket 1, 17 oktober: förut stod enheten bara litet i sidhuvudet.
+    await expect(page.getByRole('heading', { level: 1, name: '1. pluton' })).toBeVisible();
+    await expect(page.getByText(/Plutonsnivå · \d+ värnpliktiga/)).toBeVisible();
+  });
 });
 
 test('kompani- och bataljonschefen ser sina egna nivåer', async ({ page }) => {
