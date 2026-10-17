@@ -7,7 +7,9 @@ Senast uppdaterad: 17 oktober 2026.
 
 ## Läget
 
-**Pushat den 17 oktober** (Richard sa "pusha"): sex rättningar ur
+**Pushat den 17 oktober** (Richard sa "pusha"), GitHubs körning grön för
+`9d787d4`. **Därefter committat men inte pushat:** väg B, se "Paket 1".
+Pushat: sex rättningar ur
 granskningen av befälsvyn (16 oktober, kväll), borttagningarna och paket 1
 (17 oktober); se "Granskningen av befälsvyn" och "Paket 1" nedan. 257
 enhetstester och 55 webbläsartester gröna lokalt före pushen. Kontrollera
@@ -114,6 +116,23 @@ skulle bort helt. Byggt, en commit per punkt:
 | `8b66e1f` | Rubrikstil A: mörk, halvfet, vanlig skrift (`text-sm`); versaler bara för etiketter | `git revert --no-edit 8b66e1f` |
 | `3a2350e` | Befälsrådet utan gul prick och "Baserat på enhetens egna värden" | `git revert --no-edit 3a2350e` |
 | `2757021` | Kolumnen "I rött" göms när den bara har streck (plutonchefen i demon); kvar hos kompani- och bataljonschefen | `git revert --no-edit 2757021` |
+
+**Väg B (17 oktober, efter pushen):** att gömma nyckeltalen utanför
+Översikt (`0c91006`) fick flikraden att hoppa 100–200 px vid varje byte.
+Richard såg det på den driftsatta demon. Nu står flikarna direkt under
+titeln, och nyckeltalen är det första i Översikt (`15c3c3d`). Uppräkningen
+körs bara första gången (`animera` i `RaknaUpp`). Ett webbläsartest mäter
+att flikraden står still i 1280 och 390 px. Före och efter:
+`.playwright-mcp/vag-b/index.html` (lokalt). **Ångra:** `git revert
+--no-edit 15c3c3d` ger tillbaka hoppet; `git revert --no-edit 15c3c3d
+0c91006` ger nyckeltalen ovanför flikarna på alla flikar igen.
+
+**Väg C, inte byggd — fråga befälen på mötet först:** en sida utan flikar
+i befälets ordning: läget (nyckeltal och befälsråd), var det sitter
+(jämförelsetabellen med en rad för hela enheten överst, i stället för
+kategoritabellen), åt vilket håll, och graferna under "Visa utveckling".
+Inget göms bakom ett klick, men det river beslutet från 16 oktober om en
+fråga per flik. En halv till en hel dag; skissas först.
 
 **Alla nio sedan förra genomgången ångrade på en gång** (paket 1 plus
 `ce6cf7f` och `82026df`): `git revert --no-edit 2757021 3a2350e 8b66e1f
