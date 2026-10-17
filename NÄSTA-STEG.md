@@ -3,16 +3,18 @@
 Kort överlämning mellan arbetspass. `README.md` beskriver appen, `CLAUDE.md`
 reglerna som styr arbetet — den här filen säger bara **var vi står just nu**.
 
-Senast uppdaterad: 16 oktober 2026, kväll.
+Senast uppdaterad: 17 oktober 2026.
 
 ## Läget
 
 **Committat men inte pushat:** sex rättningar ur granskningen av befälsvyn
-(16 oktober, kväll; se "Granskningen av befälsvyn" nedan). 256 enhetstester
-och 51 webbläsartester är gröna, och rundturen gick igenom mot ett lokalt
-bygge. Före och efter: `.playwright-mcp/granskning-befalsvy/index.html`
-(lokalt). **Pusha först när Richard sagt till.** Demon på
-<https://fm-psvi-v2.vercel.app> kör allt till och med `263ac1a`.
+(16 oktober, kväll), två borttagningar och paket 1 (17 oktober); se
+"Granskningen av befälsvyn" och "Paket 1" nedan. 256 enhetstester och 55
+webbläsartester är gröna. Före och efter, lokalt:
+`.playwright-mcp/granskning-befalsvy/index.html` och
+`.playwright-mcp/skiss-paket1/byggt.html`. **Pusha först när Richard sagt
+till.** Demon på <https://fm-psvi-v2.vercel.app> kör allt till och med
+`263ac1a`.
 
 **Inget arbete pågår.** Inget ligger ocommittat.
 
@@ -86,9 +88,43 @@ missbruk ("checka in nu") eller någon som checkar in ensam vid en udda tid.
 Skulle det behövas: låt befälsvyn räkna bara på avslutade dagar, till och
 med igår (cirka 2 h).
 
-**Fråga till fysioterapeuterna:** befälsrådet säger "genomför enskilda
-samtal inom 48 timmar" när flera kategorier är röda, men befälet vet inte
-vem som ligger i rött. Menas samtal med alla? (`src/lib/advice.ts`)
+**Borttaget den 17 oktober (Richard):** meningen "Med flera kategorier i
+rött: genomför enskilda samtal inom 48 timmar" i befälsrådet (`82026df`),
+och raden under jämförelsetabellen som förklarade strecken i "I rött"
+(`ce6cf7f`). Kvar och oavgjort: rådet för psykiskt mående säger
+"genomför enskilda samtal och påminn om vilket stöd som finns", med samma
+problem — befälet vet inte vem. Rapporten har kvar sin förklaringsrad om
+den dolda gruppen och raden om preliminära gränser.
+
+### Paket 1: städningen av befälsvyn (17 oktober)
+
+Ur en UX-genomgång av alla flikar: vyn kändes rörig för att samma sak sades
+flera gånger, alla rubriker var grå versaler som etiketterna, och status
+visades på fem sätt. Skissat (`.playwright-mcp/skiss-paket1/index.html`),
+Richard valde rubrikstil A och att raderna om preliminära gränser och råd
+skulle bort helt. Byggt, en commit per punkt:
+
+| Commit | Vad | Ångra |
+|---|---|---|
+| `89182c5` | "Gränserna … är preliminära" och "Råden är preliminära" borta från skärmen (rapporten har kvar sin rad) | `git revert --no-edit 89182c5` |
+| `5fe765b` | "Senaste veckan" bara i rapporten: på skärmen stod två perioder på samma flik | `VISA_VECKAN = true` i `LeaderDashboard.tsx` |
+| `879e323` | Synlig titel: "1. pluton", "Plutonsnivå · 27 värnpliktiga" under; perioden på egen rad i telefon | `git revert --no-edit 879e323` |
+| `0c91006` | Nyckeltalen bara på Översikt. Göms, tas inte bort, så att uppräkningen inte körs igen vid flikbyte | `git revert --no-edit 0c91006` |
+| `8b66e1f` | Rubrikstil A: mörk, halvfet, vanlig skrift (`text-sm`); versaler bara för etiketter | `git revert --no-edit 8b66e1f` |
+| `3a2350e` | Befälsrådet utan gul prick och "Baserat på enhetens egna värden" | `git revert --no-edit 3a2350e` |
+| `2757021` | Kolumnen "I rött" göms när den bara har streck (plutonchefen i demon); kvar hos kompani- och bataljonschefen | `git revert --no-edit 2757021` |
+
+**Alla nio sedan förra genomgången ångrade på en gång** (paket 1 plus
+`ce6cf7f` och `82026df`): `git revert --no-edit 2757021 3a2350e 8b66e1f
+0c91006 879e323 5fe765b 89182c5 ce6cf7f 82026df`. Prövat på en egen gren:
+`src`, testerna och e2e identiska med `e0bd972`, 256 tester gröna.
+
+**Kvar ur UX-genomgången, inte byggt:** Trender är 2 700 px lång i
+telefonen (åtta grafer under varandra; paket 2, skissas först); skalan
+1–4–7–10 under varje kategori i telefonen; första kolumnen i jämförelsen
+följer inte med när man rullar åt höger; integritetsraden och exporten
+upprepas i varje flik; och i demon har 3. pluton i 1. kompani 7,4 i alla
+åtta kategorier (`demo-forlopp.ts`, kräver "Återställ demon").
 
 ### Nästa uppgift
 
