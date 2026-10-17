@@ -19,8 +19,9 @@ export const dynamic = 'force-dynamic';
 
 const HISTORY_DAYS = 14;
 
-export default async function SoldatDashboardPage() {
+export default async function SoldatDashboardPage(props: { searchParams: Promise<{ skickad?: string }> }) {
   const session = await requireRole('soldat');
+  const { skickad } = await props.searchParams;
 
   const today = await getTodayCheckIn(session.id);
   if (!today) redirect('/soldat');
@@ -68,6 +69,11 @@ export default async function SoldatDashboardPage() {
           advice={today.advice ?? generateSoldierAdvice(scores)}
           chartData={chartData}
           freq={freq}
+          kvitto={
+            // Direkt efter inskickningen: datum och klockslag, formaterade här
+            // i svensk tid av samma skäl som samtalsbegäran nedan.
+            skickad === '1' ? `${longDateLabel(serviceDate())} kl. ${klockslagLabel(new Date().toISOString())}` : null
+          }
           begaranSkickad={
             /*
              * Formateras här, på servern. En klientkomponent formaterar i

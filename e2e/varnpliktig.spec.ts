@@ -63,6 +63,11 @@ test('rapporterar sitt mående och får återkoppling', async ({ page }) => {
   await tillSammanfattningen(page);
 
   await skickaIncheckning(page);
+  // Kvitto överst: en bock och "Rapporten är mottagen" med klockslag
+  // (Richard, 17 oktober). Bara direkt efter inskickningen, inte vid omladdning.
+  const kvitto = page.getByRole('status').filter({ hasText: 'Rapporten är mottagen' });
+  await expect(kvitto).toBeVisible();
+  await expect(kvitto).toContainText(/kl\. \d{2}[.:]\d{2}/);
   const text = await synligText(page);
   expect(text).toContain('samlat mående idag');
   // Ett ord för hur ofta man svarat, inget omdöme om det (17 oktober):
@@ -72,6 +77,10 @@ test('rapporterar sitt mående och får återkoppling', async ({ page }) => {
   const historik = await synligText(page);
   expect(historik).toContain('dina svar');
   expect(historik).not.toContain('närvaro');
+
+  await page.reload();
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByText('Rapporten är mottagen')).toHaveCount(0);
 });
 
 test('startsidan lovar ingen tid', async ({ page }) => {

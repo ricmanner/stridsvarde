@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import CategoryIcon from '@/components/CategoryIcon';
@@ -24,6 +24,8 @@ export interface DashboardProps {
   freq: { checkedIn: number; total: number; pct: number };
   /** När en öppen samtalsbegäran skickades, färdigformaterat av servern. */
   begaranSkickad: string | null;
+  /** Datum och klockslag när rapporten nyss skickats, annars null. */
+  kvitto: string | null;
 }
 
 const FLIKAR = [
@@ -35,7 +37,7 @@ const FLIKAR = [
 const NYCKELTALSETIKETT = 'mb-0.5 text-etikett font-bold uppercase tracking-[0.06em] text-slate-500';
 
 /** Behörigheten kontrolleras på servern i page.tsx innan detta renderas. */
-export default function SoldatDashboard({ scores, advice, chartData, freq, begaranSkickad }: DashboardProps) {
+export default function SoldatDashboard({ scores, advice, chartData, freq, begaranSkickad, kvitto }: DashboardProps) {
   const [tab, setTab] = useState<'overview' | 'history'>('overview');
 
   const overall = avgScore(scores);
@@ -87,6 +89,7 @@ export default function SoldatDashboard({ scores, advice, chartData, freq, begar
 
         {tab === 'overview' && (
           <Panel id="overview">
+            {kvitto && <Kvitto tid={kvitto} />}
             {redCategories.length > 0 && <SupportBlock red={redCategories} begaranSkickad={begaranSkickad} />}
 
             {/* Dagens två nyckeltal */}
@@ -351,5 +354,43 @@ function SectionHeader({ label }: { label: string }) {
     <h2 className="mb-2 text-etikett font-bold uppercase tracking-[0.1em] text-balance text-slate-500">
       {label}
     </h2>
+  );
+}
+
+/**
+ * Kvittot efter inskickningen: en rund bock som ritas fram, och när
+ * rapporten togs emot (Richard, 17 oktober, efter externa granskare som
+ * saknade en tydlig bekräftelse).
+ *
+ * Marinblå, inte grön: grönt betyder bra mående i appen, och den som just
+ * rapporterat dåliga värden ska inte mötas av en grön bock. Rörelsen ligger
+ * i globals.css ("Kvittot") och stängs av för den som valt minska rörelse.
+ *
+ * Bara direkt efter inskickningen. Adressens ?skickad=1 tas bort när
+ * kvittot visats, så att en omladdning inte visar det igen.
+ */
+function Kvitto({ tid }: { tid: string }) {
+  useEffect(() => {
+    window.history.replaceState(null, '', window.location.pathname);
+  }, []);
+  return (
+    <div role="status" className="psvi-kvitto mb-4 flex items-center gap-3.5 rounded-md border border-slate-200 bg-white px-4 py-3.5">
+      <svg viewBox="0 0 40 40" className="size-10 shrink-0" aria-hidden>
+        <circle className="psvi-kvitto-cirkel" cx="20" cy="20" r="20" fill="#0F172A" />
+        <path
+          className="psvi-kvitto-bock"
+          d="M12 20.5l5.5 5.5L28.5 15"
+          fill="none"
+          stroke="#fff"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <div>
+        <p className="text-sm font-semibold text-slate-900">Rapporten är mottagen</p>
+        <p className="text-xs text-slate-500">{tid.charAt(0).toUpperCase() + tid.slice(1)}</p>
+      </div>
+    </div>
   );
 }

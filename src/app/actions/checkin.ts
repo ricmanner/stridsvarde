@@ -104,5 +104,6 @@ export async function submitCheckIn(
     }
   });
 
-  redirect('/soldat/dashboard');
+  // ?skickad=1: översikten visar kvittot en gång (Kvitto i DashboardClient).
+  redirect('/soldat/dashboard?skickad=1');
 }

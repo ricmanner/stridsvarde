@@ -261,3 +261,36 @@ input.code-input {
   body { background: white; }
   @page { margin: 16mm; }
 }
+
+/*
+  Kvittot efter inskickningen (Richard, 17 oktober): cirkeln växer fram och
+  bocken ritas. Kort och lugnt, en gång. Den som valt "minska rörelse" ser
+  kvittot färdigt direkt. Ta bort blocket för att stänga av rörelsen; inget
+  annat beror på det.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  .psvi-kvitto-cirkel {
+    transform-origin: 20px 20px;
+    animation: psvi-kvitto-cirkel 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .psvi-kvitto-bock {
+    stroke-dasharray: 26;
+    stroke-dashoffset: 26;
+    animation: psvi-kvitto-bock 380ms ease-out 220ms forwards;
+  }
+}
+@keyframes psvi-kvitto-cirkel {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes psvi-kvitto-bock {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
