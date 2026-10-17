@@ -45,6 +45,22 @@ const csp = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
+  /*
+   * Ingen mellanlagring av Turbopacks arbete mellan byggen.
+   *
+   * Den 17 oktober byggde Vercel kvittots stilregler bort: bygget återställde
+   * mellanlagringen från förra driftsättningen, kompilerade på 2,6 sekunder
+   * och skickade ut en stilmall utan blocket "Kvittot" i globals.css — medan
+   * sidan i övrigt var ny. Bocken syntes men rörde sig inte. Lokalt gick felet
+   * inte att framkalla, inte heller i en ren kopia byggd ovanpå förra
+   * versionens mellanlagring. Utan mellanlagring bygger Vercel alltid från
+   * början; det tar några sekunder längre. Se också CLAUDE.md om gamla
+   * stilmallar i det lokala bygget.
+   */
+  experimental: {
+    turbopackFileSystemCacheForBuild: false,
+  },
+
   /**
    * Säkerhetsrubriker på varje svar.
    *
