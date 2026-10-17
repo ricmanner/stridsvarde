@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { AlertTriangle, ArrowLeft } from 'lucide-react';
 
 import PrintButton from '@/app/rapport/PrintButton';
 import Veckosammanfattning from '@/components/leader/Veckosammanfattning';
@@ -30,9 +30,13 @@ export const dynamic = 'force-dynamic';
 const VISA_VECKAN = false;
 
 /**
- * Hur ett rött värde syns i underenhetstabellen. 'text': fet röd text med ▲,
- * syns också i en svartvit utskrift. 'tonade': tonade rutor som på skärmen,
- * tvingade att skrivas ut i färg. TILLFÄLLIG — Richard väljer (17 oktober).
+ * Hur ett rött värde syns i underenhetstabellen. Båda har varningstriangeln
+ * från skärmen, som syns också i en svartvit utskrift. 'text': fet röd text,
+ * ingen bakgrund. 'tonade': tonade rutor som på skärmen, tvingade att skrivas
+ * ut i färg. TILLFÄLLIG — Richard väljer (17 oktober).
+ *
+ * Först stod ▲ framför de röda talen. Richard: det ser ut som att värdet gått
+ * upp, inte som en varning.
  */
 const RODA_RUTOR: 'text' | 'tonade' = 'text';
 
@@ -256,8 +260,10 @@ export default async function RapportPage({
                 <th className="px-1 py-1.5 text-right align-bottom font-bold">Svarande</th>
                 <th className="px-1 py-1.5 text-right align-bottom font-bold">Snitt</th>
                 {visaIRott && <th className="px-1 py-1.5 text-right align-bottom font-bold">I rött</th>}
+                {/* Lika breda, som i jämförelsen på skärmen: annars blev SÖMN
+                    smal och varningstriangeln bröts ovanför talet. */}
                 {CATEGORIES.map((k) => (
-                  <th key={k.key} className="px-1 py-1.5 text-right align-bottom font-bold">
+                  <th key={k.key} className="w-16 px-1 py-1.5 text-right align-bottom font-bold">
                     {k.label}
                   </th>
                 ))}
@@ -293,8 +299,8 @@ export default async function RapportPage({
           </table>
           <p className="mt-1.5 text-xs text-slate-500">
             {RODA_RUTOR === 'text'
-              ? '▲ och fet röd text: under 4. Snitten är räknade på alla svar under perioden.'
-              : 'Röd ruta: under 4. Gul: 4–6,9. Grön: från 7.'}
+              ? 'Varningstriangel och fet röd text: under 4.'
+              : 'Varningstriangel och röd ruta: under 4. Gul: 4–6,9. Grön: från 7.'}
           </p>
         </section>
       )}
@@ -361,9 +367,10 @@ function Varde({ v, fet = false }: { v: number; fet?: boolean }) {
     return (
       <td className="px-0.5 py-1">
         <span
-          className={`block rounded px-1 py-1 text-right tabular-nums text-slate-900 ${fet ? 'font-bold' : ''}`}
+          className={`block whitespace-nowrap rounded px-1 py-1 text-right tabular-nums text-slate-900 ${fet ? 'font-bold' : ''}`}
           style={{ background: CELL_TINT[status], printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}
         >
+          {status === 'red' && <Varning />}
           {formatScore(v)}
         </span>
       </td>
@@ -375,13 +382,18 @@ function Varde({ v, fet = false }: { v: number; fet?: boolean }) {
         status === 'red' ? 'font-bold text-red-700' : fet ? 'font-bold text-slate-900' : 'text-slate-700'
       }`}
     >
-      {status === 'red' && (
-        <>
-          <span aria-hidden>▲ </span>
-          <span className="sr-only">röd: </span>
-        </>
-      )}
+      {status === 'red' && <Varning />}
       {formatScore(v)}
     </td>
+  );
+}
+
+/** Varningstriangeln från jämförelsen på skärmen, framför ett rött värde. */
+function Varning() {
+  return (
+    <>
+      <AlertTriangle size={11} className="mr-1 inline-block -translate-y-px text-red-700" aria-hidden />
+      <span className="sr-only">röd: </span>
+    </>
   );
 }
