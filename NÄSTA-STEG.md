@@ -185,6 +185,13 @@ frågan och skalan är desamma. Fysioterapeuterna bör få höra om namnet.
 Mötesunderlaget säger troligen fortfarande "Hälsa". **Ångra:** `git revert
 --no-edit b8f06e4`.
 
+**"I rött" bredvid "Svarade", tydligare snitt (17 oktober, `03450db`, inte
+pushat).** I jämförelsen och rapportens tabell: Enhet | Svarade | I rött |
+Snitt | kategorierna. Personantalen står ihop, och snittet står direkt före
+kategorierna, en storlek större med en linje mot dem. Richard valde variant
+A ur en skiss (`.playwright-mcp/skiss-irott/`); B var "I rött" sist.
+**Ångra:** `git revert --no-edit 03450db`.
+
 **Beslut, föreslå inte om:** den grå linjen i Jämförelse heter "Hela
 enheten", inte "Hela kompaniet/plutonen", och jämför mot hela enheten,
 inte mot "de andra" (Richard, 17 oktober). Den är enhetens dagliga snitt
