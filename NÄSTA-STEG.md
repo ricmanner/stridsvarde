@@ -177,6 +177,14 @@ oktober): "en AI eller text bör inte berätta för ett befäl vad han eller
 hon ska göra". Tills vidare. **Också gömt på skärmen** samma dag
 (`VISA_BEFALSRAD = false` i `src/lib/advice.ts`); `true` tar fram det igen.
 
+**"Hälsa" heter "Friskhet" (17 oktober, `b8f06e4`, inte pushat).** Richard:
+hälsa kan betyda flera saker — en bruten fot eller psykisk ohälsa är också
+hälsa. "Sjukdom" valdes bort: skalan går mot frisk, så "Sjukdom 9,2" i grönt
+hade lästs som mycket sjuk. Bara namnet; nyckeln och kolumnen heter `halsa`,
+frågan och skalan är desamma. Fysioterapeuterna bör få höra om namnet.
+Mötesunderlaget säger troligen fortfarande "Hälsa". **Ångra:** `git revert
+--no-edit b8f06e4`.
+
 **Beslut, föreslå inte om:** den grå linjen i Jämförelse heter "Hela
 enheten", inte "Hela kompaniet/plutonen", och jämför mot hela enheten,
 inte mot "de andra" (Richard, 17 oktober). Den är enhetens dagliga snitt
