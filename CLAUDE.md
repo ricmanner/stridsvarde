@@ -205,6 +205,7 @@ npm test && npm run typecheck && npx eslint src tests scripts e2e && npm run bui
 lsof -ti:3100 | xargs kill   # en server som ligger kvar ger gamla resultat
 npm run e2e         # 47 tester i webbläsare, inklusive tillgänglighet (axe)
 npm run rundtur     # klickar igenom appen som alla fem demokonton
+npm run verklighetsprov  # 14 dagar med ett kompani på riktigt, ~10 min, före större visningar
 ```
 
 ### Driftsättning

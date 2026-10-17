@@ -203,6 +203,46 @@ telefonen (åtta grafer under varandra; paket 2, skissas först); skalan
 följer inte med när man rullar åt höger; integritetsraden och exporten
 upprepas i varje flik; (de platta plutonerna i demon är lösta, se ovan).
 
+### Verklighetsprovet (17 oktober, `5ff2dad`, inte pushat)
+
+`npm run verklighetsprov` — ett kompani som använder appen på riktigt i
+fjorton dagar, mot en tom lokal installation i pilotläge. Allt genom
+webbläsaren: administratören bygger två kompanier, fem plutoner och
+femton grupper och delar ut 89 koder; de värnpliktiga checkar in dag för
+dag enligt en fast svarsplan; alla åtta befäl loggar in, och varje tal i
+översikt, trender, jämförelse, rapport och CSV jämförs mot facit för 7,
+14 och 21 dagar. Facit räknas ur svarsplanen utan appens kod
+(`scripts/verklighetsprov/facit.mjs`). Tar ungefär tio minuter.
+
+**Resultat:** 7 313 kontroller och 17 753 enskilda värden, **0 fel**.
+Provet är känsligt nog: i en körning där fyra incheckningar saknades hittade
+det skillnader på en tiondel. Resultatsidan:
+`.playwright-mcp/verklighetsprov/index.html` (lokalt).
+
+**Ett fynd att hålla ögonen på:** i den första hela körningen föll fyra
+incheckningar dag 6 — appens felsida efter "Bekräfta och skicka", och
+svaren sparades inte. Det var de fyra första samtidiga incheckningarna,
+under en sekund efter att administratören flyttat en person. Ingenting i
+serverns fellogg. Gick inte att framkalla igen: två omkörningar till dag 6
+med 4 samtidiga, och tre dagar med 16 samtidiga, gav 0 fel. Kan vara
+provets miljö (servern nystartad) eller ett sällsynt fel i appen. Kör provet
+igen före skarp drift; dyker det upp, felsök med `PROV_TILL_DAG=6`.
+
+**Det enda som inte är som på riktigt** är datumet: servern startas om varje
+dag med en framflyttad klocka (`klocka.mjs`, laddas med `node --import`, appen
+orörd), och webbläsaren får samma datum. Klockan måste ge Date.UTC och
+Date.parse egna exemplar — Next lindar in Date och tappade de ärvda.
+Datumen ligger i november 2026, efter den verkliga dagen, eftersom
+sessionskakan annars redan gått ut i webbläsaren. **Ändras årtalet:** flytta
+`FORSTA_DAGEN` i `plan.mjs` framåt.
+
+Inställningar: `PROV_TILL_DAG=n` stannar efter dag n utan befälens kontroll,
+`PROV_SAMTIDIGA=n` ändrar antalet samtidiga incheckningar (4).
+`node scripts/verklighetsprov/prov.mjs --sidan` skriver om resultatsidan.
+
+**Inte gjort ur planen:** den korta bekräftelsen på den driftsatta demon
+med ett eget litet kompani. Den kräver "Återställ demon" efteråt.
+
 ### Nästa uppgift
 
 1. **Efter mötet den 19 oktober:** skriv ner vad cheferna sa, med vem som
